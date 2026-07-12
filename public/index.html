@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Pembayaran - SD Negeri 1 Selpuro</title>
+    <meta name="description" content="Sistem Pembayaran LKS, Aktivitas Siswa & Iuran SD Negeri 1 Selpuro">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SDN1 Selpuro">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏫</text></svg>">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<!-- ==================== LOGIN PAGE ==================== -->
+<div id="loginPage" class="login-page">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="school-logo">
+                    <i class="fas fa-school"></i>
+                </div>
+                <h1>SD Negeri 1 Selpuro</h1>
+                <p>Sistem Pembayaran Digital</p>
+            </div>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn-login">
+                    <i class="fas fa-sign-in-alt"></i> Masuk
+                </button>
+                <p class="login-hint" id="loginError"></p>
+            </form>
+            <div class="login-footer">
+                <p>Default: admin / admin123</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MAIN APP ==================== -->
+<div id="mainApp" class="main-app hidden">
+    <!-- SIDEBAR -->
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-school"></i>
+            </div>
+            <h2>SDN 1 Selpuro</h2>
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="active" onclick="showPage('dashboard')">
+                <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
+            </li>
+            <li onclick="showPage('siswa')">
+                <i class="fas fa-users"></i><span>Data Siswa</span>
+            </li>
+            <li onclick="showPage('pembayaran')">
+                <i class="fas fa-money-bill-wave"></i><span>Jenis Pembayaran</span>
+            </li>
+            <li onclick="showPage('transaksi')">
+                <i class="fas fa-file-invoice-dollar"></i><span>Transaksi</span>
+            </li>
+            <li onclick="showPage('storbendahara')">
+                <i class="fas fa-university"></i><span>Stor ke Bendahara</span>
+            </li>
+            <li onclick="showPage('laporan')">
+                <i class="fas fa-chart-bar"></i><span>Laporan</span>
+            </li>
+            <li onclick="showPage('whatsapp')">
+                <i class="fab fa-whatsapp"></i><span>Kirim WhatsApp</span>
+            </li>
+            <li onclick="showPage('pengaturan')">
+                <i class="fas fa-cog"></i><span>Pengaturan</span>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <button class="btn-logout" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i><span>Keluar</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- TOP BAR -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <button class="menu-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h3 id="pageTitle">Dashboard</h3>
+            </div>
+            <div class="topbar-right">
+                <button class="btn btn-sm btn-success" onclick="showInstallModal()" title="Install Aplikasi" style="margin-right:8px;">
+                    <i class="fas fa-download"></i> <span class="btn-text-desktop">Install</span>
+                </button>
+                <span id="currentUser" class="user-badge">
+                    <i class="fas fa-user"></i> Admin
+                </span>
+                <span class="date-badge" id="currentDate"></span>
+            </div>
+        </div>
+
+        <!-- ========== DASHBOARD ========== -->
+        <div id="pageDashboard" class="page active">
+            <div class="stats-grid">
+                <div class="stat-card blue">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-info">
+                        <h3 id="totalSiswa">0</h3>
+                        <p>Total Siswa</p>
+                    </div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-info">
+                        <h3 id="totalLunas">0</h3>
+                        <p>Sudah Bayar</p>
+                    </div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="stat-icon"><i class="fas fa-exclamation-circle"></i></div>
+                    <div class="stat-info">
+                        <h3 id="totalBelumBayar">0</h3>
+                        <p>Belum Bayar</p>
+                    </div>
+                </div>
+                <div class="stat-card red">
+                    <div class="stat-icon"><i class="fas fa-coins"></i></div>
+                    <div class="stat-info">
+                        <h3 id="totalPemasukan">Rp 0</h3>
+                        <p>Total Pemasukan</p>
+                    </div>
+                </div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-history"></i> Transaksi Terakhir</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="data-table" id="recentTransactionsTable">
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Siswa</th>
+                                    <th>Jenis</th>
+                                    <th>Jumlah</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentTransactionsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-chart-pie"></i> Ringkasan Pembayaran</h4>
+                    </div>
+                    <div class="card-body summary-list" id="summaryList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== DATA SISWA ========== -->
+        <div id="pageSiswa" class="page">
+            <div class="page-actions">
+                <button class="btn btn-primary" onclick="openModal('siswaModal')">
+                    <i class="fas fa-plus"></i> Tambah Siswa
+                </button>
+                <button class="btn btn-success" onclick="exportSiswa()">
+                    <i class="fas fa-file-excel"></i> Export
+                </button>
+                <button class="btn btn-danger" id="btnHapusSiswa" onclick="bulkDeleteSiswa()" style="display:none;">
+                    <i class="fas fa-trash"></i> Hapus yang Ditandai
+                </button>
+                <button class="btn btn-danger" id="btnHapusSemuaSiswa" onclick="hapusSemuaSiswa()">
+                    <i class="fas fa-trash-alt"></i> Hapus Semua
+                </button>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-users"></i> Data Siswa</h4>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchSiswa" placeholder="Cari siswa..." oninput="filterSiswa()">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="data-table" id="siswaTable">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="checkAllSiswa" onchange="toggleAllSiswa(this)"></th>
+                                <th>No</th>
+                                <th>NIS</th>
+                                <th>Nama</th>
+                                <th>Kelas</th>
+                                <th>Orang Tua</th>
+                                <th>No. HP</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="siswaTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== JENIS PEMBAYARAN ========== -->
+        <div id="pagePembayaran" class="page">
+            <div class="page-actions">
+                <button class="btn btn-primary" onclick="openModal('jenisBayarModal')">
+                    <i class="fas fa-plus"></i> Tambah Jenis Pembayaran
+                </button>
+                <button class="btn btn-danger" id="btnHapusJenisBayar" onclick="bulkDeleteJenisBayar()" style="display:none;">
+                    <i class="fas fa-trash"></i> Hapus yang Ditandai
+                </button>
+                <button class="btn btn-danger" onclick="hapusSemuaJenisBayar()">
+                    <i class="fas fa-trash-alt"></i> Hapus Semua
+                </button>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-money-bill-wave"></i> Jenis Pembayaran</h4>
+                </div>
+                <div class="card-body">
+                    <table class="data-table" id="jenisBayarTable">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="checkAllJenisBayar" onchange="toggleAllJenisBayar(this)"></th>
+                                <th>No</th>
+                                <th>Kode</th>
+                                <th>Nama</th>
+                                <th>Kategori</th>
+                                <th>Nominal</th>
+                                <th>Tahun Ajaran</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="jenisBayarBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== TRANSAKSI ========== -->
+        <div id="pageTransaksi" class="page">
+            <div class="page-actions">
+                <button class="btn btn-primary" onclick="openModal('transaksiModal')">
+                    <i class="fas fa-plus"></i> Transaksi Baru
+                </button>
+                <button class="btn btn-danger" id="btnHapusTransaksi" onclick="bulkDeleteTransaksi()" style="display:none;">
+                    <i class="fas fa-trash"></i> Hapus yang Ditandai
+                </button>
+                <button class="btn btn-danger" onclick="hapusSemuaTransaksi()">
+                    <i class="fas fa-trash-alt"></i> Hapus Semua
+                </button>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-file-invoice-dollar"></i> Riwayat Transaksi</h4>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchTransaksi" placeholder="Cari transaksi..." oninput="filterTransaksi()">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="data-table" id="transaksiTable">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="checkAllTransaksi" onchange="toggleAllTransaksi(this)"></th>
+                                <th>No</th>
+                                <th>No. Bayar</th>
+                                <th>Tanggal</th>
+                                <th>Siswa</th>
+                                <th>Jenis</th>
+                                <th>Nominal</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transaksiBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== STOR KE BENDAHARA ========== -->
+        <div id="pageStorbendahara" class="page">
+            <div class="page-actions">
+                <button class="btn btn-primary" onclick="openModal('storModal')">
+                    <i class="fas fa-plus"></i> Stor ke Bendahara
+                </button>
+                <button class="btn btn-success" onclick="printStor()">
+                    <i class="fas fa-print"></i> Cetak Stor
+                </button>
+                <button class="btn btn-danger" id="btnHapusStor" onclick="bulkDeleteStor()" style="display:none;">
+                    <i class="fas fa-trash"></i> Hapus yang Ditandai
+                </button>
+                <button class="btn btn-danger" onclick="hapusSemuaStor()">
+                    <i class="fas fa-trash-alt"></i> Hapus Semua
+                </button>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-university"></i> Riwayat Stor ke Bendahara</h4>
+                </div>
+                <div class="card-body">
+                    <table class="data-table" id="storTable">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="checkAllStor" onchange="toggleAllStor(this)"></th>
+                                <th>No</th>
+                                <th>No. Stor</th>
+                                <th>Tanggal</th>
+                                <th>Disetor Oleh</th>
+                                <th>Jumlah</th>
+                                <th>Catatan</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="storBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== LAPORAN ========== -->
+        <div id="pageLaporan" class="page">
+            <div class="laporan-tabs">
+                <button class="tab-btn active" onclick="showLaporanTab('harian')">Harian</button>
+                <button class="tab-btn" onclick="showLaporanTab('bulanan')">Bulanan</button>
+                <button class="tab-btn" onclick="showLaporanTab('kelas')">Per Kelas</button>
+                <button class="tab-btn" onclick="showLaporanTab('ringkasan')">Ringkasan Siswa</button>
+                <button class="tab-btn" onclick="showLaporanTab('lpihak')">Lampiran Piutang</button>
+            </div>
+
+            <div id="laporanHarian" class="laporan-content active">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-calendar-day"></i> Laporan Harian</h4>
+                        <div class="filter-group">
+                            <input type="date" id="filterTanggal" onchange="generateLaporanHarian()">
+                            <button class="btn btn-sm btn-primary" onclick="printLaporan('harian')">
+                                <i class="fas fa-print"></i> Cetak
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table class="data-table" id="laporanHarianTable">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>No. Bayar</th>
+                                    <th>Siswa</th>
+                                    <th>Kelas</th>
+                                    <th>Jenis</th>
+                                    <th>Nominal</th>
+                                    <th>Jam</th>
+                                </tr>
+                            </thead>
+                            <tbody id="laporanHarianBody"></tbody>
+                        </table>
+                        <div class="laporan-total" id="laporanHarianTotal"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="laporanBulanan" class="laporan-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-calendar-alt"></i> Laporan Bulanan</h4>
+                        <div class="filter-group">
+                            <select id="filterBulan" onchange="generateLaporanBulanan()">
+                                <option value="1">Januari</option>
+                                <option value="2">Februari</option>
+                                <option value="3">Maret</option>
+                                <option value="4">April</option>
+                                <option value="5">Mei</option>
+                                <option value="6">Juni</option>
+                                <option value="7" selected>Juli</option>
+                                <option value="8">Agustus</option>
+                                <option value="9">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
+                            </select>
+                            <select id="filterTahun" onchange="generateLaporanBulanan()">
+                                <option value="2025">2025</option>
+                                <option value="2026" selected>2026</option>
+                            </select>
+                            <button class="btn btn-sm btn-primary" onclick="printLaporan('bulanan')">
+                                <i class="fas fa-print"></i> Cetak
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table class="data-table" id="laporanBulananTable">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>No. Bayar</th>
+                                    <th>Siswa</th>
+                                    <th>Kelas</th>
+                                    <th>Jenis</th>
+                                    <th>Tanggal</th>
+                                    <th>Nominal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="laporanBulananBody"></tbody>
+                        </table>
+                        <div class="laporan-total" id="laporanBulananTotal"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="laporanKelas" class="laporan-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-chalkboard"></i> Laporan Per Kelas</h4>
+                        <div class="filter-group">
+                            <select id="filterKelas" onchange="generateLaporanKelas()">
+                                <option value="">Semua Kelas</option>
+                                <option value="1">Kelas 1</option>
+                                <option value="2">Kelas 2</option>
+                                <option value="3">Kelas 3</option>
+                                <option value="4">Kelas 4</option>
+                                <option value="5">Kelas 5</option>
+                                <option value="6">Kelas 6</option>
+                            </select>
+                            <button class="btn btn-sm btn-primary" onclick="printLaporan('kelas')">
+                                <i class="fas fa-print"></i> Cetak
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table class="data-table" id="laporanKelasTable">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Siswa</th>
+                                    <th>Kelas</th>
+                                    <th>LKS</th>
+                                    <th>Aktivitas</th>
+                                    <th>Iuran</th>
+                                    <th>Total Bayar</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="laporanKelasBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="laporanRingkasan" class="laporan-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-clipboard-list"></i> Ringkasan Pembayaran Per Siswa</h4>
+                        <div class="filter-group">
+                            <select id="filterRingkasanKelas" onchange="generateRingkasan()">
+                                <option value="">Semua Kelas</option>
+                                <option value="1">Kelas 1</option>
+                                <option value="2">Kelas 2</option>
+                                <option value="3">Kelas 3</option>
+                                <option value="4">Kelas 4</option>
+                                <option value="5">Kelas 5</option>
+                                <option value="6">Kelas 6</option>
+                            </select>
+                            <select id="filterRingkasanStatus" onchange="generateRingkasan()">
+                                <option value="">Semua Status</option>
+                                <option value="lunas">Lunas</option>
+                                <option value="belum">Belum Bayar</option>
+                                <option value="sebagian">Bayar Sebagian</option>
+                            </select>
+                            <button class="btn btn-sm btn-primary" onclick="printLaporan('ringkasan')">
+                                <i class="fas fa-print"></i> Cetak
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="ringkasan-stats" id="ringkasanStats"></div>
+                        <table class="data-table" id="laporanRingkasanTable">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Nama Siswa</th>
+                                    <th>Kelas</th>
+                                    <th>Orang Tua</th>
+                                    <th>No HP</th>
+                                    <th>Total Tagihan</th>
+                                    <th>Sudah Bayar</th>
+                                    <th>Sisa Bayar</th>
+                                    <th>Detail Item</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="laporanRingkasanBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="laporanLpihak" class="laporan-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-file-alt"></i> Lampiran Piutang</h4>
+                        <div class="filter-group">
+                            <select id="filterPiutangKelas" onchange="generateLpihak()">
+                                <option value="">Semua Kelas</option>
+                                <option value="1">Kelas 1</option>
+                                <option value="2">Kelas 2</option>
+                                <option value="3">Kelas 3</option>
+                                <option value="4">Kelas 4</option>
+                                <option value="5">Kelas 5</option>
+                                <option value="6">Kelas 6</option>
+                            </select>
+                            <button class="btn btn-sm btn-primary" onclick="printLaporan('piutang')">
+                                <i class="fas fa-print"></i> Cetak
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table class="data-table" id="laporanPiutangTable">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Siswa</th>
+                                    <th>Kelas</th>
+                                    <th>Orang Tua</th>
+                                    <th>No HP</th>
+                                    <th>Tagihan</th>
+                                    <th>Terbayar</th>
+                                    <th>Sisa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="laporanPiutangBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== WHATSAPP ========== -->
+        <div id="pageWhatsapp" class="page">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fab fa-whatsapp"></i> Kirim Notifikasi via WhatsApp</h4>
+                </div>
+                <div class="card-body">
+                    <div class="whatsapp-form">
+                        <div class="form-group">
+                            <label>Pilih Siswa</label>
+                            <select id="waSiswa">
+                                <option value="">-- Pilih Siswa --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Template Pesan</label>
+                            <select id="waTemplate" onchange="previewWaMessage()">
+                                <option value="tagihan">Tagihan Pembayaran</option>
+                                <option value="reminder">Pengingat Pembayaran</option>
+                                <option value="lunas">Konfirmasi Lunas</option>
+                                <option value="stapor">Stapor (Surat Pernyataan)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Preview Pesan</label>
+                            <div class="wa-preview" id="waPreview"></div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-whatsapp" onclick="kirimWaIndividu()">
+                                <i class="fab fa-whatsapp"></i> Kirim ke Siswa Terpilih
+                            </button>
+                            <button class="btn btn-whatsapp" onclick="kirimWaSemua()">
+                                <i class="fab fa-whatsapp"></i> Kirim ke Semua (Belum Bayar)
+                            </button>
+                            <button class="btn btn-primary" onclick="kirimWaGrup()">
+                                <i class="fas fa-users"></i> Kirim ke Grup Wali Kelas
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card" style="margin-top:20px;">
+                        <div class="card-header">
+                            <h4><i class="fas fa-history"></i> Riwayat Kirim WhatsApp</h4>
+                        </div>
+                        <div class="card-body">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tanggal</th>
+                                        <th>Penerima</th>
+                                        <th>Jenis</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="riwayatWaBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== PENGATURAN ========== -->
+        <div id="pagePengaturan" class="page">
+            <div class="pengaturan-tabs">
+                <button class="tab-btn active" onclick="showPengaturanTab('akun')"><i class="fas fa-users-cog"></i> Kelola Akun</button>
+                <button class="tab-btn" onclick="showPengaturanTab('profil')"><i class="fas fa-school"></i> Profil Sekolah</button>
+            </div>
+
+            <div id="pengaturanAkun" class="pengaturan-content active">
+                <div class="page-actions">
+                    <button class="btn btn-primary" onclick="openModal('userModal')">
+                        <i class="fas fa-plus"></i> Tambah User
+                    </button>
+                    <button class="btn btn-danger" id="btnHapusUser" onclick="bulkDeleteUser()" style="display:none;">
+                        <i class="fas fa-trash"></i> Hapus yang Ditandai
+                    </button>
+                    <button class="btn btn-danger" onclick="hapusSemuaUser()">
+                        <i class="fas fa-trash-alt"></i> Hapus Semua
+                    </button>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-users-cog"></i> Kelola Akun Pengguna</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="data-table" id="userTable">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="checkAllUser" onchange="toggleAllUser(this)"></th>
+                                    <th>No</th>
+                                    <th>Username</th>
+                                    <th>Nama Lengkap</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top:20px;">
+                    <div class="card-header">
+                        <h4><i class="fas fa-key"></i> Ganti Password</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="changePasswordForm" onsubmit="handleChangePassword(event)" style="max-width:400px;">
+                            <input type="hidden" id="cpUserId">
+                            <div class="form-group">
+                                <label>Pilih User</label>
+                                <select id="cpUserSelect" required onchange="loadCurrentPassword()">
+                                    <option value="">-- Pilih User --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Password Lama</label>
+                                <input type="password" id="cpPassLama" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Password Baru</label>
+                                <input type="password" id="cpPassBaru" required minlength="4">
+                            </div>
+                            <div class="form-group">
+                                <label>Konfirmasi Password Baru</label>
+                                <input type="password" id="cpPassKonfirmasi" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Password</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div id="pengaturanProfil" class="pengaturan-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-school"></i> Profil Sekolah</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="profilForm" onsubmit="handleProfilForm(event)" style="max-width:600px;">
+                            <div class="form-group">
+                                <label>Nama Sekolah</label>
+                                <input type="text" id="profilNamaSekolah" required>
+                            </div>
+                            <div class="form-group">
+                                <label>NPSN</label>
+                                <input type="text" id="profilNPSN">
+                            </div>
+                            <div class="form-group">
+                                <label>Alamat</label>
+                                <textarea id="profilAlamat" rows="2"></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>No. Telp / Fax</label>
+                                    <input type="text" id="profilTelp">
+                                </div>
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" id="profilEmail">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Kepala Sekolah</label>
+                                    <input type="text" id="profilKepsek">
+                                </div>
+                                <div class="form-group">
+                                    <label>Bendahara</label>
+                                    <input type="text" id="profilBendahara">
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Profil</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ==================== MODALS ==================== -->
+<!-- Modal Tambah/Edit User -->
+<div id="userModal" class="modal hidden">
+    <div class="modal-overlay" onclick="closeModal('userModal')"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="userModalTitle">Tambah User</h3>
+            <button class="modal-close" onclick="closeModal('userModal')">&times;</button>
+        </div>
+        <form id="userForm" onsubmit="handleUserForm(event)">
+            <input type="hidden" id="userEditId">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="userUsername" required minlength="3">
+            </div>
+            <div class="form-group">
+                <label>Nama Lengkap</label>
+                <input type="text" id="userNama" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="userPassword" required minlength="4">
+                <small id="userPasswordHint" style="color:var(--text-light);font-size:12px;">Minimal 4 karakter</small>
+            </div>
+            <div class="form-group">
+                <label>Role</label>
+                <select id="userRole" required>
+                    <option value="admin">Admin</option>
+                    <option value="operator">Operator</option>
+                    <option value="bendahara">Bendahara</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('userModal')">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Tambah/Edit Siswa -->
+<div id="siswaModal" class="modal hidden">
+    <div class="modal-overlay" onclick="closeModal('siswaModal')"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="siswaModalTitle">Tambah Siswa</h3>
+            <button class="modal-close" onclick="closeModal('siswaModal')">&times;</button>
+        </div>
+        <form id="siswaForm" onsubmit="handleSiswaForm(event)">
+            <input type="hidden" id="siswaEditId">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>NIS</label>
+                    <input type="text" id="siswaNis" required>
+                </div>
+                <div class="form-group">
+                    <label>Nama Lengkap</label>
+                    <input type="text" id="siswaNama" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Kelas</label>
+                    <select id="siswaKelas" required>
+                        <option value="">-- Pilih Kelas --</option>
+                        <option value="1">Kelas 1</option>
+                        <option value="2">Kelas 2</option>
+                        <option value="3">Kelas 3</option>
+                        <option value="4">Kelas 4</option>
+                        <option value="5">Kelas 5</option>
+                        <option value="6">Kelas 6</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Angkatan</label>
+                    <input type="text" id="siswaAngkatan" placeholder="Contoh: 2026" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nama Orang Tua / Wali</label>
+                    <input type="text" id="siswaOrangTua" required>
+                </div>
+                <div class="form-group">
+                    <label>No. HP Orang Tua</label>
+                    <input type="text" id="siswaNoHp" placeholder="08xxxxxxxxxx" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Alamat</label>
+                <textarea id="siswaAlamat" rows="2"></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('siswaModal')">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Tambah/Edit Jenis Pembayaran -->
+<div id="jenisBayarModal" class="modal hidden">
+    <div class="modal-overlay" onclick="closeModal('jenisBayarModal')"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="jenisBayarModalTitle">Tambah Jenis Pembayaran</h3>
+            <button class="modal-close" onclick="closeModal('jenisBayarModal')">&times;</button>
+        </div>
+        <form id="jenisBayarForm" onsubmit="handleJenisBayarForm(event)">
+            <input type="hidden" id="jenisBayarEditId">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Kode</label>
+                    <input type="text" id="jenisBayarKode" placeholder="Contoh: LKS-MTK" required>
+                </div>
+                <div class="form-group">
+                    <label>Nama Pembayaran</label>
+                    <input type="text" id="jenisBayarNama" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Kategori</label>
+                    <select id="jenisBayarKategori" required>
+                        <option value="">-- Pilih Kategori --</option>
+                        <option value="LKS">LKS</option>
+                        <option value="Aktivitas">Aktivitas Siswa</option>
+                        <option value="Iuran">Iuran</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Nominal (Rp)</label>
+                    <input type="number" id="jenisBayarNominal" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tahun Ajaran</label>
+                    <input type="text" id="jenisBayarTahun" placeholder="Contoh: 2025/2026" required>
+                </div>
+                <div class="form-group">
+                    <label>Berlaku Untuk Kelas</label>
+                    <select id="jenisBayarKelas" required>
+                        <option value="all">Semua Kelas</option>
+                        <option value="1">Kelas 1</option>
+                        <option value="2">Kelas 2</option>
+                        <option value="3">Kelas 3</option>
+                        <option value="4">Kelas 4</option>
+                        <option value="5">Kelas 5</option>
+                        <option value="6">Kelas 6</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('jenisBayarModal')">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Transaksi Baru -->
+<div id="transaksiModal" class="modal hidden">
+    <div class="modal-overlay" onclick="closeModal('transaksiModal')"></div>
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <h3>Transaksi Baru</h3>
+            <button class="modal-close" onclick="closeModal('transaksiModal')">&times;</button>
+        </div>
+        <form id="transaksiForm" onsubmit="handleTransaksiForm(event)">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Siswa</label>
+                    <select id="txSiswa" required onchange="loadJenisBayarForSiswa()">
+                        <option value="">-- Pilih Siswa --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Kelas</label>
+                    <input type="text" id="txKelas" readonly>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Jenis Pembayaran</label>
+                <select id="txJenis" required onchange="updateTxNominal()">
+                    <option value="">-- Pilih Jenis --</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nominal</label>
+                    <input type="text" id="txNominal" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Tanggal Bayar</label>
+                    <input type="date" id="txTanggal" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Metode Bayar</label>
+                    <select id="txMetode" required>
+                        <option value="Tunai">Tunai</option>
+                        <option value="Transfer">Transfer</option>
+                        <option value="QRIS">QRIS</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Keterangan</label>
+                    <input type="text" id="txKeterangan" placeholder="Opsional">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('transaksiModal')">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan Transaksi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Stor ke Bendahara -->
+<div id="storModal" class="modal hidden">
+    <div class="modal-overlay" onclick="closeModal('storModal')"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Stor ke Bendahara</h3>
+            <button class="modal-close" onclick="closeModal('storModal')">&times;</button>
+        </div>
+        <form id="storForm" onsubmit="handleStorForm(event)">
+            <div class="form-group">
+                <label>Disetor Oleh</label>
+                <input type="text" id="storOleh" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Jumlah (Rp)</label>
+                    <input type="number" id="storJumlah" required>
+                </div>
+                <div class="form-group">
+                    <label>Tanggal Stor</label>
+                    <input type="date" id="storTanggal" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Catatan</label>
+                <textarea id="storCatatan" rows="3" placeholder="Keterangan stor..."></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('storModal')">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Detail Transaksi -->
+<div id="detailTransaksiModal" class="modal hidden">
+    <div class="modal-overlay" onclick="closeModal('detailTransaksiModal')"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Detail Transaksi</h3>
+            <button class="modal-close" onclick="closeModal('detailTransaksiModal')">&times;</button>
+        </div>
+        <div class="detail-content" id="detailTransaksiContent"></div>
+        <div class="form-actions">
+            <button class="btn btn-secondary" onclick="closeModal('detailTransaksiModal')">Tutup</button>
+            <button class="btn btn-whatsapp" onclick="kirimWaStruk()">
+                <i class="fab fa-whatsapp"></i> Kirim Struk WA
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Print Area -->
+<div id="printArea" class="print-area"></div>
+
+<!-- Install & Sync Status -->
+<div id="syncIndicator" class="sync-indicator" title="Status sinkronisasi">
+    <i class="fas fa-sync-alt"></i> <span id="syncText">Online</span>
+</div>
+
+<div id="installPrompt" class="install-prompt hidden">
+    <i class="fas fa-download"></i>
+    <span>Install Aplikasi ini ke perangkat Anda</span>
+    <button class="btn btn-sm btn-primary" onclick="installApp()">Install</button>
+    <button class="btn btn-sm btn-secondary" onclick="dismissInstall()">✕</button>
+</div>
+
+<!-- Install Instructions Modal -->
+<div id="installModal" class="modal hidden">
+    <div class="modal-overlay" onclick="closeModal('installModal')"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-download"></i> Install Aplikasi</h3>
+            <button class="modal-close" onclick="closeModal('installModal')">&times;</button>
+        </div>
+        <div class="card-body" style="padding:24px;">
+            <div id="installAutoSection" style="display:none;">
+                <p style="margin-bottom:12px;"><strong>Install Otomatis:</strong></p>
+                <button class="btn btn-primary" onclick="installApp()" style="width:100%;margin-bottom:20px;">
+                    <i class="fas fa-download"></i> Install Sekarang
+                </button>
+                <hr style="border-color:rgba(255,255,255,0.1);margin:16px 0;">
+            </div>
+            <p style="margin-bottom:12px;"><strong>Install Manual:</strong></p>
+            <div id="installInstructionsChrome" style="display:none;">
+                <p style="margin-bottom:8px;color:var(--text-light);">Chrome di PC:</p>
+                <ol style="padding-left:20px;color:var(--text-light);line-height:2;">
+                    <li>Klik ikon <i class="fas fa-ellipsis-v"></i> (tiga titik) di pojok kanan atas Chrome</li>
+                    <li>Pilih <strong>"Install aplikasi 'SPP SDN1 Selpuro'"</strong></li>
+                    <li>Klik <strong>Install</strong></li>
+                </ol>
+            </div>
+            <div id="installInstructionsAndroid" style="display:none;">
+                <p style="margin-bottom:8px;color:var(--text-light);">Chrome di Android:</p>
+                <ol style="padding-left:20px;color:var(--text-light);line-height:2;">
+                    <li>Klik ikon <i class="fas fa-ellipsis-v"></i> (tiga titik) di pojok kanan atas Chrome</li>
+                    <li>Pilih <strong>"Tambahkan ke Layar Utama"</strong></li>
+                    <li>Klik <strong>"Tambahkan"</strong></li>
+                </ol>
+            </div>
+            <div id="installInstructionsSafari" style="display:none;">
+                <p style="margin-bottom:8px;color:var(--text-light);">Safari di iPhone/iPad:</p>
+                <ol style="padding-left:20px;color:var(--text-light);line-height:2;">
+                    <li>Klik ikon <i class="fas fa-share-from-square"></i> (Share) di bawah</li>
+                    <li>Pilih <strong>"Tambahkan ke Layar Depan"</strong></li>
+                    <li>Klik <strong>"Tambahkan"</strong></li>
+                </ol>
+            </div>
+            <div id="installInstructionsEdge" style="display:none;">
+                <p style="margin-bottom:8px;color:var(--text-light);">Edge di PC:</p>
+                <ol style="padding-left:20px;color:var(--text-light);line-height:2;">
+                    <li>Klik ikon <i class="fas fa-ellipsis-h"></i> (tiga titik) di pojok kanan atas Edge</li>
+                    <li>Pilih <strong>"Aplikasi ini"</strong> > <strong>"Install situs ini sebagai aplikasi"</strong></li>
+                    <li>Klik <strong>Install</strong></li>
+                </ol>
+            </div>
+            <div id="installInstructionsGeneric" style="display:none;">
+                <p style="margin-bottom:8px;color:var(--text-light);">Browser lainnya:</p>
+                <ol style="padding-left:20px;color:var(--text-light);line-height:2;">
+                    <li>Cari menu <strong>"Install"</strong>, <strong>"Tambahkan ke Layar Utama"</strong>, atau ikon <i class="fas fa-download"></i> di address bar</li>
+                    <li>Ikuti instruksi di layar</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(function(e) {
+        console.log('SW registration failed:', e);
+    });
+}
+
+var deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('installPrompt').classList.remove('hidden');
+});
+
+function installApp() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function(result) {
+            deferredPrompt = null;
+            document.getElementById('installPrompt').classList.add('hidden');
+            closeModal('installModal');
+        });
+    } else {
+        closeModal('installModal');
+        alert('Fitur install otomatis tidak tersedia di browser ini.\n\nGunakan menu browser untuk install manual (lihat panduan di atas).');
+    }
+}
+
+function showInstallModal() {
+    var isAndroid = /Android/i.test(navigator.userAgent);
+    var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    var isChrome = /Chrome/i.test(navigator.userAgent) && !/Edg/i.test(navigator.userAgent);
+    var isEdge = /Edg/i.test(navigator.userAgent);
+    var isSafari = /Safari/i.test(navigator.userAgent) && !/Chrome/i.test(navigator.userAgent);
+
+    document.getElementById('installAutoSection').style.display = deferredPrompt ? 'block' : 'none';
+    document.getElementById('installInstructionsChrome').style.display = (isChrome && !isAndroid) ? 'block' : 'none';
+    document.getElementById('installInstructionsAndroid').style.display = (isChrome && isAndroid) ? 'block' : 'none';
+    document.getElementById('installInstructionsSafari').style.display = isSafari ? 'block' : 'none';
+    document.getElementById('installInstructionsEdge').style.display = isEdge ? 'block' : 'none';
+    document.getElementById('installInstructionsGeneric').style.display = (!isChrome && !isSafari && !isEdge) ? 'block' : 'none';
+
+    openModal('installModal');
+}
+
+function dismissInstall() {
+    document.getElementById('installPrompt').classList.add('hidden');
+}
+
+window.addEventListener('online', function() {
+    document.getElementById('syncIndicator').className = 'sync-indicator online';
+    document.getElementById('syncText').textContent = 'Online';
+});
+
+window.addEventListener('offline', function() {
+    document.getElementById('syncIndicator').className = 'sync-indicator offline';
+    document.getElementById('syncText').textContent = 'Offline';
+});
+</script>
+</body>
+</html>

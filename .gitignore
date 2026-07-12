@@ -1,0 +1,7 @@
+node_modules/
+node-portable/
+node-portable.zip
+node-temp/
+database.json
+*.log
+START.bat

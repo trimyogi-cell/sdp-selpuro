@@ -1,0 +1,13 @@
+{
+  "name": "sdpayment-selpuro",
+  "version": "1.0.0",
+  "description": "Sistem Pembayaran SD Negeri 1 Selpuro",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

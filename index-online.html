@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sistem Pembayaran - SD Negeri 1 Selpuro</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#2563eb;--primary-dark:#1d4ed8;--success:#22c55e;--warning:#f97316;--danger:#ef4444;--info:#06b6d4;--bg:#f1f5f9;--card:#fff;--text:#1e293b;--text-light:#64748b;--border:#e2e8f0;--shadow:0 1px 3px rgba(0,0,0,.1);--shadow-lg:0 10px 25px rgba(0,0,0,.15);--radius:10px}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
+.hidden{display:none!important}
+
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:20px}
+.login-container{width:100%;max-width:400px}
+.login-card{background:#fff;border-radius:16px;padding:40px 30px;box-shadow:var(--shadow-lg);text-align:center}
+.login-header{margin-bottom:30px}
+.school-logo{width:80px;height:80px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 15px;font-size:36px;color:#fff}
+.login-header h1{font-size:22px;color:var(--text);margin-bottom:5px}
+.login-header p{color:var(--text-light);font-size:14px}
+.input-group{position:relative;margin-bottom:15px}
+.input-group i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:16px}
+.input-group input{width:100%;padding:12px 14px 12px 42px;border:2px solid var(--border);border-radius:8px;font-size:15px;transition:.3s}
+.input-group input:focus{outline:none;border-color:var(--primary)}
+.btn-login{width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;transition:.3s}
+.btn-login:hover{background:var(--primary-dark)}
+.login-hint{color:var(--danger);font-size:13px;margin-top:10px;min-height:20px}
+.login-footer{margin-top:20px;padding-top:15px;border-top:1px solid var(--border)}
+.login-footer p{color:var(--text-light);font-size:12px}
+
+.main-app{display:flex;min-height:100vh}
+.sidebar{width:260px;background:linear-gradient(180deg,#1e3a5f,#1a2332);color:#fff;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100;transition:transform .3s}
+.sidebar-header{padding:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-logo{width:50px;height:50px;background:rgba(255,255,255,.15);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:24px}
+.sidebar-header h2{font-size:16px;font-weight:600}
+.sidebar-toggle{display:none;background:none;border:none;color:#fff;font-size:20px;cursor:pointer}
+.sidebar-menu{list-style:none;flex:1;padding:10px 0;overflow-y:auto}
+.sidebar-menu li{padding:12px 20px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:.2s;font-size:14px;color:rgba(255,255,255,.7)}
+.sidebar-menu li:hover{background:rgba(255,255,255,.1);color:#fff}
+.sidebar-menu li.active{background:rgba(255,255,255,.15);color:#fff;border-right:3px solid var(--primary)}
+.sidebar-menu li i{width:20px;text-align:center;font-size:16px}
+.sidebar-footer{padding:15px 20px;border-top:1px solid rgba(255,255,255,.1)}
+.btn-logout{width:100%;padding:10px;background:rgba(239,68,68,.2);color:#f87171;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px;justify-content:center;font-size:14px;transition:.2s}
+.btn-logout:hover{background:rgba(239,68,68,.3)}
+
+.main-content{flex:1;margin-left:260px;min-height:100vh}
+.topbar{background:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow);position:sticky;top:0;z-index:50}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.topbar-left h3{font-size:18px;font-weight:600}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.menu-toggle{display:none;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text)}
+.user-badge{background:var(--bg);padding:6px 12px;border-radius:20px;font-size:13px;color:var(--text-light);display:flex;align-items:center;gap:6px}
+.date-badge{background:var(--primary);color:#fff;padding:6px 12px;border-radius:20px;font-size:13px}
+
+.page{display:none;padding:24px;animation:fadeIn .3s}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:var(--radius);padding:20px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow);border-left:4px solid}
+.stat-card.blue{border-color:var(--primary)}.stat-card.green{border-color:var(--success)}.stat-card.orange{border-color:var(--warning)}.stat-card.red{border-color:var(--danger)}
+.stat-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff}
+.stat-card.blue .stat-icon{background:linear-gradient(135deg,var(--primary),#3b82f6)}
+.stat-card.green .stat-icon{background:linear-gradient(135deg,var(--success),#4ade80)}
+.stat-card.orange .stat-icon{background:linear-gradient(135deg,var(--warning),#fb923c)}
+.stat-card.red .stat-icon{background:linear-gradient(135deg,var(--danger),#f87171)}
+.stat-info h3{font-size:24px;font-weight:700;line-height:1.2}.stat-info p{font-size:13px;color:var(--text-light)}
+
+.dashboard-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.card-header h4{font-size:16px;display:flex;align-items:center;gap:8px}
+.card-body{padding:16px 20px}
+
+.data-table{width:100%;border-collapse:collapse}
+.data-table th,.data-table td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);font-size:13px}
+.data-table th{background:var(--bg);font-weight:600;color:var(--text-light);white-space:nowrap}
+.data-table tbody tr:hover{background:rgba(37,99,235,.03)}
+.table-actions{white-space:nowrap}
+
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.badge-primary{background:#dbeafe;color:#1d4ed8}.badge-success{background:#dcfce7;color:#16a34a}.badge-warning{background:#ffedd5;color:#ea580c}.badge-danger{background:#fee2e2;color:#dc2626}.badge-info{background:#cffafe;color:#0891b2}
+
+.btn{padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:.2s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}
+.btn-success{background:var(--success);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-warning{background:var(--warning);color:#fff}
+.btn-info{background:var(--info);color:#fff}
+.btn-secondary{background:var(--bg);color:var(--text)}
+.btn-whatsapp{background:#25d366;color:#fff}
+.btn-icon{padding:6px 8px;font-size:14px;border-radius:6px}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-text-desktop{display:inline}
+
+.page-actions{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+
+.search-box{position:relative}
+.search-box input{padding:8px 12px 8px 34px;border:1px solid var(--border);border-radius:8px;font-size:13px;width:250px}
+.search-box i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-light)}
+
+.summary-list{max-height:300px;overflow-y:auto}
+.summary-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.summary-label{display:flex;align-items:center;gap:8px}
+.summary-dot{width:10px;height:10px;border-radius:50%}
+
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);backdrop-filter:blur(2px)}
+.modal-content{background:#fff;border-radius:12px;width:100%;max-width:550px;max-height:90vh;overflow-y:auto;position:relative;z-index:1;box-shadow:var(--shadow-lg);animation:slideUp .3s}
+.modal-content.modal-lg{max-width:700px}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.modal-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-header h3{font-size:18px}
+.modal-close{background:none;border:none;font-size:24px;cursor:pointer;color:var(--text-light);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px}
+.modal-close:hover{background:var(--bg);color:var(--text)}
+.modal-content form,.modal-content .detail-content{padding:20px}
+
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;color:var(--text)}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;transition:.2s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--primary)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-actions{display:flex;gap:10px;justify-content:flex-end;padding-top:10px}
+
+.detail-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.detail-label{color:var(--text-light);font-size:13px}.detail-value{font-weight:600;font-size:14px}
+
+.laporan-tabs,.pengaturan-tabs{display:flex;gap:5px;margin-bottom:20px;background:#fff;padding:5px;border-radius:var(--radius);box-shadow:var(--shadow);flex-wrap:wrap}
+.tab-btn{padding:8px 16px;border:none;background:transparent;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-light);transition:.2s}
+.tab-btn.active{background:var(--primary);color:#fff}
+.tab-btn:hover:not(.active){background:var(--bg)}
+.laporan-content,.pengaturan-content{display:none}.laporan-content.active,.pengaturan-content.active{display:block}
+.laporan-total{display:flex;justify-content:space-between;padding:12px 0;font-size:14px}
+.filter-group{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.filter-group select,.filter-group input{padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px}
+
+.whatsapp-form{max-width:600px}
+.wa-preview{background:var(--bg);padding:14px;border-radius:8px;font-size:13px;line-height:1.6;white-space:pre-wrap;min-height:80px;border:1px solid var(--border)}
+.form-actions-wa{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+
+.ringkasan-stats{margin-bottom:16px}
+.ringkasan-stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.ringkasan-stat{display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--radius);background:var(--bg)}
+.ringkasan-stat .stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px}
+.ringkasan-stat.blue .stat-icon{background:var(--primary)}.ringkasan-stat.green .stat-icon{background:var(--success)}.ringkasan-stat.orange .stat-icon{background:var(--warning)}.ringkasan-stat.red .stat-icon{background:var(--danger)}
+.ringkasan-stat h3{font-size:20px;font-weight:700}.ringkasan-stat p{font-size:12px;color:var(--text-light)}
+.item-tags-container{display:flex;flex-wrap:wrap;gap:4px;max-width:250px}
+.item-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap}
+.item-tag i{font-size:10px}
+
+.install-btn-topbar{background:var(--success)!important;color:#fff!important;padding:6px 14px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+
+.print-area{display:none}
+
+@media(max-width:768px){
+.sidebar{transform:translateX(-100%)}
+.sidebar.show{transform:translateX(0)}
+.sidebar-toggle{display:block}
+.menu-toggle{display:block}
+.main-content{margin-left:0}
+.dashboard-grid{grid-template-columns:1fr}
+.topbar-right .user-badge,.topbar-right .date-badge{display:none}
+.btn-text-desktop{display:none}
+.form-row{grid-template-columns:1fr}
+.stats-grid{grid-template-columns:repeat(2,1fr)}
+.search-box input{width:100%}
+.page-actions{flex-direction:column}
+.page-actions .btn{width:100%;justify-content:center}
+.laporan-tabs,.pengaturan-tabs{overflow-x:auto;flex-wrap:nowrap}
+.ringkasan-stat-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media print{.sidebar,.topbar,.page-actions,.modal,.install-prompt{display:none!important}.main-content{margin-left:0!important}.page{display:block!important;padding:0!important}}
+
+@media(max-width:480px){.stats-grid{grid-template-columns:1fr}.login-card{padding:30px 20px}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage" class="login-page">
+<div class="login-container">
+<div class="login-card">
+<div class="login-header">
+<div class="school-logo"><i class="fas fa-school"></i></div>
+<h1>SD Negeri 1 Selpuro</h1>
+<p>Sistem Pembayaran Digital</p>
+</div>
+<form id="loginForm" onsubmit="handleLogin(event)">
+<div class="input-group"><i class="fas fa-user"></i><input type="text" id="username" placeholder="Username" required></div>
+<div class="input-group"><i class="fas fa-lock"></i><input type="password" id="password" placeholder="Password" required></div>
+<button type="submit" class="btn-login"><i class="fas fa-sign-in-alt"></i> Masuk</button>
+<p class="login-hint" id="loginError"></p>
+</form>
+<div class="login-footer"><p>Default: admin / admin123</p></div>
+</div>
+</div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" class="main-app hidden">
+<nav id="sidebar" class="sidebar">
+<div class="sidebar-header">
+<div class="sidebar-logo"><i class="fas fa-school"></i></div>
+<h2>SDN 1 Selpuro</h2>
+<button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+</div>
+<ul class="sidebar-menu">
+<li class="active" onclick="showPage('dashboard')"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></li>
+<li onclick="showPage('siswa')"><i class="fas fa-users"></i><span>Data Siswa</span></li>
+<li onclick="showPage('pembayaran')"><i class="fas fa-money-bill-wave"></i><span>Jenis Pembayaran</span></li>
+<li onclick="showPage('transaksi')"><i class="fas fa-file-invoice-dollar"></i><span>Transaksi</span></li>
+<li onclick="showPage('storbendahara')"><i class="fas fa-university"></i><span>Stor ke Bendahara</span></li>
+<li onclick="showPage('laporan')"><i class="fas fa-chart-bar"></i><span>Laporan</span></li>
+<li onclick="showPage('whatsapp')"><i class="fab fa-whatsapp"></i><span>Kirim WhatsApp</span></li>
+<li onclick="showPage('pengaturan')"><i class="fas fa-cog"></i><span>Pengaturan</span></li>
+</ul>
+<div class="sidebar-footer">
+<button class="btn-logout" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i><span>Keluar</span></button>
+</div>
+</nav>
+
+<div class="main-content">
+<div class="topbar">
+<div class="topbar-left">
+<button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+<h3 id="pageTitle">Dashboard</h3>
+</div>
+<div class="topbar-right">
+<span id="currentUser" class="user-badge"><i class="fas fa-user"></i> Admin</span>
+<span class="date-badge" id="currentDate"></span>
+</div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="pageDashboard" class="page active">
+<div class="stats-grid">
+<div class="stat-card blue"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-info"><h3 id="totalSiswa">0</h3><p>Total Siswa</p></div></div>
+<div class="stat-card green"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><div class="stat-info"><h3 id="totalLunas">0</h3><p>Sudah Bayar</p></div></div>
+<div class="stat-card orange"><div class="stat-icon"><i class="fas fa-exclamation-circle"></i></div><div class="stat-info"><h3 id="totalBelumBayar">0</h3><p>Belum Bayar</p></div></div>
+<div class="stat-card red"><div class="stat-icon"><i class="fas fa-coins"></i></div><div class="stat-info"><h3 id="totalPemasukan">Rp 0</h3><p>Total Pemasukan</p></div></div>
+</div>
+<div class="dashboard-grid">
+<div class="card"><div class="card-header"><h4><i class="fas fa-history"></i> Transaksi Terakhir</h4></div><div class="card-body"><table class="data-table"><thead><tr><th>Tanggal</th><th>Siswa</th><th>Jenis</th><th>Jumlah</th></tr></thead><tbody id="recentTransactionsBody"></tbody></table></div></div>
+<div class="card"><div class="card-header"><h4><i class="fas fa-chart-pie"></i> Ringkasan Pembayaran</h4></div><div class="card-body summary-list" id="summaryList"></div></div>
+</div>
+</div>
+
+<!-- DATA SISWA -->
+<div id="pageSiswa" class="page">
+<div class="page-actions">
+<button class="btn btn-primary" onclick="openModal('siswaModal')"><i class="fas fa-plus"></i> Tambah Siswa</button>
+<button class="btn btn-success" onclick="exportSiswa()"><i class="fas fa-file-excel"></i> Export</button>
+<button class="btn btn-danger" id="btnHapusSiswa" onclick="bulkDeleteSiswa()" style="display:none"><i class="fas fa-trash"></i> Hapus Ditandai</button>
+<button class="btn btn-danger" onclick="hapusSemuaSiswa()"><i class="fas fa-trash-alt"></i> Hapus Semua</button>
+</div>
+<div class="card"><div class="card-header"><h4><i class="fas fa-users"></i> Data Siswa</h4><div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchSiswa" placeholder="Cari siswa..." oninput="renderSiswaTable()"></div></div>
+<div class="card-body"><table class="data-table"><thead><tr><th><input type="checkbox" id="checkAllSiswa" onchange="toggleAllSiswa(this)"></th><th>No</th><th>NIS</th><th>Nama</th><th>Kelas</th><th>Orang Tua</th><th>No. HP</th><th>Aksi</th></tr></thead><tbody id="siswaTableBody"></tbody></table></div></div>
+</div>
+
+<!-- JENIS PEMBAYARAN -->
+<div id="pagePembayaran" class="page">
+<div class="page-actions">
+<button class="btn btn-primary" onclick="openModal('jenisBayarModal')"><i class="fas fa-plus"></i> Tambah</button>
+<button class="btn btn-danger" id="btnHapusJenisBayar" onclick="bulkDeleteJenisBayar()" style="display:none"><i class="fas fa-trash"></i> Hapus Ditandai</button>
+<button class="btn btn-danger" onclick="hapusSemuaJenisBayar()"><i class="fas fa-trash-alt"></i> Hapus Semua</button>
+</div>
+<div class="card"><div class="card-header"><h4><i class="fas fa-money-bill-wave"></i> Jenis Pembayaran</h4></div>
+<div class="card-body"><table class="data-table"><thead><tr><th><input type="checkbox" id="checkAllJenisBayar" onchange="toggleAllJenisBayar(this)"></th><th>No</th><th>Kode</th><th>Nama</th><th>Kategori</th><th>Nominal</th><th>Tahun</th><th>Aksi</th></tr></thead><tbody id="jenisBayarBody"></tbody></table></div></div>
+</div>
+
+<!-- TRANSAKSI -->
+<div id="pageTransaksi" class="page">
+<div class="page-actions">
+<button class="btn btn-primary" onclick="openModal('transaksiModal')"><i class="fas fa-plus"></i> Transaksi Baru</button>
+<button class="btn btn-danger" id="btnHapusTransaksi" onclick="bulkDeleteTransaksi()" style="display:none"><i class="fas fa-trash"></i> Hapus Ditandai</button>
+<button class="btn btn-danger" onclick="hapusSemuaTransaksi()"><i class="fas fa-trash-alt"></i> Hapus Semua</button>
+</div>
+<div class="card"><div class="card-header"><h4><i class="fas fa-file-invoice-dollar"></i> Riwayat Transaksi</h4><div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchTransaksi" placeholder="Cari transaksi..." oninput="renderTransaksiTable()"></div></div>
+<div class="card-body"><table class="data-table"><thead><tr><th><input type="checkbox" id="checkAllTransaksi" onchange="toggleAllTransaksi(this)"></th><th>No</th><th>No. Bayar</th><th>Tanggal</th><th>Siswa</th><th>Jenis</th><th>Nominal</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="transaksiBody"></tbody></table></div></div>
+</div>
+
+<!-- STOR -->
+<div id="pageStorbendahara" class="page">
+<div class="page-actions">
+<button class="btn btn-primary" onclick="openModal('storModal')"><i class="fas fa-plus"></i> Stor ke Bendahara</button>
+<button class="btn btn-success" onclick="printStor()"><i class="fas fa-print"></i> Cetak Stor</button>
+<button class="btn btn-danger" id="btnHapusStor" onclick="bulkDeleteStor()" style="display:none"><i class="fas fa-trash"></i> Hapus Ditandai</button>
+<button class="btn btn-danger" onclick="hapusSemuaStor()"><i class="fas fa-trash-alt"></i> Hapus Semua</button>
+</div>
+<div class="card"><div class="card-header"><h4><i class="fas fa-university"></i> Riwayat Stor</h4></div>
+<div class="card-body"><table class="data-table"><thead><tr><th><input type="checkbox" id="checkAllStor" onchange="toggleAllStor(this)"></th><th>No</th><th>No. Stor</th><th>Tanggal</th><th>Oleh</th><th>Jumlah</th><th>Catatan</th><th>Aksi</th></tr></thead><tbody id="storBody"></tbody></table></div></div>
+</div>
+
+<!-- LAPORAN -->
+<div id="pageLaporan" class="page">
+<div class="laporan-tabs">
+<button class="tab-btn active" onclick="showLaporanTab('harian')">Harian</button>
+<button class="tab-btn" onclick="showLaporanTab('bulanan')">Bulanan</button>
+<button class="tab-btn" onclick="showLaporanTab('kelas')">Per Kelas</button>
+<button class="tab-btn" onclick="showLaporanTab('ringkasan')">Ringkasan</button>
+<button class="tab-btn" onclick="showLaporanTab('piutang')">Piutang</button>
+</div>
+<div id="laporanHarian" class="laporan-content active">
+<div class="card"><div class="card-header"><h4><i class="fas fa-calendar-day"></i> Laporan Harian</h4><div class="filter-group"><input type="date" id="filterTanggal" onchange="generateLaporanHarian()"><button class="btn btn-sm btn-primary" onclick="printLaporan('harian')"><i class="fas fa-print"></i> Cetak</button></div></div>
+<div class="card-body"><table class="data-table"><thead><tr><th>No</th><th>No. Bayar</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Nominal</th><th>Jam</th></tr></thead><tbody id="laporanHarianBody"></tbody></table><div class="laporan-total" id="laporanHarianTotal"></div></div></div>
+</div>
+<div id="laporanBulanan" class="laporan-content">
+<div class="card"><div class="card-header"><h4><i class="fas fa-calendar-alt"></i> Laporan Bulanan</h4><div class="filter-group">
+<select id="filterBulan" onchange="generateLaporanBulanan()"><option value="1">Januari</option><option value="2">Februari</option><option value="3">Maret</option><option value="4">April</option><option value="5">Mei</option><option value="6">Juni</option><option value="7" selected>Juli</option><option value="8">Agustus</option><option value="9">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option></select>
+<select id="filterTahun" onchange="generateLaporanBulanan()"><option value="2025">2025</option><option value="2026" selected>2026</option></select>
+<button class="btn btn-sm btn-primary" onclick="printLaporan('bulanan')"><i class="fas fa-print"></i> Cetak</button></div></div>
+<div class="card-body"><table class="data-table"><thead><tr><th>No</th><th>No. Bayar</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Tanggal</th><th>Nominal</th></tr></thead><tbody id="laporanBulananBody"></tbody></table><div class="laporan-total" id="laporanBulananTotal"></div></div></div>
+</div>
+<div id="laporanKelas" class="laporan-content">
+<div class="card"><div class="card-header"><h4><i class="fas fa-chalkboard"></i> Per Kelas</h4><div class="filter-group"><select id="filterKelas" onchange="generateLaporanKelas()"><option value="">Semua</option><option value="1">Kelas 1</option><option value="2">Kelas 2</option><option value="3">Kelas 3</option><option value="4">Kelas 4</option><option value="5">Kelas 5</option><option value="6">Kelas 6</option></select><button class="btn btn-sm btn-primary" onclick="printLaporan('kelas')"><i class="fas fa-print"></i> Cetak</button></div></div>
+<div class="card-body"><table class="data-table"><thead><tr><th>No</th><th>Siswa</th><th>Kelas</th><th>LKS</th><th>Aktivitas</th><th>Iuran</th><th>Total</th><th>Status</th></tr></thead><tbody id="laporanKelasBody"></tbody></table></div></div>
+</div>
+<div id="laporanRingkasan" class="laporan-content">
+<div class="card"><div class="card-header"><h4><i class="fas fa-clipboard-list"></i> Ringkasan Per Siswa</h4><div class="filter-group"><select id="filterRingkasanKelas" onchange="generateRingkasan()"><option value="">Semua</option><option value="1">Kelas 1</option><option value="2">Kelas 2</option><option value="3">Kelas 3</option><option value="4">Kelas 4</option><option value="5">Kelas 5</option><option value="6">Kelas 6</option></select><select id="filterRingkasanStatus" onchange="generateRingkasan()"><option value="">Semua Status</option><option value="lunas">Lunas</option><option value="belum">Belum Bayar</option><option value="sebagian">Sebagian</option></select><button class="btn btn-sm btn-primary" onclick="printLaporan('ringkasan')"><i class="fas fa-print"></i> Cetak</button></div></div>
+<div class="card-body"><div class="ringkasan-stats" id="ringkasanStats"></div><table class="data-table"><thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>Orang Tua</th><th>No HP</th><th>Tagihan</th><th>Bayar</th><th>Sisa</th><th>Detail Item</th><th>Status</th></tr></thead><tbody id="laporanRingkasanBody"></tbody></table></div></div>
+</div>
+<div id="laporanPiutang" class="laporan-content">
+<div class="card"><div class="card-header"><h4><i class="fas fa-file-alt"></i> Lampiran Piutang</h4><div class="filter-group"><select id="filterPiutangKelas" onchange="generatePiutang()"><option value="">Semua</option><option value="1">Kelas 1</option><option value="2">Kelas 2</option><option value="3">Kelas 3</option><option value="4">Kelas 4</option><option value="5">Kelas 5</option><option value="6">Kelas 6</option></select><button class="btn btn-sm btn-primary" onclick="printLaporan('piutang')"><i class="fas fa-print"></i> Cetak</button></div></div>
+<div class="card-body"><table class="data-table"><thead><tr><th>No</th><th>Siswa</th><th>Kelas</th><th>Orang Tua</th><th>No HP</th><th>Tagihan</th><th>Terbayar</th><th>Sisa</th></tr></thead><tbody id="laporanPiutangBody"></tbody></table></div></div>
+</div>
+</div>
+
+<!-- WHATSAPP -->
+<div id="pageWhatsapp" class="page">
+<div class="card"><div class="card-header"><h4><i class="fab fa-whatsapp"></i> Kirim WhatsApp</h4></div>
+<div class="card-body"><div class="whatsapp-form">
+<div class="form-group"><label>Pilih Siswa</label><select id="waSiswa" onchange="previewWaMessage()"><option value="">-- Pilih --</option></select></div>
+<div class="form-group"><label>Template</label><select id="waTemplate" onchange="previewWaMessage()"><option value="tagihan">Tagihan Pembayaran</option><option value="reminder">Pengingat</option><option value="lunas">Konfirmasi Lunas</option><option value="stapor">Stapor</option></select></div>
+<div class="form-group"><label>Preview</label><div class="wa-preview" id="waPreview"></div></div>
+<div class="form-actions-wa">
+<button class="btn btn-whatsapp" onclick="kirimWaIndividu()"><i class="fab fa-whatsapp"></i> Kirim Terpilih</button>
+<button class="btn btn-whatsapp" onclick="kirimWaSemua()"><i class="fab fa-whatsapp"></i> Kirim Semua (Belum Bayar)</button>
+</div>
+</div>
+<div class="card" style="margin-top:20px"><div class="card-header"><h4><i class="fas fa-history"></i> Riwayat</h4></div>
+<div class="card-body"><table class="data-table"><thead><tr><th>Tanggal</th><th>Penerima</th><th>Jenis</th><th>Status</th></tr></thead><tbody id="riwayatWaBody"></tbody></table></div></div>
+</div></div>
+</div>
+
+<!-- PENGATURAN -->
+<div id="pagePengaturan" class="page">
+<div class="pengaturan-tabs">
+<button class="tab-btn active" onclick="showPengaturanTab('akun')"><i class="fas fa-users-cog"></i> Kelola Akun</button>
+<button class="tab-btn" onclick="showPengaturanTab('profil')"><i class="fas fa-school"></i> Profil Sekolah</button>
+</div>
+<div id="pengaturanAkun" class="pengaturan-content active">
+<div class="page-actions">
+<button class="btn btn-primary" onclick="openModal('userModal')"><i class="fas fa-plus"></i> Tambah User</button>
+<button class="btn btn-danger" id="btnHapusUser" onclick="bulkDeleteUser()" style="display:none"><i class="fas fa-trash"></i> Hapus Ditandai</button>
+<button class="btn btn-danger" onclick="hapusSemuaUser()"><i class="fas fa-trash-alt"></i> Hapus Semua</button>
+</div>
+<div class="card"><div class="card-header"><h4><i class="fas fa-users-cog"></i> Akun Pengguna</h4></div>
+<div class="card-body"><table class="data-table"><thead><tr><th><input type="checkbox" id="checkAllUser" onchange="toggleAllUser(this)"></th><th>No</th><th>Username</th><th>Nama</th><th>Role</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="userTableBody"></tbody></table></div></div>
+<div class="card" style="margin-top:20px"><div class="card-header"><h4><i class="fas fa-key"></i> Ganti Password</h4></div>
+<div class="card-body"><form id="changePasswordForm" onsubmit="handleChangePassword(event)" style="max-width:400px">
+<div class="form-group"><label>Pilih User</label><select id="cpUserSelect" required><option value="">-- Pilih --</option></select></div>
+<div class="form-group"><label>Password Lama</label><input type="password" id="cpPassLama" required></div>
+<div class="form-group"><label>Password Baru</label><input type="password" id="cpPassBaru" required minlength="4"></div>
+<div class="form-group"><label>Konfirmasi</label><input type="password" id="cpPassKonfirmasi" required></div>
+<div class="form-actions"><button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button></div>
+</form></div></div>
+</div>
+<div id="pengaturanProfil" class="pengaturan-content">
+<div class="card"><div class="card-header"><h4><i class="fas fa-school"></i> Profil Sekolah</h4></div>
+<div class="card-body"><form id="profilForm" onsubmit="handleProfilForm(event)" style="max-width:600px">
+<div class="form-group"><label>Nama Sekolah</label><input type="text" id="profilNamaSekolah" required></div>
+<div class="form-group"><label>NPSN</label><input type="text" id="profilNPSN"></div>
+<div class="form-group"><label>Alamat</label><textarea id="profilAlamat" rows="2"></textarea></div>
+<div class="form-row"><div class="form-group"><label>No. Telp</label><input type="text" id="profilTelp"></div><div class="form-group"><label>Email</label><input type="email" id="profilEmail"></div></div>
+<div class="form-row"><div class="form-group"><label>Kepala Sekolah</label><input type="text" id="profilKepsek"></div><div class="form-group"><label>Bendahara</label><input type="text" id="profilBendahara"></div></div>
+<div class="form-actions"><button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button></div>
+</form></div></div>
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- MODALS -->
+<div id="userModal" class="modal hidden"><div class="modal-overlay" onclick="closeModal('userModal')"></div><div class="modal-content"><div class="modal-header"><h3 id="userModalTitle">Tambah User</h3><button class="modal-close" onclick="closeModal('userModal')">&times;</button></div><form id="userForm" onsubmit="handleUserForm(event)"><input type="hidden" id="userEditId"><div class="form-group"><label>Username</label><input type="text" id="userUsername" required minlength="3"></div><div class="form-group"><label>Nama Lengkap</label><input type="text" id="userNama" required></div><div class="form-group"><label>Password</label><input type="password" id="userPassword" required minlength="4"></div><div class="form-group"><label>Role</label><select id="userRole"><option value="admin">Admin</option><option value="operator">Operator</option><option value="bendahara">Bendahara</option></select></div><div class="form-actions"><button type="button" class="btn btn-secondary" onclick="closeModal('userModal')">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div></form></div></div>
+
+<div id="siswaModal" class="modal hidden"><div class="modal-overlay" onclick="closeModal('siswaModal')"></div><div class="modal-content"><div class="modal-header"><h3 id="siswaModalTitle">Tambah Siswa</h3><button class="modal-close" onclick="closeModal('siswaModal')">&times;</button></div><form id="siswaForm" onsubmit="handleSiswaForm(event)"><input type="hidden" id="siswaEditId"><div class="form-row"><div class="form-group"><label>NIS</label><input type="text" id="siswaNis" required></div><div class="form-group"><label>Nama</label><input type="text" id="siswaNama" required></div></div><div class="form-row"><div class="form-group"><label>Kelas</label><select id="siswaKelas" required><option value="">-- Pilih --</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></div><div class="form-group"><label>Angkatan</label><input type="text" id="siswaAngkatan" placeholder="2026" required></div></div><div class="form-row"><div class="form-group"><label>Orang Tua</label><input type="text" id="siswaOrangTua" required></div><div class="form-group"><label>No. HP</label><input type="text" id="siswaNoHp" placeholder="08xxx" required></div></div><div class="form-group"><label>Alamat</label><textarea id="siswaAlamat" rows="2"></textarea></div><div class="form-actions"><button type="button" class="btn btn-secondary" onclick="closeModal('siswaModal')">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div></form></div></div>
+
+<div id="jenisBayarModal" class="modal hidden"><div class="modal-overlay" onclick="closeModal('jenisBayarModal')"></div><div class="modal-content"><div class="modal-header"><h3 id="jenisBayarModalTitle">Tambah Jenis Pembayaran</h3><button class="modal-close" onclick="closeModal('jenisBayarModal')">&times;</button></div><form id="jenisBayarForm" onsubmit="handleJenisBayarForm(event)"><input type="hidden" id="jenisBayarEditId"><div class="form-row"><div class="form-group"><label>Kode</label><input type="text" id="jenisBayarKode" placeholder="LKS-MTK" required></div><div class="form-group"><label>Nama</label><input type="text" id="jenisBayarNama" required></div></div><div class="form-row"><div class="form-group"><label>Kategori</label><select id="jenisBayarKategori" required><option value="">-- Pilih --</option><option value="LKS">LKS</option><option value="Aktivitas">Aktivitas</option><option value="Iuran">Iuran</option></select></div><div class="form-group"><label>Nominal</label><input type="number" id="jenisBayarNominal" required></div></div><div class="form-row"><div class="form-group"><label>Tahun</label><input type="text" id="jenisBayarTahun" placeholder="2025/2026" required></div><div class="form-group"><label>Kelas</label><select id="jenisBayarKelas" required><option value="all">Semua</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></div></div><div class="form-actions"><button type="button" class="btn btn-secondary" onclick="closeModal('jenisBayarModal')">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div></form></div></div>
+
+<div id="transaksiModal" class="modal hidden"><div class="modal-overlay" onclick="closeModal('transaksiModal')"></div><div class="modal-content modal-lg"><div class="modal-header"><h3>Transaksi Baru</h3><button class="modal-close" onclick="closeModal('transaksiModal')">&times;</button></div><form id="transaksiForm" onsubmit="handleTransaksiForm(event)"><div class="form-row"><div class="form-group"><label>Siswa</label><select id="txSiswa" required onchange="loadJenisBayarForSiswa()"><option value="">-- Pilih --</option></select></div><div class="form-group"><label>Kelas</label><input type="text" id="txKelas" readonly></div></div><div class="form-group"><label>Jenis Pembayaran</label><select id="txJenis" required onchange="updateTxNominal()"><option value="">-- Pilih --</option></select></div><div class="form-row"><div class="form-group"><label>Nominal</label><input type="text" id="txNominal" readonly></div><div class="form-group"><label>Tanggal</label><input type="date" id="txTanggal" required></div></div><div class="form-row"><div class="form-group"><label>Metode</label><select id="txMetode"><option value="Tunai">Tunai</option><option value="Transfer">Transfer</option><option value="QRIS">QRIS</option></select></div><div class="form-group"><label>Keterangan</label><input type="text" id="txKeterangan" placeholder="Opsional"></div></div><div class="form-actions"><button type="button" class="btn btn-secondary" onclick="closeModal('transaksiModal')">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div></form></div></div>
+
+<div id="storModal" class="modal hidden"><div class="modal-overlay" onclick="closeModal('storModal')"></div><div class="modal-content"><div class="modal-header"><h3>Stor ke Bendahara</h3><button class="modal-close" onclick="closeModal('storModal')">&times;</button></div><form id="storForm" onsubmit="handleStorForm(event)"><div class="form-group"><label>Oleh</label><input type="text" id="storOleh" required></div><div class="form-row"><div class="form-group"><label>Jumlah (Rp)</label><input type="number" id="storJumlah" required></div><div class="form-group"><label>Tanggal</label><input type="date" id="storTanggal" required></div></div><div class="form-group"><label>Catatan</label><textarea id="storCatatan" rows="3"></textarea></div><div class="form-actions"><button type="button" class="btn btn-secondary" onclick="closeModal('storModal')">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div></form></div></div>
+
+<div id="detailTransaksiModal" class="modal hidden"><div class="modal-overlay" onclick="closeModal('detailTransaksiModal')"></div><div class="modal-content"><div class="modal-header"><h3>Detail Transaksi</h3><button class="modal-close" onclick="closeModal('detailTransaksiModal')">&times;</button></div><div class="detail-content" id="detailTransaksiContent"></div><div class="form-actions" style="padding:0 20px 20px"><button class="btn btn-secondary" onclick="closeModal('detailTransaksiModal')">Tutup</button></div></div></div>
+
+<div id="printArea" class="print-area"></div>
+
+<script>
+// ===== DATABASE (localStorage) =====
+var DB_KEY = 'sdn1selpuro_payment';
+var DB;
+
+function loadDB() {
+  try { var d = localStorage.getItem(DB_KEY); if (d) { DB = JSON.parse(d); return; } } catch(e) {}
+  DB = {
+    profil: { namaSekolah:'SD Negeri 1 Selpuro', npsn:'20345678', alamat:'Jl. Merdeka No. 1, Desa Selpuro', telp:'(0354) 123456', email:'sdnselpuro@gmail.com', kepsek:'Drs. H. Ahmad Fauzi, M.Pd.', bendahara:'Siti Aminah, S.Pd.' },
+    users: [ {id:1,username:'admin',password:'admin123',nama:'Administrator',role:'admin',status:'aktif'}, {id:2,username:'operator',password:'operator123',nama:'Operator',role:'operator',status:'aktif'} ],
+    siswa: [ {id:1,nis:'2026001',nama:'Ahmad Rizki Pratama',kelas:'1',angkatan:'2026',orangTua:'Budi Pratama',noHp:'081234567890',alamat:'Jl. Merdeka No. 10'}, {id:2,nis:'2026002',nama:'Siti Nurhaliza',kelas:'1',angkatan:'2026',orangTua:'Hasanudin',noHp:'081234567891',alamat:'Jl. Sudirman No. 5'}, {id:3,nis:'2026003',nama:'Muhammad Fadil',kelas:'2',angkatan:'2026',orangTua:'Ahmad Fadillah',noHp:'081234567892',alamat:'Jl. Pahlawan No. 8'}, {id:4,nis:'2026004',nama:'Aisyah Putri Ramadhani',kelas:'2',angkatan:'2026',orangTua:'Ramadhani',noHp:'081234567893',alamat:'Jl. Mawar No. 12'}, {id:5,nis:'2026005',nama:'Rafif Ahmad Syahputra',kelas:'3',angkatan:'2026',orangTua:'Syahputra',noHp:'081234567894',alamat:'Jl. Kenanga No. 3'}, {id:6,nis:'2026006',nama:'Fatimah Azzahra',kelas:'3',angkatan:'2026',orangTua:'Abdullah',noHp:'081234567895',alamat:'Jl. Melati No. 7'}, {id:7,nis:'2026007',nama:'Dimas Aditya Pratama',kelas:'4',angkatan:'2026',orangTua:'Agus Pratama',noHp:'081234567896',alamat:'Jl. Flamboyan No. 4'}, {id:8,nis:'2026008',nama:'Naura Syakira',kelas:'4',angkatan:'2026',orangTua:'Syakir',noHp:'081234567897',alamat:'Jl. Anggrek No. 9'}, {id:9,nis:'2026009',nama:'Farhan Maulana',kelas:'5',angkatan:'2026',orangTua:'Maulana',noHp:'081234567898',alamat:'Jl. Dahlia No. 6'}, {id:10,nis:'2026010',nama:'Kayla Azahra',kelas:'5',angkatan:'2026',orangTua:'Azahra',noHp:'081234567899',alamat:'Jl. Cendana No. 11'}, {id:11,nis:'2026011',nama:'Arkan Prasetyo',kelas:'6',angkatan:'2026',orangTua:'Prasetyo',noHp:'081234567800',alamat:'Jl. Sudirman No. 15'}, {id:12,nis:'2026012',nama:'Zahra Amalia Putri',kelas:'6',angkatan:'2026',orangTua:'Amalia',noHp:'081234567801',alamat:'Jl. Merdeka No. 20'} ],
+    jenisBayar: [ {id:1,kode:'LKS-MTK',nama:'LKS Matematika',kategori:'LKS',nominal:35000,tahun:'2025/2026',kelas:'all'}, {id:2,kode:'LKS-IND',nama:'LKS Bahasa Indonesia',kategori:'LKS',nominal:35000,tahun:'2025/2026',kelas:'all'}, {id:3,kode:'LKS-ENG',nama:'LKS Bahasa Inggris',kategori:'LKS',nominal:35000,tahun:'2025/2026',kelas:'all'}, {id:4,kode:'LKS-IPA',nama:'LKS IPA',kategori:'LKS',nominal:35000,tahun:'2025/2026',kelas:'3-6'}, {id:5,kode:'AKT-OLA',nama:'Aktivitas Olahraga',kategori:'Aktivitas',nominal:25000,tahun:'2025/2026',kelas:'all'}, {id:6,kode:'AKT-SEN',nama:'Aktivitas Seni',kategori:'Aktivitas',nominal:20000,tahun:'2025/2026',kelas:'all'}, {id:7,kode:'AKT-PRM',nama:'Perpisahan',kategori:'Aktivitas',nominal:50000,tahun:'2025/2026',kelas:'6'}, {id:8,kode:'IUR-SPP',nama:'SPP Bulanan',kategori:'Iuran',nominal:100000,tahun:'2025/2026',kelas:'all'}, {id:9,kode:'IUR-KAS',nama:'Kas Kelas',kategori:'Iuran',nominal:15000,tahun:'2025/2026',kelas:'all'}, {id:10,kode:'IUR-KEG',nama:'Iuran Kegiatan',kategori:'Iuran',nominal:30000,tahun:'2025/2026',kelas:'all'} ],
+    transaksi: [], stor: [], riwayatWa: []
+  };
+  saveDB();
+}
+function saveDB() { try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch(e) { alert('Penyimpanan penuh!'); } }
+function nextId(arr) { return arr.length ? Math.max.apply(null, arr.map(function(x){return x.id;})) + 1 : 1; }
+
+// ===== HELPERS =====
+function fmt(n) { return 'Rp ' + Number(n||0).toLocaleString('id-ID'); }
+function fmtDate(d) { try { return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}); } catch(e) { return d; } }
+function fmtDateShort(d) { try { return new Date(d).toLocaleDateString('id-ID'); } catch(e) { return d; } }
+function kelasText(k) { return 'Kelas ' + k; }
+function kategoriBadge(k) { return k==='LKS'?'primary':k==='Aktivitas'?'warning':k==='Iuran'?'success':'info'; }
+function genNoBayar() { var d=new Date(),y=String(d.getFullYear()).slice(-2),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0'),s=String(DB.transaksi.length+1).padStart(4,'0'); return 'BYR-'+y+m+dd+'-'+s; }
+function genNoStor() { var d=new Date(),y=String(d.getFullYear()).slice(-2),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0'),s=String(DB.stor.length+1).padStart(4,'0'); return 'STR-'+y+m+dd+'-'+s; }
+function fmtWa(hp) { var n=hp.replace(/\D/g,''); if(n.charAt(0)==='0') n='62'+n.substring(1); if(n.indexOf('0')!==0&&n.indexOf('62')!==0) n='62'+n; return n; }
+function getTagihan(siswa) { return DB.jenisBayar.reduce(function(sum,jb){ if(jb.kelas==='all') return sum+jb.nominal; if(jb.kelas.indexOf('-')>-1){var p=jb.kelas.split('-').map(Number);if(parseInt(siswa.kelas)>=p[0]&&parseInt(siswa.kelas)<=p[1])return sum+jb.nominal;return sum;} return jb.kelas===siswa.kelas?sum+jb.nominal:sum; },0); }
+
+var currentUser = null, currentActivePage = 'dashboard';
+
+// ===== AUTH =====
+function handleLogin(e) {
+  e.preventDefault();
+  var u = document.getElementById('username').value, p = document.getElementById('password').value;
+  var user = DB.users.find(function(x){return x.username===u&&x.password===p;});
+  if (!user) { document.getElementById('loginError').textContent='Username atau password salah'; return; }
+  if (user.status==='nonaktif') { document.getElementById('loginError').textContent='Akun dinonaktifkan'; return; }
+  currentUser = user;
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('mainApp').classList.remove('hidden');
+  document.getElementById('currentUser').innerHTML='<i class="fas fa-user"></i> '+user.nama;
+  document.getElementById('loginError').textContent='';
+  showPage('dashboard');
+}
+function handleLogout() { if(!confirm('Yakin keluar?'))return; currentUser=null; document.getElementById('loginPage').classList.remove('hidden'); document.getElementById('mainApp').classList.add('hidden'); document.getElementById('username').value=''; document.getElementById('password').value=''; }
+
+// ===== NAVIGATION =====
+function showPage(p) {
+  currentActivePage = p;
+  document.querySelectorAll('.page').forEach(function(x){x.classList.remove('active');});
+  document.querySelectorAll('.sidebar-menu li').forEach(function(x){x.classList.remove('active');});
+  var map={dashboard:'pageDashboard',siswa:'pageSiswa',pembayaran:'pagePembayaran',transaksi:'pageTransaksi',storbendahara:'pageStorbendahara',laporan:'pageLaporan',whatsapp:'pageWhatsapp',pengaturan:'pagePengaturan'};
+  var titles={dashboard:'Dashboard',siswa:'Data Siswa',pembayaran:'Jenis Pembayaran',transaksi:'Transaksi',storbendahara:'Stor ke Bendahara',laporan:'Laporan',whatsapp:'Kirim WhatsApp',pengaturan:'Pengaturan'};
+  document.getElementById(map[p]).classList.add('active');
+  document.getElementById('pageTitle').textContent=titles[p];
+  var items=document.querySelectorAll('.sidebar-menu li');
+  var idx=['dashboard','siswa','pembayaran','transaksi','storbendahara','laporan','whatsapp','pengaturan'].indexOf(p);
+  if(idx>=0)items[idx].classList.add('active');
+  var fn={dashboard:refreshDashboard,siswa:renderSiswaTable,pembayaran:renderJenisBayarTable,transaksi:renderTransaksiTable,storbendahara:renderStorTable,laporan:function(){generateLaporanHarian()},whatsapp:populateWaSiswa,pengaturan:function(){renderUserTable();renderChangePasswordSelect();loadProfil();}};
+  if(fn[p])fn[p]();
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('show');}
+
+// ===== MODAL =====
+function openModal(id){document.getElementById(id).classList.remove('hidden');if(id==='transaksiModal'){populateTransaksiForm();document.getElementById('txTanggal').value=new Date().toISOString().split('T')[0];}if(id==='storModal')document.getElementById('storTanggal').value=new Date().toISOString().split('T')[0];}
+function closeModal(id){document.getElementById(id).classList.add('hidden');['siswaForm','jenisBayarForm','transaksiForm','storForm','userForm','changePasswordForm'].forEach(function(fId){var f=document.getElementById(fId);if(f)f.reset();});document.getElementById('siswaEditId').value='';document.getElementById('siswaModalTitle').textContent='Tambah Siswa';document.getElementById('jenisBayarEditId').value='';document.getElementById('jenisBayarModalTitle').textContent='Tambah Jenis Pembayaran';document.getElementById('userEditId').value='';document.getElementById('userModalTitle').textContent='Tambah User';}
+
+// ===== SISWA =====
+function handleSiswaForm(e){e.preventDefault();var eid=document.getElementById('siswaEditId').value;var d={nis:document.getElementById('siswaNis').value,nama:document.getElementById('siswaNama').value,kelas:document.getElementById('siswaKelas').value,angkatan:document.getElementById('siswaAngkatan').value,orangTua:document.getElementById('siswaOrangTua').value,noHp:document.getElementById('siswaNoHp').value,alamat:document.getElementById('siswaAlamat').value};if(eid){var idx=DB.siswa.findIndex(function(s){return s.id==eid;});if(idx>-1)Object.assign(DB.siswa[idx],d);}else{d.id=nextId(DB.siswa);DB.siswa.push(d);}saveDB();closeModal('siswaModal');renderSiswaTable();}
+function editSiswa(id){var s=DB.siswa.find(function(x){return x.id===id;});if(!s)return;document.getElementById('siswaModalTitle').textContent='Edit Siswa';document.getElementById('siswaEditId').value=s.id;document.getElementById('siswaNis').value=s.nis;document.getElementById('siswaNama').value=s.nama;document.getElementById('siswaKelas').value=s.kelas;document.getElementById('siswaAngkatan').value=s.angkatan||'';document.getElementById('siswaOrangTua').value=s.orangTua||'';document.getElementById('siswaNoHp').value=s.noHp||'';document.getElementById('siswaAlamat').value=s.alamat||'';openModal('siswaModal');}
+function deleteSiswa(id){if(!confirm('Hapus siswa ini?'))return;DB.siswa=DB.siswa.filter(function(s){return s.id!==id;});DB.transaksi=DB.transaksi.filter(function(t){return t.siswaId!==id;});saveDB();renderSiswaTable();}
+function renderSiswaTable(){var tb=document.getElementById('siswaTableBody');var q=(document.getElementById('searchSiswa').value||'').toLowerCase();var f=DB.siswa.filter(function(s){return s.nama.toLowerCase().indexOf(q)>-1||(s.nis||'').indexOf(q)>-1||(s.kelas||'').indexOf(q)>-1;});tb.innerHTML=f.map(function(s,i){return '<tr><td><input type="checkbox" class="siswa-check" value="'+s.id+'" onchange="updateBulkSiswaBtn()"></td><td>'+(i+1)+'</td><td>'+s.nis+'</td><td>'+s.nama+'</td><td><span class="badge badge-primary">'+kelasText(s.kelas)+'</span></td><td>'+(s.orangTua||'-')+'</td><td>'+(s.noHp||'-')+'</td><td class="table-actions"><button class="btn btn-icon btn-info" onclick="editSiswa('+s.id+')" title="Edit"><i class="fas fa-edit"></i></button> <button class="btn btn-icon btn-danger" onclick="deleteSiswa('+s.id+')" title="Hapus"><i class="fas fa-trash"></i></button></td></tr>';}).join('');document.getElementById('checkAllSiswa').checked=false;updateBulkSiswaBtn();}
+function toggleAllSiswa(el){document.querySelectorAll('.siswa-check').forEach(function(c){c.checked=el.checked;});updateBulkSiswaBtn();}
+function updateBulkSiswaBtn(){document.getElementById('btnHapusSiswa').style.display=document.querySelectorAll('.siswa-check:checked').length>0?'':'none';}
+function bulkDeleteSiswa(){var ids=[].slice.call(document.querySelectorAll('.siswa-check:checked')).map(function(c){return parseInt(c.value);});if(!ids.length)return;if(!confirm('Hapus '+ids.length+' siswa?'))return;DB.siswa=DB.siswa.filter(function(s){return ids.indexOf(s.id)===-1;});DB.transaksi=DB.transaksi.filter(function(t){return ids.indexOf(t.siswaId)===-1;});saveDB();renderSiswaTable();}
+function hapusSemuaSiswa(){if(!DB.siswa.length)return alert('Tidak ada data!');if(!confirm('Hapus SEMUA siswa & transaksinya?'))return;DB.siswa=[];DB.transaksi=[];saveDB();renderSiswaTable();}
+function exportSiswa(){var csv='NIS,Nama,Kelas,Angkatan,Orang Tua,No HP,Alamat\n';DB.siswa.forEach(function(s){csv+='"'+s.nis+'","'+s.nama+'","'+kelasText(s.kelas)+'","'+(s.angkatan||'')+'","'+(s.orangTua||'')+'","'+(s.noHp||'')+'","'+(s.alamat||'')+'"\n';});var b=new Blob([csv],{type:'text/csv'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='Data_Siswa.csv';a.click();}
+
+// ===== JENIS BAYAR =====
+function handleJenisBayarForm(e){e.preventDefault();var eid=document.getElementById('jenisBayarEditId').value;var d={kode:document.getElementById('jenisBayarKode').value,nama:document.getElementById('jenisBayarNama').value,kategori:document.getElementById('jenisBayarKategori').value,nominal:parseInt(document.getElementById('jenisBayarNominal').value)||0,tahun:document.getElementById('jenisBayarTahun').value,kelas:document.getElementById('jenisBayarKelas').value};if(eid){var idx=DB.jenisBayar.findIndex(function(j){return j.id==eid;});if(idx>-1)Object.assign(DB.jenisBayar[idx],d);}else{d.id=nextId(DB.jenisBayar);DB.jenisBayar.push(d);}saveDB();closeModal('jenisBayarModal');renderJenisBayarTable();}
+function editJenisBayar(id){var j=DB.jenisBayar.find(function(x){return x.id===id;});if(!j)return;document.getElementById('jenisBayarModalTitle').textContent='Edit Jenis Pembayaran';document.getElementById('jenisBayarEditId').value=j.id;document.getElementById('jenisBayarKode').value=j.kode;document.getElementById('jenisBayarNama').value=j.nama;document.getElementById('jenisBayarKategori').value=j.kategori;document.getElementById('jenisBayarNominal').value=j.nominal;document.getElementById('jenisBayarTahun').value=j.tahun||'';document.getElementById('jenisBayarKelas').value=j.kelas||'all';openModal('jenisBayarModal');}
+function deleteJenisBayar(id){if(!confirm('Hapus jenis ini?'))return;DB.jenisBayar=DB.jenisBayar.filter(function(j){return j.id!==id;});saveDB();renderJenisBayarTable();}
+function renderJenisBayarTable(){var tb=document.getElementById('jenisBayarBody');tb.innerHTML=DB.jenisBayar.map(function(j,i){return '<tr><td><input type="checkbox" class="jenisbayar-check" value="'+j.id+'" onchange="updateBulkJBBtn()"></td><td>'+(i+1)+'</td><td><span class="badge badge-info">'+j.kode+'</span></td><td>'+j.nama+'</td><td><span class="badge badge-'+kategoriBadge(j.kategori)+'">'+j.kategori+'</span></td><td>'+fmt(j.nominal)+'</td><td>'+j.tahun+'</td><td class="table-actions"><button class="btn btn-icon btn-info" onclick="editJenisBayar('+j.id+')"><i class="fas fa-edit"></i></button> <button class="btn btn-icon btn-danger" onclick="deleteJenisBayar('+j.id+')"><i class="fas fa-trash"></i></button></td></tr>';}).join('');document.getElementById('checkAllJenisBayar').checked=false;updateBulkJBBtn();}
+function toggleAllJenisBayar(el){document.querySelectorAll('.jenisbayar-check').forEach(function(c){c.checked=el.checked;});updateBulkJBBtn();}
+function updateBulkJBBtn(){document.getElementById('btnHapusJenisBayar').style.display=document.querySelectorAll('.jenisbayar-check:checked').length>0?'':'none';}
+function bulkDeleteJenisBayar(){var ids=[].slice.call(document.querySelectorAll('.jenisbayar-check:checked')).map(function(c){return parseInt(c.value);});if(!ids.length)return;if(!confirm('Hapus '+ids.length+' jenis?'))return;DB.jenisBayar=DB.jenisBayar.filter(function(j){return ids.indexOf(j.id)===-1;});saveDB();renderJenisBayarTable();}
+function hapusSemuaJenisBayar(){if(!DB.jenisBayar.length)return alert('Tidak ada data!');if(!confirm('Hapus SEMUA jenis pembayaran?'))return;DB.jenisBayar=[];saveDB();renderJenisBayarTable();}
+
+// ===== TRANSAKSI =====
+function populateTransaksiForm(){var s=document.getElementById('txSiswa');s.innerHTML='<option value="">-- Pilih Siswa --</option>'+DB.siswa.map(function(x){return '<option value="'+x.id+'">'+x.nama+' ('+kelasText(x.kelas)+')</option>';}).join('');}
+function loadJenisBayarForSiswa(){var sid=parseInt(document.getElementById('txSiswa').value);var s=DB.siswa.find(function(x){return x.id===sid;});var sel=document.getElementById('txJenis');if(!s){sel.innerHTML='<option value="">-- Pilih --</option>';document.getElementById('txKelas').value='';return;}document.getElementById('txKelas').value=kelasText(s.kelas);var avail=DB.jenisBayar.filter(function(jb){if(jb.kelas==='all')return true;if(jb.kelas.indexOf('-')>-1){var p=jb.kelas.split('-').map(Number);return parseInt(s.kelas)>=p[0]&&parseInt(s.kelas)<=p[1];}return jb.kelas===s.kelas;});sel.innerHTML='<option value="">-- Pilih --</option>'+avail.map(function(jb){return '<option value="'+jb.id+'">'+jb.nama+' - '+fmt(jb.nominal)+'</option>';}).join('');}
+function updateTxNominal(){var jid=parseInt(document.getElementById('txJenis').value);var j=DB.jenisBayar.find(function(x){return x.id===jid;});document.getElementById('txNominal').value=j?fmt(j.nominal):'';}
+function handleTransaksiForm(e){e.preventDefault();var sid=parseInt(document.getElementById('txSiswa').value);var s=DB.siswa.find(function(x){return x.id===sid;});var jid=parseInt(document.getElementById('txJenis').value);var j=DB.jenisBayar.find(function(x){return x.id===jid;});if(!s||!j)return alert('Data tidak lengkap!');var t={id:nextId(DB.transaksi),noBayar:genNoBayar(),tanggal:document.getElementById('txTanggal').value,siswaId:s.id,siswaNama:s.nama,siswaKelas:s.kelas,jenisId:j.id,jenisNama:j.nama,kategori:j.kategori,nominal:j.nominal,metode:document.getElementById('txMetode').value,keterangan:document.getElementById('txKeterangan').value,status:'Lunas',waktu:new Date().toLocaleTimeString('id-ID')};DB.transaksi.push(t);saveDB();closeModal('transaksiModal');renderTransaksiTable();alert('Transaksi berhasil! No: '+t.noBayar);}
+function renderTransaksiTable(){var tb=document.getElementById('transaksiBody');var q=(document.getElementById('searchTransaksi').value||'').toLowerCase();var f=DB.transaksi.filter(function(t){return(t.noBayar||'').toLowerCase().indexOf(q)>-1||(t.siswaNama||'').toLowerCase().indexOf(q)>-1;}).reverse();tb.innerHTML=f.map(function(t,i){return '<tr><td><input type="checkbox" class="transaksi-check" value="'+t.id+'" onchange="updateBulkTxBtn()"></td><td>'+(i+1)+'</td><td><span class="badge badge-info">'+t.noBayar+'</span></td><td>'+fmtDateShort(t.tanggal)+'</td><td>'+t.siswaNama+'</td><td><span class="badge badge-'+kategoriBadge(t.kategori)+'">'+t.jenisNama+'</span></td><td>'+fmt(t.nominal)+'</td><td><span class="badge badge-success">'+t.status+'</span></td><td class="table-actions"><button class="btn btn-icon btn-info" onclick="detailTransaksi('+t.id+')"><i class="fas fa-eye"></i></button> <button class="btn btn-icon btn-whatsapp" onclick="kirimWaStruk('+t.id+')"><i class="fab fa-whatsapp"></i></button> <button class="btn btn-icon btn-danger" onclick="deleteTransaksi('+t.id+')"><i class="fas fa-trash"></i></button></td></tr>';}).join('');document.getElementById('checkAllTransaksi').checked=false;updateBulkTxBtn();}
+function detailTransaksi(id){var t=DB.transaksi.find(function(x){return x.id===id;});if(!t)return;document.getElementById('detailTransaksiContent').innerHTML='<div class="detail-row"><span class="detail-label">No. Bayar</span><span class="detail-value">'+t.noBayar+'</span></div><div class="detail-row"><span class="detail-label">Tanggal</span><span class="detail-value">'+fmtDate(t.tanggal)+' '+t.waktu+'</span></div><div class="detail-row"><span class="detail-label">Siswa</span><span class="detail-value">'+t.siswaNama+' ('+kelasText(t.siswaKelas)+')</span></div><div class="detail-row"><span class="detail-label">Jenis</span><span class="detail-value">'+t.jenisNama+'</span></div><div class="detail-row"><span class="detail-label">Nominal</span><span class="detail-value">'+fmt(t.nominal)+'</span></div><div class="detail-row"><span class="detail-label">Metode</span><span class="detail-value">'+t.metode+'</span></div><div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span class="badge badge-success">'+t.status+'</span></span></div>';openModal('detailTransaksiModal');}
+function deleteTransaksi(id){if(!confirm('Hapus transaksi?'))return;DB.transaksi=DB.transaksi.filter(function(t){return t.id!==id;});saveDB();renderTransaksiTable();}
+function toggleAllTransaksi(el){document.querySelectorAll('.transaksi-check').forEach(function(c){c.checked=el.checked;});updateBulkTxBtn();}
+function updateBulkTxBtn(){document.getElementById('btnHapusTransaksi').style.display=document.querySelectorAll('.transaksi-check:checked').length>0?'':'none';}
+function bulkDeleteTransaksi(){var ids=[].slice.call(document.querySelectorAll('.transaksi-check:checked')).map(function(c){return parseInt(c.value);});if(!ids.length)return;if(!confirm('Hapus '+ids.length+' transaksi?'))return;DB.transaksi=DB.transaksi.filter(function(t){return ids.indexOf(t.id)===-1;});saveDB();renderTransaksiTable();}
+function hapusSemuaTransaksi(){if(!DB.transaksi.length)return alert('Tidak ada data!');if(!confirm('Hapus SEMUA transaksi?'))return;DB.transaksi=[];saveDB();renderTransaksiTable();}
+
+// ===== STOR =====
+function handleStorForm(e){e.preventDefault();var s={id:nextId(DB.stor),noStor:genNoStor(),tanggal:document.getElementById('storTanggal').value,oleh:document.getElementById('storOleh').value,jumlah:parseInt(document.getElementById('storJumlah').value)||0,catatan:document.getElementById('storCatatan').value};DB.stor.push(s);saveDB();closeModal('storModal');renderStorTable();alert('Berhasil! No: '+s.noStor);}
+function renderStorTable(){var tb=document.getElementById('storBody');tb.innerHTML=DB.stor.map(function(s,i){return '<tr><td><input type="checkbox" class="stor-check" value="'+s.id+'" onchange="updateBulkStorBtn()"></td><td>'+(i+1)+'</td><td><span class="badge badge-info">'+s.noStor+'</span></td><td>'+fmtDateShort(s.tanggal)+'</td><td>'+s.oleh+'</td><td>'+fmt(s.jumlah)+'</td><td>'+s.catatan+'</td><td class="table-actions"><button class="btn btn-icon btn-danger" onclick="deleteStor('+s.id+')"><i class="fas fa-trash"></i></button></td></tr>';}).join('');document.getElementById('checkAllStor').checked=false;updateBulkStorBtn();}
+function toggleAllStor(el){document.querySelectorAll('.stor-check').forEach(function(c){c.checked=el.checked;});updateBulkStorBtn();}
+function updateBulkStorBtn(){document.getElementById('btnHapusStor').style.display=document.querySelectorAll('.stor-check:checked').length>0?'':'none';}
+function deleteStor(id){if(!confirm('Hapus stor?'))return;DB.stor=DB.stor.filter(function(s){return s.id!==id;});saveDB();renderStorTable();}
+function bulkDeleteStor(){var ids=[].slice.call(document.querySelectorAll('.stor-check:checked')).map(function(c){return parseInt(c.value);});if(!ids.length)return;if(!confirm('Hapus '+ids.length+' stor?'))return;DB.stor=DB.stor.filter(function(s){return ids.indexOf(s.id)===-1;});saveDB();renderStorTable();}
+function hapusSemuaStor(){if(!DB.stor.length)return alert('Tidak ada data!');if(!confirm('Hapus SEMUA stor?'))return;DB.stor=[];saveDB();renderStorTable();}
+function printStor(){if(!DB.stor.length)return alert('Belum ada data!');var h='<h2>SURAT SETOR / STOR KE BENDAHARA</h2><p>'+DB.profil.namaSekolah+'</p><hr><table><thead><tr><th>No</th><th>No. Stor</th><th>Tanggal</th><th>Oleh</th><th>Jumlah</th><th>Catatan</th></tr></thead><tbody>';var tot=0;DB.stor.forEach(function(s,i){tot+=s.jumlah;h+='<tr><td>'+(i+1)+'</td><td>'+s.noStor+'</td><td>'+fmtDateShort(s.tanggal)+'</td><td>'+s.oleh+'</td><td>'+fmt(s.jumlah)+'</td><td>'+s.catatan+'</td></tr>';});h+='</tbody><tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold">TOTAL</td><td style="font-weight:bold">'+fmt(tot)+'</td><td></td></tr></tfoot></table><br><br><div style="display:flex;justify-content:space-between;margin-top:40px"><div style="text-align:center;width:200px"><p><strong>Yang Menyetor</strong></p><br><br><p>_________________</p></div><div style="text-align:center;width:200px"><p><strong>Bendahara</strong></p><br><br><p>_________________</p></div></div>';document.getElementById('printArea').innerHTML=h;window.print();}
+
+// ===== DASHBOARD =====
+function refreshDashboard(){document.getElementById('totalSiswa').textContent=DB.siswa.length;document.getElementById('totalLunas').textContent=DB.transaksi.length;var paid=new Set(DB.transaksi.map(function(t){return t.siswaId;}));document.getElementById('totalBelumBayar').textContent=DB.siswa.length-paid.size;document.getElementById('totalPemasukan').textContent=fmt(DB.transaksi.reduce(function(s,t){return s+t.nominal;},0));var recent=DB.transaksi.slice(-5).reverse();document.getElementById('recentTransactionsBody').innerHTML=recent.map(function(t){return '<tr><td>'+fmtDateShort(t.tanggal)+'</td><td>'+t.siswaNama+'</td><td><span class="badge badge-'+kategoriBadge(t.kategori)+'">'+t.jenisNama+'</span></td><td>'+fmt(t.nominal)+'</td></tr>';}).join('')||'<tr><td colspan="4" style="text-align:center;color:#94a3b8">Belum ada transaksi</td></tr>';var colors={LKS:'#3b82f6',Aktivitas:'#f97316',Iuran:'#22c55e'};var sh='';DB.jenisBayar.forEach(function(jb){var txs=DB.transaksi.filter(function(t){return t.jenisId===jb.id;});var tot=txs.reduce(function(s,t){return s+t.nominal;},0);sh+='<div class="summary-item"><div class="summary-label"><div class="summary-dot" style="background:'+(colors[jb.kategori]||'#06b6d4')+'"></div><span>'+jb.nama+'</span></div><div><span class="badge badge-info">'+txs.length+'</span> <span style="margin-left:8px;font-weight:600">'+fmt(tot)+'</span></div></div>';});document.getElementById('summaryList').innerHTML=sh||'<p style="text-align:center;color:#94a3b8">Belum ada data</p>';}
+
+// ===== LAPORAN =====
+function showLaporanTab(tab){document.querySelectorAll('.laporan-content').forEach(function(c){c.classList.remove('active');});document.querySelectorAll('#pageLaporan .tab-btn').forEach(function(b){b.classList.remove('active');});var map={harian:'laporanHarian',bulanan:'laporanBulanan',kelas:'laporanKelas',ringkasan:'laporanRingkasan',piutang:'laporanPiutang'};document.getElementById(map[tab]).classList.add('active');var idx=['harian','bulanan','kelas','ringkasan','piutang'].indexOf(tab);document.querySelectorAll('#pageLaporan .tab-btn')[idx].classList.add('active');var fn={harian:generateLaporanHarian,bulanan:generateLaporanBulanan,kelas:generateLaporanKelas,ringkasan:generateRingkasan,piutang:generatePiutang};fn[tab]();}
+
+function generateLaporanHarian(){var t=document.getElementById('filterTanggal').value;var f=DB.transaksi.filter(function(x){return x.tanggal===t;});document.getElementById('laporanHarianBody').innerHTML=f.map(function(x,i){return '<tr><td>'+(i+1)+'</td><td>'+x.noBayar+'</td><td>'+x.siswaNama+'</td><td>'+kelasText(x.siswaKelas)+'</td><td>'+x.jenisNama+'</td><td>'+fmt(x.nominal)+'</td><td>'+x.waktu+'</td></tr>';}).join('')||'<tr><td colspan="7" style="text-align:center">Tidak ada transaksi</td></tr>';var tot=f.reduce(function(s,x){return s+x.nominal;},0);document.getElementById('laporanHarianTotal').innerHTML='<span>Total: <strong>'+fmt(tot)+'</strong></span><span>Jumlah: <strong>'+f.length+'</strong></span>';}
+function generateLaporanBulanan(){var bln=parseInt(document.getElementById('filterBulan').value);var thn=parseInt(document.getElementById('filterTahun').value);var f=DB.transaksi.filter(function(x){var d=new Date(x.tanggal);return(d.getMonth()+1)===bln&&d.getFullYear()===thn;});document.getElementById('laporanBulananBody').innerHTML=f.map(function(x,i){return '<tr><td>'+(i+1)+'</td><td>'+x.noBayar+'</td><td>'+x.siswaNama+'</td><td>'+kelasText(x.siswaKelas)+'</td><td>'+x.jenisNama+'</td><td>'+fmtDateShort(x.tanggal)+'</td><td>'+fmt(x.nominal)+'</td></tr>';}).join('')||'<tr><td colspan="7" style="text-align:center">Tidak ada transaksi</td></tr>';var tot=f.reduce(function(s,x){return s+x.nominal;},0);document.getElementById('laporanBulananTotal').innerHTML='<span>Total: <strong>'+fmt(tot)+'</strong></span><span>Jumlah: <strong>'+f.length+'</strong></span>';}
+function generateLaporanKelas(){var k=document.getElementById('filterKelas').value;var sl=k?DB.siswa.filter(function(s){return s.kelas===k;}):DB.siswa;document.getElementById('laporanKelasBody').innerHTML=sl.map(function(s,i){var txs=DB.transaksi.filter(function(t){return t.siswaId===s.id;});var lks=txs.filter(function(t){return t.kategori==='LKS';}).reduce(function(a,t){return a+t.nominal;},0);var akt=txs.filter(function(t){return t.kategori==='Aktivitas';}).reduce(function(a,t){return a+t.nominal;},0);var iur=txs.filter(function(t){return t.kategori==='Iuran';}).reduce(function(a,t){return a+t.nominal;},0);var total=lks+akt+iur;var tag=getTagihan(s);var sisa=tag-total;var st,bs;if(sisa<=0){st='Lunas';bs='badge-success';}else if(total>0){st='Sebagian';bs='badge-warning';}else{st='Belum';bs='badge-danger';}return '<tr><td>'+(i+1)+'</td><td>'+s.nama+'</td><td>'+kelasText(s.kelas)+'</td><td>'+fmt(lks)+'</td><td>'+fmt(akt)+'</td><td>'+fmt(iur)+'</td><td>'+fmt(total)+'</td><td><span class="badge '+bs+'">'+st+'</span></td></tr>';}).join('');}
+function generateRingkasan(){var k=document.getElementById('filterRingkasanKelas').value;var sf=document.getElementById('filterRingkasanStatus').value;var sl=k?DB.siswa.filter(function(s){return s.kelas===k;}):DB.siswa;var tl=0,ts=0,tb=0;var rows=sl.map(function(s,i){var txs=DB.transaksi.filter(function(t){return t.siswaId===s.id;});var totalBayar=txs.reduce(function(a,t){return a+t.nominal;},0);var detailItems=DB.jenisBayar.filter(function(jb){if(jb.kelas==='all')return true;if(jb.kelas.indexOf('-')>-1){var p=jb.kelas.split('-').map(Number);return parseInt(s.kelas)>=p[0]&&parseInt(s.kelas)<=p[1];}return jb.kelas===s.kelas;});var tag=detailItems.reduce(function(a,jb){return a+jb.nominal;},0);var detailHtml=detailItems.map(function(jb){var paid=txs.filter(function(t){return t.jenisId===jb.id;}).reduce(function(a,t){return a+t.nominal;},0);var c=paid>=jb.nominal?'#16a34a':paid>0?'#f97316':'#dc2626';var ic=paid>=jb.nominal?'fa-check-circle':paid>0?'fa-clock':'fa-times-circle';return '<span class="item-tag" style="background:'+c+'15;color:'+c+';border:1px solid '+c+'40"><i class="fas '+ic+'"></i> '+jb.nama+': '+fmt(paid)+'/'+fmt(jb.nominal)+'</span>';}).join(' ');var sisa=tag-totalBayar;var st,bs;if(sisa<=0){st='Lunas';bs='badge-success';tl++;}else if(totalBayar>0){st='Sebagian';bs='badge-warning';ts++;}else{st='Belum';bs='badge-danger';tb++;}if(sf==='lunas'&&st!=='Lunas')return null;if(sf==='belum'&&st!=='Belum')return null;if(sf==='sebagian'&&st!=='Sebagian')return null;return '<tr><td>'+(i+1)+'</td><td><strong>'+s.nama+'</strong></td><td><span class="badge badge-primary">'+kelasText(s.kelas)+'</span></td><td>'+(s.orangTua||'')+'</td><td>'+(s.noHp||'')+'</td><td>'+fmt(tag)+'</td><td style="color:var(--success);font-weight:600">'+fmt(totalBayar)+'</td><td style="color:'+(sisa>0?'var(--danger)':'var(--success)')+';font-weight:600">'+fmt(sisa>0?sisa:0)+'</td><td><div class="item-tags-container">'+detailHtml+'</div></td><td><span class="badge '+bs+'">'+st+'</span></td></tr>';}).filter(Boolean);document.getElementById('laporanRingkasanBody').innerHTML=rows.join('')||'<tr><td colspan="10" style="text-align:center">Tidak ada data</td></tr>';document.getElementById('ringkasanStats').innerHTML='<div class="ringkasan-stat-grid"><div class="ringkasan-stat blue"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-info"><h3>'+sl.length+'</h3><p>Total Siswa</p></div></div><div class="ringkasan-stat green"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><div class="stat-info"><h3>'+tl+'</h3><p>Lunas</p></div></div><div class="ringkasan-stat orange"><div class="stat-icon"><i class="fas fa-clock"></i></div><div class="stat-info"><h3>'+ts+'</h3><p>Sebagian</p></div></div><div class="ringkasan-stat red"><div class="stat-icon"><i class="fas fa-times-circle"></i></div><div class="stat-info"><h3>'+tb+'</h3><p>Belum Bayar</p></div></div></div>';}
+function generatePiutang(){var k=document.getElementById('filterPiutangKelas').value;var sl=k?DB.siswa.filter(function(s){return s.kelas===k;}):DB.siswa;document.getElementById('laporanPiutangBody').innerHTML=sl.map(function(s,i){var totalBayar=DB.transaksi.filter(function(t){return t.siswaId===s.id;}).reduce(function(a,t){return a+t.nominal;},0);var tag=getTagihan(s);return '<tr><td>'+(i+1)+'</td><td>'+s.nama+'</td><td>'+kelasText(s.kelas)+'</td><td>'+(s.orangTua||'')+'</td><td>'+(s.noHp||'')+'</td><td>'+fmt(tag)+'</td><td>'+fmt(totalBayar)+'</td><td style="color:'+(tag-totalBayar>0?'var(--danger)':'var(--success)')+';font-weight:600">'+fmt(tag-totalBayar)+'</td></tr>';}).join('');}
+
+function printLaporan(type){var title='',content='';switch(type){case 'harian':{var t=document.getElementById('filterTanggal').value;title='Laporan Harian';var f=DB.transaksi.filter(function(x){return x.tanggal===t;});content='<p>Tanggal: '+fmtDate(t)+'</p><table><thead><tr><th>No</th><th>No. Bayar</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Nominal</th><th>Jam</th></tr></thead><tbody>';var tot=0;f.forEach(function(x,i){tot+=x.nominal;content+='<tr><td>'+(i+1)+'</td><td>'+x.noBayar+'</td><td>'+x.siswaNama+'</td><td>'+kelasText(x.siswaKelas)+'</td><td>'+x.jenisNama+'</td><td>'+fmt(x.nominal)+'</td><td>'+x.waktu+'</td></tr>';});content+='</tbody><tfoot><tr><td colspan="5" style="text-align:right;font-weight:bold">TOTAL</td><td style="font-weight:bold">'+fmt(tot)+'</td><td></td></tr></tfoot></table>';break;}case 'bulanan':{var bln=document.getElementById('filterBulan').value,thn=document.getElementById('filterTahun').value;var nb=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];title='Laporan Bulanan - '+nb[bln-1]+' '+thn;var f=DB.transaksi.filter(function(x){var d=new Date(x.tanggal);return(d.getMonth()+1)===parseInt(bln)&&d.getFullYear()===parseInt(thn);});content='<table><thead><tr><th>No</th><th>No. Bayar</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Tanggal</th><th>Nominal</th></tr></thead><tbody>';var tot=0;f.forEach(function(x,i){tot+=x.nominal;content+='<tr><td>'+(i+1)+'</td><td>'+x.noBayar+'</td><td>'+x.siswaNama+'</td><td>'+kelasText(x.siswaKelas)+'</td><td>'+x.jenisNama+'</td><td>'+fmtDateShort(x.tanggal)+'</td><td>'+fmt(x.nominal)+'</td></tr>';});content+='</tbody><tfoot><tr><td colspan="6" style="text-align:right;font-weight:bold">TOTAL</td><td style="font-weight:bold">'+fmt(tot)+'</td></tr></tfoot></table>';break;}case 'ringkasan':{title='Ringkasan Per Siswa';content='<table><thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>Tagihan</th><th>Bayar</th><th>Sisa</th><th>Status</th></tr></thead><tbody>';DB.siswa.forEach(function(s,i){var tb=DB.transaksi.filter(function(t){return t.siswaId===s.id;}).reduce(function(a,t){return a+t.nominal;},0);var tag=getTagihan(s);var sisa=tag-tb;var st=sisa<=0?'Lunas':tb>0?'Sebagian':'Belum';content+='<tr><td>'+(i+1)+'</td><td>'+s.nama+'</td><td>'+kelasText(s.kelas)+'</td><td>'+fmt(tag)+'</td><td>'+fmt(tb)+'</td><td>'+fmt(sisa>0?sisa:0)+'</td><td>'+st+'</td></tr>';});content+='</tbody></table>';break;}case 'piutang':{title='Lampiran Piutang';content='<table><thead><tr><th>No</th><th>Siswa</th><th>Kelas</th><th>Orang Tua</th><th>No HP</th><th>Tagihan</th><th>Terbayar</th><th>Sisa</th></tr></thead><tbody>';DB.siswa.forEach(function(s,i){var tb=DB.transaksi.filter(function(t){return t.siswaId===s.id;}).reduce(function(a,t){return a+t.nominal;},0);var tag=getTagihan(s);content+='<tr><td>'+(i+1)+'</td><td>'+s.nama+'</td><td>'+kelasText(s.kelas)+'</td><td>'+(s.orangTua||'')+'</td><td>'+(s.noHp||'')+'</td><td>'+fmt(tag)+'</td><td>'+fmt(tb)+'</td><td style="color:'+(tag-tb>0?'var(--danger)':'var(--success)')+';font-weight:600">'+fmt(tag-tb)+'</td></tr>';});content+='</tbody></table>';break;}}document.getElementById('printArea').innerHTML='<h2>'+title+'</h2><p>'+DB.profil.namaSekolah+'</p><hr>'+content;window.print();}
+
+// ===== WHATSAPP =====
+function populateWaSiswa(){document.getElementById('waSiswa').innerHTML='<option value="">-- Pilih Siswa --</option>'+DB.siswa.map(function(s){return '<option value="'+s.id+'">'+s.nama+' - '+(s.orangTua||'')+' ('+(s.noHp||'')+')</option>';}).join('');previewWaMessage();}
+function previewWaMessage(){var tpl=document.getElementById('waTemplate').value;var s=DB.siswa.find(function(x){return x.id===parseInt(document.getElementById('waSiswa').value);});var msg='';if(!s){msg='Pilih siswa terlebih dahulu.';}else if(tpl==='tagihan'){var tb=DB.transaksi.filter(function(t){return t.siswaId===s.id;}).reduce(function(a,t){return a+t.nominal;},0);var tag=DB.jenisBayar.reduce(function(a,jb){return a+jb.nominal;},0);var sisa=tag-tb;msg='Yth. Bapak/Ibu '+(s.orangTua||'')+',\n\nAssalamu\'alaikum Wr. Wb.\n\nKami dari '+DB.profil.namaSekolah+' memberitahukan tagihan untuk '+s.nama+' ('+kelasText(s.kelas)+'):\n\nTagihan: '+fmt(tag)+'\nSudah Bayar: '+fmt(tb)+'\nSisa: '+fmt(sisa>0?sisa:0)+'\n\n'+(sisa>0?'Mohon segera melakukan pembayaran.':'Alhamdulillah, tagihan lunas.')+'\n\nWassalamu\'alaikum Wr. Wb.';}else if(tpl==='reminder'){msg='Yth. Bapak/Ibu '+(s.orangTua||'')+',\n\nKami ingatkan tagihan '+s.nama+' ('+kelasText(s.kelas)+') masih ada yang belum diselesaikan.\n\nTerima kasih.\n'+DB.profil.namaSekolah;}else if(tpl==='lunas'){msg='Yth. Bapak/Ibu '+(s.orangTua||'')+',\n\nAlhamdulillah, pembayaran '+s.nama+' telah LUNAS.\n\nTerima kasih.\n'+DB.profil.namaSekolah;}else if(tpl==='stapor'){msg='Yth. Bapak/Ibu '+(s.orangTua||'')+',\n\nMohon kesediaan menandatangani STAPOR untuk '+s.nama+'.\n\nTerima kasih.\n'+DB.profil.namaSekolah;}document.getElementById('waPreview').textContent=msg;}
+function kirimWaIndividu(){var s=DB.siswa.find(function(x){return x.id===parseInt(document.getElementById('waSiswa').value);});if(!s)return alert('Pilih siswa!');var msg=document.getElementById('waPreview').textContent;window.open('https://wa.me/'+fmtWa(s.noHp||'080000000000')+'?text='+encodeURIComponent(msg),'_blank');logWa(s.nama,'Individu');}
+function kirimWaSemua(){var belum=new Set(DB.siswa.map(function(s){return s.id;}));DB.transaksi.forEach(function(t){belum.delete(t.siswaId);});if(!belum.size)return alert('Semua sudah bayar!');var count=0;belum.forEach(function(id){var s=DB.siswa.find(function(x){return x.id===id;});if(s&&s.noHp){var msg='Yth. '+(s.orangTua||'')+',\n\nTagihan '+s.nama+' ('+kelasText(s.kelas)+') masih ada yang belum dibayar.\nMohon segera bayar.\n\n'+DB.profil.namaSekolah;setTimeout(function(){window.open('https://wa.me/'+fmtWa(s.noHp)+'?text='+encodeURIComponent(msg),'_blank');},count*500);count++;}});logWa(count+' orang tua','Bulk');alert('Membuka '+count+' chat WhatsApp.');}
+function kirimWaStruk(id){var t=DB.transaksi.find(function(x){return x.id===id;});if(!t)return;var s=DB.siswa.find(function(x){return x.id===t.siswaId;});var msg='Yth. '+(s?s.orangTua:'')+',\n\nPembayaran '+t.siswaNama+' diterima:\nNo: '+t.noBayar+'\nTanggal: '+fmtDate(t.tanggal)+'\nJenis: '+t.jenisNama+'\nNominal: '+fmt(t.nominal)+'\nStatus: LUNAS\n\n'+DB.profil.namaSekolah;if(s&&s.noHp){window.open('https://wa.me/'+fmtWa(s.noHp)+'?text='+encodeURIComponent(msg),'_blank');logWa(t.siswaNama,'Struk');}else alert('No HP tidak tersedia!');}
+function logWa(penerima,jenis){DB.riwayatWa.push({id:nextId(DB.riwayatWa),tanggal:new Date().toLocaleDateString('id-ID')+' '+new Date().toLocaleTimeString('id-ID'),penerima:penerima,jenis:jenis,status:'Terkirim'});saveDB();renderRiwayatWa();}
+function renderRiwayatWa(){document.getElementById('riwayatWaBody').innerHTML=DB.riwayatWa.map(function(r){return '<tr><td>'+r.tanggal+'</td><td>'+r.penerima+'</td><td>'+r.jenis+'</td><td><span class="badge badge-success">'+r.status+'</span></td></tr>';}).join('')||'<tr><td colspan="4" style="text-align:center">Belum ada riwayat</td></tr>';}
+
+// ===== PENGATURAN =====
+function showPengaturanTab(tab){document.querySelectorAll('.pengaturan-content').forEach(function(c){c.classList.remove('active');});document.querySelectorAll('.pengaturan-tabs .tab-btn').forEach(function(b){b.classList.remove('active');});document.getElementById(tab==='akun'?'pengaturanAkun':'pengaturanProfil').classList.add('active');document.querySelectorAll('.pengaturan-tabs .tab-btn')[tab==='akun'?0:1].classList.add('active');}
+function renderUserTable(){document.getElementById('userTableBody').innerHTML=DB.users.map(function(u,i){var sb=u.status==='aktif'?'<span class="badge badge-success">Aktif</span>':'<span class="badge badge-danger">Nonaktif</span>';var rb=u.role==='admin'?'badge-primary':u.role==='bendahara'?'badge-success':'badge-info';return '<tr><td><input type="checkbox" class="user-check" value="'+u.id+'" onchange="updateBulkUserBtn()"></td><td>'+(i+1)+'</td><td><strong>'+u.username+'</strong></td><td>'+u.nama+'</td><td><span class="badge '+rb+'">'+u.role.charAt(0).toUpperCase()+u.role.slice(1)+'</span></td><td>'+sb+'</td><td class="table-actions"><button class="btn btn-icon btn-info" onclick="editUser('+u.id+')"><i class="fas fa-edit"></i></button> <button class="btn btn-icon btn-danger" onclick="deleteUser('+u.id+')"><i class="fas fa-trash"></i></button></td></tr>';}).join('');document.getElementById('checkAllUser').checked=false;updateBulkUserBtn();}
+function handleUserForm(e){e.preventDefault();var eid=document.getElementById('userEditId').value;var d={username:document.getElementById('userUsername').value,nama:document.getElementById('userNama').value,password:document.getElementById('userPassword').value,role:document.getElementById('userRole').value};if(eid){var idx=DB.users.findIndex(function(u){return u.id==eid;});if(idx>-1){DB.users[idx].username=d.username;DB.users[idx].nama=d.nama;DB.users[idx].role=d.role;if(d.password&&d.password!=='********')DB.users[idx].password=d.password;}}else{if(DB.users.find(function(u){return u.username===d.username;}))return alert('Username sudah ada!');d.id=nextId(DB.users);d.status='aktif';DB.users.push(d);}saveDB();closeModal('userModal');renderUserTable();renderChangePasswordSelect();}
+function editUser(id){var u=DB.users.find(function(x){return x.id===id;});if(!u)return;document.getElementById('userModalTitle').textContent='Edit User';document.getElementById('userEditId').value=u.id;document.getElementById('userUsername').value=u.username;document.getElementById('userNama').value=u.nama;document.getElementById('userPassword').value='********';document.getElementById('userRole').value=u.role;openModal('userModal');}
+function deleteUser(id){if(!confirm('Hapus user ini?'))return;DB.users=DB.users.filter(function(u){return u.id!==id;});saveDB();renderUserTable();renderChangePasswordSelect();}
+function toggleAllUser(el){document.querySelectorAll('.user-check').forEach(function(c){c.checked=el.checked;});updateBulkUserBtn();}
+function updateBulkUserBtn(){document.getElementById('btnHapusUser').style.display=document.querySelectorAll('.user-check:checked').length>0?'':'none';}
+function bulkDeleteUser(){var ids=[].slice.call(document.querySelectorAll('.user-check:checked')).map(function(c){return parseInt(c.value);});if(!ids.length)return;if(!confirm('Hapus '+ids.length+' user?'))return;DB.users=DB.users.filter(function(u){return ids.indexOf(u.id)===-1;});saveDB();renderUserTable();renderChangePasswordSelect();}
+function hapusSemuaUser(){if(DB.users.length<=1)return alert('Tidak ada user lain!');if(!confirm('Hapus SEMUA user kecuali akun login?'))return;var keep=currentUser?currentUser.id:1;DB.users=DB.users.filter(function(u){return u.id===keep;});saveDB();renderUserTable();renderChangePasswordSelect();}
+function renderChangePasswordSelect(){document.getElementById('cpUserSelect').innerHTML='<option value="">-- Pilih --</option>'+DB.users.map(function(u){return '<option value="'+u.id+'">'+u.nama+' ('+u.username+')</option>';}).join('');}
+function handleChangePassword(e){e.preventDefault();var uid=parseInt(document.getElementById('cpUserSelect').value);var pl=document.getElementById('cpPassLama').value;var pb=document.getElementById('cpPassBaru').value;var pk=document.getElementById('cpPassKonfirmasi').value;if(!uid)return alert('Pilih user!');if(currentUser&&currentUser.role!=='admin'&&currentUser.id!==uid)return alert('Tidak punya akses!');if(pb!==pk)return alert('Password baru tidak cocok!');if(pb.length<4)return alert('Minimal 4 karakter!');var u=DB.users.find(function(x){return x.id===uid;});if(!u)return alert('User tidak ditemukan!');if(u.password!==pl)return alert('Password lama salah!');u.password=pb;saveDB();document.getElementById('changePasswordForm').reset();alert('Password berhasil diubah!');}
+function loadProfil(){var p=DB.profil||{};document.getElementById('profilNamaSekolah').value=p.namaSekolah||'';document.getElementById('profilNPSN').value=p.npsn||'';document.getElementById('profilAlamat').value=p.alamat||'';document.getElementById('profilTelp').value=p.telp||'';document.getElementById('profilEmail').value=p.email||'';document.getElementById('profilKepsek').value=p.kepsek||'';document.getElementById('profilBendahara').value=p.bendahara||'';}
+function handleProfilForm(e){e.preventDefault();DB.profil={namaSekolah:document.getElementById('profilNamaSekolah').value,npsn:document.getElementById('profilNPSN').value,alamat:document.getElementById('profilAlamat').value,telp:document.getElementById('profilTelp').value,email:document.getElementById('profilEmail').value,kepsek:document.getElementById('profilKepsek').value,bendahara:document.getElementById('profilBendahara').value};saveDB();alert('Profil berhasil disimpan!');}
+
+// ===== INIT =====
+loadDB();
+document.getElementById('currentDate').textContent=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+document.getElementById('filterTanggal').value=new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
