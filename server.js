@@ -98,18 +98,35 @@ async function syncFromSupabase() {
   console.log('  Syncing data dari Supabase...');
   try {
     const results = await Promise.all(KEYS.map(k => loadTableFromSupabase(k)));
-    let found = false;
+    let synced = 0;
     KEYS.forEach((k, i) => {
-      if (results[i] !== null) { DB[k] = results[i]; found = true; }
+      if (results[i] !== null && results[i] !== undefined) {
+        DB[k] = results[i];
+        synced++;
+      }
     });
-    if (found) {
+    if (synced > 0) {
       saveDB();
-      console.log('  Data berhasil di-sync dari Supabase');
+      console.log('  ' + synced + ' tabel berhasil di-sync dari Supabase');
+    } else {
+      console.log('  Tidak ada data di Supabase, pakai data lokal');
+      await syncAllToSupabase();
     }
-    return found;
+    return synced > 0;
   } catch (e) {
-    console.log('  Supabase sync gagal, pakai data lokal');
+    console.log('  Supabase sync gagal:', e.message);
     return false;
+  }
+}
+
+async function syncAllToSupabase() {
+  if (!supabase) return;
+  console.log('  Upload semua data ke Supabase...');
+  try {
+    await Promise.all(KEYS.map(k => saveTableToSupabase(k, DB[k])));
+    console.log('  Semua data berhasil di-upload ke Supabase');
+  } catch (e) {
+    console.log('  Upload gagal:', e.message);
   }
 }
 
@@ -127,16 +144,13 @@ syncFromSupabase().catch(() => {});
 
 function nextId(arr) { return arr.length ? Math.max(...arr.map(x => x.id)) + 1 : 1; }
 let saveTimer = null;
-function scheduleSave() { if (saveTimer) clearTimeout(saveTimer); saveTimer = setTimeout(() => { saveDB(); }, 200); }
+function scheduleSave() { if (saveTimer) clearTimeout(saveTimer); saveTimer = setTimeout(saveDB, 200); }
 function scheduleSync(key) {
-  scheduleSave();
-  if (supabase) {
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(async () => {
-      saveDB();
-      await syncToSupabase(key);
-    }, 200);
-  }
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    saveDB();
+    await syncToSupabase(key);
+  }, 200);
 }
 
 // ===== SESSIONS =====
@@ -314,6 +328,14 @@ app.get('/api/riwayat-wa', (req, res) => res.json([...DB.riwayatWa].sort((a, b) 
 app.post('/api/riwayat-wa', (req, res) => {
   const r = { id: nextId(DB.riwayatWa), tanggal: req.body.tanggal || '', penerima: req.body.penerima || '', jenis: req.body.jenis || '', status: req.body.status || 'Terkirim' };
   DB.riwayatWa.push(r); scheduleSync('riwayatWa'); res.json({ id: r.id });
+});
+
+// ===== FORCE SYNC =====
+app.post('/api/sync', async (req, res) => {
+  try {
+    await syncFromSupabase();
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Sync error' }); }
 });
 
 // ===== SPA FALLBACK =====

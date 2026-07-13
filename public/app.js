@@ -1029,3 +1029,30 @@ async function handleProfilForm(e) {
 
 // ===== START =====
 init();
+
+// ===== MANUAL SYNC =====
+async function manualSync() {
+  try {
+    const indicator = document.getElementById('syncIndicator');
+    const syncText = document.getElementById('syncText');
+    if (indicator) { indicator.className = 'sync-indicator syncing'; }
+    if (syncText) { syncText.textContent = 'Syncing...'; }
+
+    await api('/sync', { method: 'POST' });
+
+    const [users, siswa, jenisBayar, transaksi, stor, riwayatWa, profil] = await Promise.all([
+      api('/users'), api('/siswa'), api('/jenisbayar'),
+      api('/transaksi'), api('/stor'), api('/riwayat-wa'), api('/profil')
+    ]);
+    DB = { users, siswa, jenisBayar, transaksi, stor, riwayatWa, profil };
+
+    if (indicator) { indicator.className = 'sync-indicator online'; }
+    if (syncText) { syncText.textContent = 'Online'; }
+
+    const fn = { dashboard: refreshDashboard, siswa: renderSiswaTable, pembayaran: renderJenisBayarTable, transaksi: renderTransaksiTable, storbendahara: renderStorTable, laporan: generateLaporanHarian, whatsapp: populateWaSiswa, pengaturan: () => { renderUserTable(); renderChangePasswordSelect(); loadProfil(); } };
+    if (fn[currentActivePage]) fn[currentActivePage]();
+    alert('Data berhasil di-sync!');
+  } catch (e) {
+    alert('Gagal sync: ' + e.message);
+  }
+}

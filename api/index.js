@@ -54,19 +54,26 @@ const DEFAULTS = {
 async function loadTable(key) {
   try {
     const { data, error } = await supabase.from('data_store').select('value').eq('key', key).single();
-    if (error || !data) return DEFAULTS[key] || [];
+    if (error) {
+      console.error('Load error [' + key + ']:', error.message);
+      return DEFAULTS[key] || [];
+    }
+    if (!data) return DEFAULTS[key] || [];
     return data.value;
   } catch (e) {
+    console.error('Load exception [' + key + ']:', e.message);
     return DEFAULTS[key] || [];
   }
 }
 
 async function saveTable(key, value) {
   try {
-    const { error } = await supabase.from('data_store').upsert({ key, value }, { onConflict: 'key' });
-    if (error) console.error('Save error [' + key + ']:', error.message);
+    const { data, error } = await supabase.from('data_store').upsert({ key, value }, { onConflict: 'key' });
+    if (error) {
+      console.error('Save error [' + key + ']:', error.message, error.details || '');
+    }
   } catch (e) {
-    console.error('Save error [' + key + ']:', e.message);
+    console.error('Save exception [' + key + ']:', e.message);
   }
 }
 
@@ -461,6 +468,15 @@ app.post('/api/riwayat-wa', async (req, res) => {
     await saveTable('riwayatWa', db.riwayatWa);
     res.json({ id: r.id });
   } catch (e) { res.status(500).json({ error: 'Error' }); }
+});
+
+// ===== FORCE SYNC =====
+app.post('/api/sync', async (req, res) => {
+  try {
+    dbLoaded = false;
+    await ensureDB();
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Sync error' }); }
 });
 
 // ===== SPA FALLBACK =====

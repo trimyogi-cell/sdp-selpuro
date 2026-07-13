@@ -43,7 +43,7 @@
                 <p class="login-hint" id="loginError"></p>
             </form>
             <div class="login-footer">
-                <p>Default: admin / esloji</p>
+                <p>&nbsp;</p>
             </div>
         </div>
     </div>
@@ -185,6 +185,9 @@
                 <button class="btn btn-success" onclick="exportSiswa()">
                     <i class="fas fa-file-excel"></i> Export
                 </button>
+                <button class="btn btn-warning" onclick="manualSync()">
+                    <i class="fas fa-sync-alt"></i> Sync
+                </button>
                 <button class="btn btn-danger" id="btnHapusSiswa" onclick="bulkDeleteSiswa()" style="display:none;">
                     <i class="fas fa-trash"></i> Hapus yang Ditandai
                 </button>
@@ -226,6 +229,9 @@
                 <button class="btn btn-primary" onclick="openModal('jenisBayarModal')">
                     <i class="fas fa-plus"></i> Tambah Jenis Pembayaran
                 </button>
+                <button class="btn btn-warning" onclick="manualSync()">
+                    <i class="fas fa-sync-alt"></i> Sync
+                </button>
                 <button class="btn btn-danger" id="btnHapusJenisBayar" onclick="bulkDeleteJenisBayar()" style="display:none;">
                     <i class="fas fa-trash"></i> Hapus yang Ditandai
                 </button>
@@ -262,6 +268,9 @@
             <div class="page-actions">
                 <button class="btn btn-primary" onclick="openModal('transaksiModal')">
                     <i class="fas fa-plus"></i> Transaksi Baru
+                </button>
+                <button class="btn btn-warning" onclick="manualSync()">
+                    <i class="fas fa-sync-alt"></i> Sync
                 </button>
                 <button class="btn btn-danger" id="btnHapusTransaksi" onclick="bulkDeleteTransaksi()" style="display:none;">
                     <i class="fas fa-trash"></i> Hapus yang Ditandai
@@ -307,6 +316,9 @@
                 </button>
                 <button class="btn btn-success" onclick="printStor()">
                     <i class="fas fa-print"></i> Cetak Stor
+                </button>
+                <button class="btn btn-warning" onclick="manualSync()">
+                    <i class="fas fa-sync-alt"></i> Sync
                 </button>
                 <button class="btn btn-danger" id="btnHapusStor" onclick="bulkDeleteStor()" style="display:none;">
                     <i class="fas fa-trash"></i> Hapus yang Ditandai
