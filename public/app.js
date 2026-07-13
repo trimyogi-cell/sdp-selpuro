@@ -53,7 +53,8 @@ async function init() {
       document.getElementById('currentUser').innerHTML = '<i class="fas fa-user"></i> ' + currentUser.nama;
       document.getElementById('currentDate').textContent = formatDate(new Date());
       document.getElementById('filterTanggal').value = new Date().toISOString().split('T')[0];
-      await showPage('dashboard');
+      const savedPage = localStorage.getItem('sdp_currentPage') || 'dashboard';
+      await showPage(savedPage);
       return;
     } catch (e) {
       authToken = null;
@@ -96,8 +97,10 @@ function generateNoBayar() {
   const y = now.getFullYear().toString().slice(-2);
   const m = String(now.getMonth() + 1).padStart(2, '0');
   const d = String(now.getDate()).padStart(2, '0');
-  const seq = String(DB.transaksi.length + 1).padStart(4, '0');
-  return `BYR-${y}${m}${d}-${seq}`;
+  const h = String(now.getHours()).padStart(2, '0');
+  const mi = String(now.getMinutes()).padStart(2, '0');
+  const s = String(now.getSeconds()).padStart(2, '0');
+  return `BYR-${y}${m}${d}-${h}${mi}${s}`;
 }
 
 function generateNoStor() {
@@ -133,6 +136,7 @@ async function handleLogin(e) {
     document.getElementById('loginError').textContent = '';
     document.getElementById('currentDate').textContent = formatDate(new Date());
     document.getElementById('filterTanggal').value = new Date().toISOString().split('T')[0];
+    localStorage.setItem('sdp_currentPage', 'dashboard');
     showPage('dashboard');
   } catch (err) {
     document.getElementById('loginError').textContent = err.message;
@@ -155,6 +159,7 @@ function handleLogout() {
 // ===== NAVIGATION =====
 async function showPage(page) {
   currentActivePage = page;
+  localStorage.setItem('sdp_currentPage', page);
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
   const pageMap = { dashboard: 'pageDashboard', siswa: 'pageSiswa', pembayaran: 'pagePembayaran', transaksi: 'pageTransaksi', storbendahara: 'pageStorbendahara', laporan: 'pageLaporan', whatsapp: 'pageWhatsapp', pengaturan: 'pagePengaturan' };
@@ -187,6 +192,8 @@ function openModal(id) {
   if (id === 'transaksiModal') {
     populateTransaksiForm();
     document.getElementById('txTanggal').value = new Date().toISOString().split('T')[0];
+    document.getElementById('txJenisCheckboxes').innerHTML = '<p style="color:var(--text-light);font-size:13px;">Pilih siswa terlebih dahulu</p>';
+    document.getElementById('txTotalNominal').style.display = 'none';
   }
   if (id === 'storModal') document.getElementById('storTanggal').value = new Date().toISOString().split('T')[0];
 }
@@ -397,46 +404,79 @@ function populateTransaksiForm() {
 function loadJenisBayarForSiswa() {
   const siswaId = parseInt(document.getElementById('txSiswa').value);
   const siswa = DB.siswa.find(s => s.id === siswaId);
-  const select = document.getElementById('txJenis');
-  if (!siswa) { select.innerHTML = '<option value="">-- Pilih Jenis --</option>'; document.getElementById('txKelas').value = ''; return; }
-  document.getElementById('txKelas').value = getKelasText(siswa.kelas);
+  const container = document.getElementById('txJenisCheckboxes');
+  const totalDiv = document.getElementById('txTotalNominal');
+  if (!siswa) {
+    container.innerHTML = '<p style="color:var(--text-light);font-size:13px;">Pilih siswa terlebih dahulu</p>';
+    totalDiv.style.display = 'none';
+    return;
+  }
   const available = DB.jenisBayar.filter(jb => {
     if (jb.kelas === 'all') return true;
     if (jb.kelas.includes('-')) { const [min, max] = jb.kelas.split('-').map(Number); return parseInt(siswa.kelas) >= min && parseInt(siswa.kelas) <= max; }
     return jb.kelas === siswa.kelas;
   });
-  select.innerHTML = '<option value="">-- Pilih Jenis --</option>' +
-    available.map(jb => `<option value="${jb.id}">${jb.nama} - ${formatRupiah(jb.nominal)}</option>`).join('');
+  if (!available.length) {
+    container.innerHTML = '<p style="color:var(--text-light);font-size:13px;">Tidak ada jenis pembayaran untuk kelas ini</p>';
+    totalDiv.style.display = 'none';
+    return;
+  }
+  container.innerHTML = available.map(jb => `
+    <label class="jenis-checkbox-item">
+      <input type="checkbox" class="tx-jenis-check" value="${jb.id}" onchange="updateTxTotal()">
+      <div class="item-info">
+        <div class="item-nama">${jb.nama}</div>
+        <div class="item-meta"><span class="badge badge-${getKategoriBadge(jb.kategori)}" style="font-size:10px;padding:1px 6px;">${jb.kategori}</span> ${jb.kode}</div>
+      </div>
+      <div class="item-nominal">${formatRupiah(jb.nominal)}</div>
+    </label>
+  `).join('');
+  totalDiv.style.display = 'none';
 }
 
-function updateTxNominal() {
-  const jenisId = parseInt(document.getElementById('txJenis').value);
-  const jb = DB.jenisBayar.find(j => j.id === jenisId);
-  document.getElementById('txNominal').value = jb ? formatRupiah(jb.nominal) : '';
+function updateTxTotal() {
+  const checked = [...document.querySelectorAll('.tx-jenis-check:checked')];
+  let total = 0;
+  checked.forEach(cb => {
+    const jb = DB.jenisBayar.find(j => j.id === parseInt(cb.value));
+    if (jb) total += jb.nominal;
+  });
+  const totalDiv = document.getElementById('txTotalNominal');
+  if (checked.length > 0) {
+    totalDiv.style.display = 'block';
+    totalDiv.textContent = `Total: ${formatRupiah(total)} (${checked.length} item)`;
+  } else {
+    totalDiv.style.display = 'none';
+  }
 }
 
 async function handleTransaksiForm(e) {
   e.preventDefault();
   const siswaId = parseInt(document.getElementById('txSiswa').value);
   const siswa = DB.siswa.find(s => s.id === siswaId);
-  const jenisId = parseInt(document.getElementById('txJenis').value);
-  const jenis = DB.jenisBayar.find(j => j.id === jenisId);
-  if (!siswa || !jenis) return alert('Data tidak lengkap!');
+  const checked = [...document.querySelectorAll('.tx-jenis-check:checked')];
+  if (!siswa) return alert('Pilih siswa!');
+  if (!checked.length) return alert('Pilih minimal satu jenis pembayaran!');
 
-  const tx = {
-    noBayar: generateNoBayar(), tanggal: document.getElementById('txTanggal').value,
-    siswaId: siswa.id, siswaNama: siswa.nama, siswaKelas: siswa.kelas,
-    jenisId: jenis.id, jenisNama: jenis.nama, kategori: jenis.kategori,
-    nominal: jenis.nominal, metode: document.getElementById('txMetode').value,
-    keterangan: document.getElementById('txKeterangan').value,
-    status: 'Lunas', waktu: new Date().toLocaleTimeString('id-ID')
-  };
+  const tanggal = document.getElementById('txTanggal').value;
+  const metode = document.getElementById('txMetode').value;
+  const keterangan = document.getElementById('txKeterangan').value;
+  const noBayar = generateNoBayar();
+  const waktu = new Date().toLocaleTimeString('id-ID');
 
-  await api('/transaksi', { method: 'POST', body: tx });
+  const items = checked.map(cb => {
+    const jenis = DB.jenisBayar.find(j => j.id === parseInt(cb.value));
+    return { noBayar, tanggal, siswaId: siswa.id, siswaNama: siswa.nama, siswaKelas: siswa.kelas, jenisId: jenis.id, jenisNama: jenis.nama, kategori: jenis.kategori, nominal: jenis.nominal, metode, keterangan, status: 'Lunas', waktu };
+  });
+
+  for (const tx of items) {
+    await api('/transaksi', { method: 'POST', body: tx });
+  }
+
   DB.transaksi = await api('/transaksi');
   closeModal('transaksiModal');
   renderTransaksiTable();
-  alert('Transaksi berhasil! No: ' + tx.noBayar);
+  alert(`Transaksi berhasil! ${items.length} item dibayar.\nNo: ${noBayar}\nTotal: ${formatRupiah(items.reduce((s, t) => s + t.nominal, 0))}`);
 }
 
 function renderTransaksiTable() {
@@ -445,23 +485,31 @@ function renderTransaksiTable() {
   const filtered = DB.transaksi.filter(t =>
     (t.noBayar||'').toLowerCase().includes(search) || (t.siswaNama||'').toLowerCase().includes(search) || (t.jenisNama||'').toLowerCase().includes(search)
   );
-  tbody.innerHTML = filtered.map((t, i) => `
-    <tr>
-      <td><input type="checkbox" class="transaksi-check" value="${t.id}" onchange="updateBulkTransaksiBtn()"></td>
+  const grouped = {};
+  filtered.forEach(t => {
+    if (!grouped[t.noBayar]) grouped[t.noBayar] = { ...t, items: [] };
+    grouped[t.noBayar].items.push(t);
+  });
+  const rows = Object.values(grouped).map((g, i) => {
+    const total = g.items.reduce((s, t) => s + t.nominal, 0);
+    const jenisList = g.items.map(t => `<span class="badge badge-${getKategoriBadge(t.kategori)}" style="font-size:10px;padding:1px 6px;margin:1px;">${t.jenisNama}</span>`).join(' ');
+    return `<tr>
+      <td><input type="checkbox" class="transaksi-check" value="${g.id}" data-nobayar="${g.noBayar}" onchange="updateBulkTransaksiBtn()"></td>
       <td>${i + 1}</td>
-      <td><span class="badge badge-info">${t.noBayar}</span></td>
-      <td>${formatDateShort(t.tanggal)}</td>
-      <td>${t.siswaNama}</td>
-      <td><span class="badge badge-${getKategoriBadge(t.kategori)}">${t.jenisNama}</span></td>
-      <td>${formatRupiah(t.nominal)}</td>
-      <td><span class="badge badge-success">${t.status}</span></td>
+      <td><span class="badge badge-info">${g.noBayar}</span></td>
+      <td>${formatDateShort(g.tanggal)}</td>
+      <td>${g.siswaNama}</td>
+      <td>${jenisList}</td>
+      <td style="font-weight:600;">${formatRupiah(total)}${g.items.length>1?'<br><small style="color:var(--text-light);">'+g.items.length+' item</small>':''}</td>
+      <td><span class="badge badge-success">${g.status}</span></td>
       <td class="table-actions">
-        <button class="btn btn-icon btn-info" onclick="detailTransaksi(${t.id})" title="Detail"><i class="fas fa-eye"></i></button>
-        <button class="btn btn-icon btn-whatsapp" onclick="kirimWaStrukById(${t.id})" title="Kirim WA"><i class="fab fa-whatsapp"></i></button>
-        <button class="btn btn-icon btn-danger" onclick="deleteTransaksi(${t.id})" title="Hapus"><i class="fas fa-trash"></i></button>
+        <button class="btn btn-icon btn-info" onclick="detailTransaksi(${g.id})" title="Detail"><i class="fas fa-eye"></i></button>
+        <button class="btn btn-icon btn-whatsapp" onclick="kirimWaStrukById(${g.id})" title="Kirim WA"><i class="fab fa-whatsapp"></i></button>
+        <button class="btn btn-icon btn-danger" onclick="bulkDeleteTransaksiGroup('${g.noBayar}')" title="Hapus Semua Item"><i class="fas fa-trash"></i></button>
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+  });
+  tbody.innerHTML = rows.join('') || '<tr><td colspan="9" style="text-align:center;">Tidak ada transaksi</td></tr>';
   document.getElementById('checkAllTransaksi').checked = false;
   updateBulkTransaksiBtn();
 }
@@ -474,14 +522,18 @@ function detailTransaksi(id) {
   const t = DB.transaksi.find(x => x.id === id);
   if (!t) return;
   detailTransaksiId = id;
+  const sameNo = DB.transaksi.filter(x => x.noBayar === t.noBayar);
+  let itemsHtml = sameNo.map(tx => `<div class="detail-row"><span class="detail-label">${tx.jenisNama}</span><span class="detail-value">${formatRupiah(tx.nominal)}</span></div>`).join('');
+  const total = sameNo.reduce((s, tx) => s + tx.nominal, 0);
   document.getElementById('detailTransaksiContent').innerHTML = `
     <div class="detail-row"><span class="detail-label">No. Bayar</span><span class="detail-value">${t.noBayar}</span></div>
     <div class="detail-row"><span class="detail-label">Tanggal</span><span class="detail-value">${formatDate(t.tanggal)} ${t.waktu||''}</span></div>
     <div class="detail-row"><span class="detail-label">Siswa</span><span class="detail-value">${t.siswaNama}</span></div>
     <div class="detail-row"><span class="detail-label">Kelas</span><span class="detail-value">${getKelasText(t.siswaKelas)}</span></div>
-    <div class="detail-row"><span class="detail-label">Jenis</span><span class="detail-value">${t.jenisNama}</span></div>
-    <div class="detail-row"><span class="detail-label">Kategori</span><span class="detail-value"><span class="badge badge-${getKategoriBadge(t.kategori)}">${t.kategori}</span></span></div>
-    <div class="detail-row"><span class="detail-label">Nominal</span><span class="detail-value">${formatRupiah(t.nominal)}</span></div>
+    <hr style="margin:10px 0;border-color:var(--border);">
+    ${itemsHtml}
+    <hr style="margin:10px 0;border-color:var(--border);">
+    <div class="detail-row" style="font-weight:700;"><span class="detail-label">Total</span><span class="detail-value" style="color:var(--primary);">${formatRupiah(total)}</span></div>
     <div class="detail-row"><span class="detail-label">Metode</span><span class="detail-value">${t.metode}</span></div>
     <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span class="badge badge-success">${t.status}</span></span></div>
     ${t.keterangan ? `<div class="detail-row"><span class="detail-label">Keterangan</span><span class="detail-value">${t.keterangan}</span></div>` : ''}
@@ -496,11 +548,25 @@ async function deleteTransaksi(id) {
   renderTransaksiTable();
 }
 
+async function bulkDeleteTransaksiGroup(noBayar) {
+  const items = DB.transaksi.filter(t => t.noBayar === noBayar);
+  if (!items.length) return;
+  if (!confirm(`Hapus ${items.length} item transaksi (${noBayar})?`)) return;
+  for (const t of items) { await api(`/transaksi/${t.id}`, { method: 'DELETE' }); }
+  DB.transaksi = await api('/transaksi');
+  renderTransaksiTable();
+}
+
 async function bulkDeleteTransaksi() {
-  const ids = [...document.querySelectorAll('.transaksi-check:checked')].map(cb => parseInt(cb.value));
-  if (!ids.length) return;
-  if (!confirm(`Hapus ${ids.length} transaksi?`)) return;
-  for (const id of ids) { await api(`/transaksi/${id}`, { method: 'DELETE' }); }
+  const noBayars = [...document.querySelectorAll('.transaksi-check:checked')].map(cb => cb.dataset.nobayar);
+  const uniqueNos = [...new Set(noBayars)];
+  if (!uniqueNos.length) return;
+  const count = uniqueNos.reduce((acc, nb) => acc + DB.transaksi.filter(t => t.noBayar === nb).length, 0);
+  if (!confirm(`Hapus ${count} transaksi (${uniqueNos.length} grup)?`)) return;
+  for (const nb of uniqueNos) {
+    const items = DB.transaksi.filter(t => t.noBayar === nb);
+    for (const t of items) { await api(`/transaksi/${t.id}`, { method: 'DELETE' }); }
+  }
   DB.transaksi = await api('/transaksi');
   renderTransaksiTable();
 }
@@ -797,18 +863,20 @@ function populateWaSiswa() {
 function previewWaMessage() {
   const template = document.getElementById('waTemplate').value;
   const siswa = DB.siswa.find(s => s.id === parseInt(document.getElementById('waSiswa').value));
+  const adminName = DB.profil.bendahara || DB.profil.kepsek || 'Admin';
   let msg = '';
   if (template === 'tagihan' && siswa) {
-    const totalBayar = DB.transaksi.filter(t => t.siswaId === siswa.id).reduce((s,t) => s+t.nominal, 0);
+    const txSiswa = DB.transaksi.filter(t => t.siswaId === siswa.id);
+    const totalBayar = txSiswa.reduce((s,t) => s+t.nominal, 0);
     const totalTagihan = DB.jenisBayar.reduce((s,jb) => s+jb.nominal, 0);
     const sisa = totalTagihan - totalBayar;
-    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nAssalamu'alaikum Wr. Wb.\n\nKami dari ${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'} memberitahukan tagihan untuk ${siswa.nama} (${getKelasText(siswa.kelas)}):\n\nTagihan: ${formatRupiah(totalTagihan)}\nSudah Bayar: ${formatRupiah(totalBayar)}\nSisa: ${formatRupiah(sisa>0?sisa:0)}\n\n${sisa>0?'Mohon segera melakukan pembayaran.':'Alhamdulillah, tagihan lunas.'}\n\nWassalamu'alaikum Wr. Wb.`;
+    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nAssalamu'alaikum Wr. Wb.\n\nKami dari ${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'} memberitahukan tagihan untuk ${siswa.nama} (${getKelasText(siswa.kelas)}):\n\nTagihan: ${formatRupiah(totalTagihan)}\nSudah Bayar: ${formatRupiah(totalBayar)}\nSisa: ${formatRupiah(sisa>0?sisa:0)}\n\n${sisa>0?'Mohon segera melakukan pembayaran.':'Alhamdulillah, tagihan lunas.'}\n\nWassalamu'alaikum Wr. Wb.\n\n_${adminName}_`;
   } else if (template === 'reminder' && siswa) {
-    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nKami ingatkan tagihan ${siswa.nama} (${getKelasText(siswa.kelas)}) masih ada yang belum diselesaikan.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}`;
+    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nKami ingatkan tagihan ${siswa.nama} (${getKelasText(siswa.kelas)}) masih ada yang belum diselesaikan.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
   } else if (template === 'lunas' && siswa) {
-    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nAlhamdulillah, pembayaran ${siswa.nama} telah LUNAS.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}`;
+    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nAlhamdulillah, pembayaran ${siswa.nama} telah LUNAS.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
   } else if (template === 'stapor' && siswa) {
-    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nMohon kesediaan menandatangani STAPOR untuk ${siswa.nama}.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}`;
+    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nMohon kesediaan menandatangani STAPOR untuk ${siswa.nama}.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
   } else {
     msg = 'Pilih siswa terlebih dahulu.';
   }
@@ -819,6 +887,7 @@ function kirimWaIndividu() {
   const siswa = DB.siswa.find(s => s.id === parseInt(document.getElementById('waSiswa').value));
   if (!siswa) return alert('Pilih siswa!');
   const msg = document.getElementById('waPreview').textContent;
+  if (!siswa.noHp) return alert('No HP siswa tidak tersedia!');
   window.open(`https://wa.me/${formatWaNumber(siswa.noHp||'080000000000')}?text=${encodeURIComponent(msg)}`, '_blank');
   logWaRiwayat(siswa.nama, 'Individu');
 }
@@ -827,11 +896,12 @@ function kirimWaSemua() {
   const belumBayarIds = new Set(DB.siswa.map(s => s.id));
   DB.transaksi.forEach(t => belumBayarIds.delete(t.siswaId));
   if (!belumBayarIds.size) return alert('Semua sudah bayar!');
+  const adminName = DB.profil.bendahara || DB.profil.kepsek || 'Admin';
   let count = 0;
   belumBayarIds.forEach(id => {
     const s = DB.siswa.find(x => x.id === id);
     if (s && s.noHp) {
-      const msg = `Yth. ${s.orangTua||''},\n\nTagihan ${s.nama} (${getKelasText(s.kelas)}) masih ada yang belum dibayar.\nMohon segera bayar.\n\n${DB.profil.namaSekolah||'SDN 1 Selopuro'}`;
+      const msg = `Yth. ${s.orangTua||''},\n\nTagihan ${s.nama} (${getKelasText(s.kelas)}) masih ada yang belum dibayar.\nMohon segera bayar.\n\n${DB.profil.namaSekolah||'SDN 1 Selopuro'}\n_${adminName}_`;
       setTimeout(() => window.open(`https://wa.me/${formatWaNumber(s.noHp)}?text=${encodeURIComponent(msg)}`, '_blank'), count*500);
       count++;
     }
@@ -841,7 +911,8 @@ function kirimWaSemua() {
 }
 
 function kirimWaGrup() {
-  const msg = encodeURIComponent(`Assalamu'alaikum Wr. Wb.\n\nYth. Bapak/Ibu Wali Kelas,\n\nMohon informasikan tagihan LKS, Aktivitas & Iuran.\n\n${DB.profil.namaSekolah||'SDN 1 Selopuro'}`);
+  const adminName = DB.profil.bendahara || DB.profil.kepsek || 'Admin';
+  const msg = encodeURIComponent(`Assalamu'alaikum Wr. Wb.\n\nYth. Bapak/Ibu Wali Kelas,\n\nMohon informasikan tagihan LKS, Aktivitas & Iuran.\n\n${DB.profil.namaSekolah||'SDN 1 Selopuro'}\n_${adminName}_`);
   window.open(`https://chat.whatsapp.com/?text=${msg}`, '_blank');
   logWaRiwayat('Grup Wali Kelas', 'Grup');
 }
@@ -850,9 +921,17 @@ function kirimWaStrukById(id) {
   const t = DB.transaksi.find(x => x.id === id);
   if (!t) return;
   const siswa = DB.siswa.find(s => s.id === t.siswaId);
-  const msg = `Yth. ${siswa?.orangTua||''},\n\nPembayaran ${t.siswaNama} diterima:\nNo: ${t.noBayar}\nTanggal: ${formatDate(t.tanggal)}\nJenis: ${t.jenisNama}\nNominal: ${formatRupiah(t.nominal)}\nStatus: LUNAS\n\n${DB.profil.namaSekolah||'SDN 1 Selopuro'}`;
+  const sameNo = DB.transaksi.filter(x => x.noBayar === t.noBayar);
+  const itemList = sameNo.map(tx => `- ${tx.jenisNama}: ${formatRupiah(tx.nominal)}`).join('\n');
+  const total = sameNo.reduce((s, tx) => s + tx.nominal, 0);
+  const msg = `Yth. ${siswa?.orangTua||''},\n\nPembayaran ${t.siswaNama} diterima:\nNo: ${t.noBayar}\nTanggal: ${formatDate(t.tanggal)}\n\n${itemList}\n\nTotal: ${formatRupiah(total)}\nStatus: LUNAS\n\nTerima kasih.\n${DB.profil.namaSekolah||'SDN 1 Selopuro'}`;
+  const adminWa = (DB.profil.noHpAdmin || '').replace(/\D/g, '');
   if (siswa && siswa.noHp) {
-    window.open(`https://wa.me/${formatWaNumber(siswa.noHp)}?text=${encodeURIComponent(msg)}`, '_blank');
+    if (adminWa) {
+      window.open(`https://wa.me/${formatWaNumber(siswa.noHp)}?text=${encodeURIComponent(msg + '\n\nDari: ' + DB.profil.namaSekolah)}`, '_blank');
+    } else {
+      window.open(`https://wa.me/${formatWaNumber(siswa.noHp)}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
     logWaRiwayat(t.siswaNama, 'Struk');
   } else alert('No HP tidak tersedia!');
 }
@@ -1009,6 +1088,7 @@ function loadProfil() {
   document.getElementById('profilEmail').value = p.email || '';
   document.getElementById('profilKepsek').value = p.kepsek || '';
   document.getElementById('profilBendahara').value = p.bendahara || '';
+  document.getElementById('profilNoHpAdmin').value = p.noHpAdmin || '';
 }
 
 async function handleProfilForm(e) {
@@ -1020,7 +1100,8 @@ async function handleProfilForm(e) {
     telp: document.getElementById('profilTelp').value,
     email: document.getElementById('profilEmail').value,
     kepsek: document.getElementById('profilKepsek').value,
-    bendahara: document.getElementById('profilBendahara').value
+    bendahara: document.getElementById('profilBendahara').value,
+    noHpAdmin: document.getElementById('profilNoHpAdmin').value
   };
   await api('/profil', { method: 'PUT', body: data });
   DB.profil = data;
@@ -1051,8 +1132,7 @@ async function manualSync() {
 
     const fn = { dashboard: refreshDashboard, siswa: renderSiswaTable, pembayaran: renderJenisBayarTable, transaksi: renderTransaksiTable, storbendahara: renderStorTable, laporan: generateLaporanHarian, whatsapp: populateWaSiswa, pengaturan: () => { renderUserTable(); renderChangePasswordSelect(); loadProfil(); } };
     if (fn[currentActivePage]) fn[currentActivePage]();
-    alert('Data berhasil di-sync!');
   } catch (e) {
-    alert('Gagal sync: ' + e.message);
+    console.error('Sync error:', e);
   }
 }
