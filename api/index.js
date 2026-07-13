@@ -43,19 +43,33 @@ let DB = {
 
 function nextId(arr) { return arr.length ? Math.max(...arr.map(x => x.id)) + 1 : 1; }
 
-// ===== SESSIONS =====
-const sessions = {};
-function createSession(userId) {
-  const token = crypto.randomBytes(32).toString('hex');
-  sessions[token] = { userId, createdAt: Date.now() };
-  return token;
+// ===== STATELESS TOKEN AUTH =====
+const SECRET = process.env.JWT_SECRET || 'sdp-selopuro-secret-key-2026';
+
+function createToken(userId) {
+  const payload = JSON.stringify({ userId, exp: Date.now() + 24 * 60 * 60 * 1000 });
+  const sig = crypto.createHmac('sha256', SECRET).update(payload).digest('hex');
+  return Buffer.from(payload).toString('base64') + '.' + sig;
 }
+
+function verifyToken(token) {
+  try {
+    const [payloadB64, sig] = token.split('.');
+    const payload = Buffer.from(payloadB64, 'base64').toString();
+    const expected = crypto.createHmac('sha256', SECRET).update(payload).digest('hex');
+    if (sig !== expected) return null;
+    const data = JSON.parse(payload);
+    if (Date.now() > data.exp) return null;
+    return data.userId;
+  } catch (e) { return null; }
+}
+
 function requireAuth(req, res, next) {
   const token = req.headers['x-auth-token'];
-  if (!token || !sessions[token]) return res.status(401).json({ error: 'Sesi berakhir, silakan login ulang' });
-  const session = sessions[token];
-  if (Date.now() - session.createdAt > 24 * 60 * 60 * 1000) { delete sessions[token]; return res.status(401).json({ error: 'Sesi expired' }); }
-  req.userId = session.userId;
+  if (!token) return res.status(401).json({ error: 'Sesi berakhir, silakan login ulang' });
+  const userId = verifyToken(token);
+  if (!userId) return res.status(401).json({ error: 'Sesi berakhir, silakan login ulang' });
+  req.userId = userId;
   next();
 }
 
@@ -76,11 +90,11 @@ app.post('/api/login', (req, res) => {
   const user = DB.users.find(u => u.username === username && u.password === password);
   if (!user) return res.status(401).json({ error: 'Username atau password salah' });
   if (user.status === 'nonaktif') return res.status(403).json({ error: 'Akun dinonaktifkan' });
-  const token = createSession(user.id);
+  const token = createToken(user.id);
   const { password: _, ...safe } = user;
   res.json({ ...safe, token });
 });
-app.post('/api/logout', (req, res) => { const token = req.headers['x-auth-token']; if (token) delete sessions[token]; res.json({ ok: true }); });
+app.post('/api/logout', (req, res) => { res.json({ ok: true }); });
 
 // ===== SSE (auth required) =====
 const clients = new Set();
@@ -90,7 +104,7 @@ function broadcast(event, data) {
 }
 app.get('/api/events', (req, res) => {
   const token = req.query.token;
-  if (!token || !sessions[token]) return res.status(401).end();
+  if (!token || !verifyToken(token)) return res.status(401).end();
   res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
   res.write(':\n\n');
   clients.add(res);

@@ -53,7 +53,7 @@ async function init() {
       document.getElementById('currentUser').innerHTML = '<i class="fas fa-user"></i> ' + currentUser.nama;
       document.getElementById('currentDate').textContent = formatDate(new Date());
       document.getElementById('filterTanggal').value = new Date().toISOString().split('T')[0];
-      showPage('dashboard');
+      await showPage('dashboard');
       return;
     } catch (e) {
       authToken = null;
