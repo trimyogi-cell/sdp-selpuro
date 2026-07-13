@@ -402,10 +402,38 @@ app.get('/api/riwayat-wa', async (req, res) => {
 app.post('/api/riwayat-wa', async (req, res) => {
   try {
     const r = await loadTable('riwayatWa');
-    const item = { id: nextId(r), tanggal: req.body.tanggal || '', penerima: req.body.penerima || '', jenis: req.body.jenis || '', status: req.body.status || 'Terkirim' };
+    const item = { id: nextId(r), tanggal: req.body.tanggal || '', penerima: req.body.penerima || '', noHp: req.body.noHp || '', jenis: req.body.jenis || '', status: req.body.status || 'Terkirim', pesan: req.body.pesan || '' };
     r.push(item);
     await saveTable('riwayatWa', r);
     res.json({ id: item.id });
+  } catch (e) { res.status(500).json({ error: 'Error' }); }
+});
+
+app.put('/api/riwayat-wa/:id', async (req, res) => {
+  try {
+    const r = await loadTable('riwayatWa');
+    const id = parseInt(req.params.id);
+    const item = r.find(x => x.id === id);
+    if (!item) return res.status(404).json({ error: 'Tidak ditemukan' });
+    Object.assign(item, req.body);
+    await saveTable('riwayatWa', r);
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Error' }); }
+});
+
+app.delete('/api/riwayat-wa/:id', async (req, res) => {
+  try {
+    const r = await loadTable('riwayatWa');
+    const id = parseInt(req.params.id);
+    await saveTable('riwayatWa', r.filter(x => x.id !== id));
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Error' }); }
+});
+
+app.delete('/api/riwayat-wa', async (req, res) => {
+  try {
+    await saveTable('riwayatWa', []);
+    res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: 'Error' }); }
 });
 

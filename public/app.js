@@ -883,13 +883,18 @@ function previewWaMessage() {
   document.getElementById('waPreview').textContent = msg;
 }
 
+function openWaChat(phone, message) {
+  const num = formatWaNumber(phone);
+  window.open(`https://api.whatsapp.com/send?phone=${num}&text=${encodeURIComponent(message)}`, '_blank');
+}
+
 function kirimWaIndividu() {
   const siswa = DB.siswa.find(s => s.id === parseInt(document.getElementById('waSiswa').value));
   if (!siswa) return alert('Pilih siswa!');
-  const msg = document.getElementById('waPreview').textContent;
   if (!siswa.noHp) return alert('No HP siswa tidak tersedia!');
-  window.open(`https://wa.me/${formatWaNumber(siswa.noHp||'080000000000')}?text=${encodeURIComponent(msg)}`, '_blank');
-  logWaRiwayat(siswa.nama, 'Individu');
+  const msg = document.getElementById('waPreview').textContent;
+  openWaChat(siswa.noHp, msg);
+  logWaRiwayat(siswa.nama, siswa.noHp, 'Individu', msg);
 }
 
 function kirimWaSemua() {
@@ -902,19 +907,19 @@ function kirimWaSemua() {
     const s = DB.siswa.find(x => x.id === id);
     if (s && s.noHp) {
       const msg = `Yth. ${s.orangTua||''},\n\nTagihan ${s.nama} (${getKelasText(s.kelas)}) masih ada yang belum dibayar.\nMohon segera bayar.\n\n${DB.profil.namaSekolah||'SDN 1 Selopuro'}\n_${adminName}_`;
-      setTimeout(() => window.open(`https://wa.me/${formatWaNumber(s.noHp)}?text=${encodeURIComponent(msg)}`, '_blank'), count*500);
+      setTimeout(() => openWaChat(s.noHp, msg), count*500);
+      logWaRiwayat(s.nama, s.noHp, 'Bulk', msg);
       count++;
     }
   });
-  logWaRiwayat(`${count} orang tua`, 'Bulk');
   alert(`Membuka ${count} chat WhatsApp.`);
 }
 
 function kirimWaGrup() {
   const adminName = DB.profil.bendahara || DB.profil.kepsek || 'Admin';
-  const msg = encodeURIComponent(`Assalamu'alaikum Wr. Wb.\n\nYth. Bapak/Ibu Wali Kelas,\n\nMohon informasikan tagihan LKS, Aktivitas & Iuran.\n\n${DB.profil.namaSekolah||'SDN 1 Selopuro'}\n_${adminName}_`);
-  window.open(`https://chat.whatsapp.com/?text=${msg}`, '_blank');
-  logWaRiwayat('Grup Wali Kelas', 'Grup');
+  const msg = `Assalamu'alaikum Wr. Wb.\n\nYth. Bapak/Ibu Wali Kelas,\n\nMohon informasikan tagihan LKS, Aktivitas & Iuran.\n\n${DB.profil.namaSekolah||'SDN 1 Selopuro'}\n_${adminName}_`;
+  window.open(`https://chat.whatsapp.com/?text=${encodeURIComponent(msg)}`, '_blank');
+  logWaRiwayat('Grup Wali Kelas', '', 'Grup', msg);
 }
 
 function kirimWaStrukById(id) {
@@ -925,21 +930,16 @@ function kirimWaStrukById(id) {
   const itemList = sameNo.map(tx => `- ${tx.jenisNama}: ${formatRupiah(tx.nominal)}`).join('\n');
   const total = sameNo.reduce((s, tx) => s + tx.nominal, 0);
   const msg = `Yth. ${siswa?.orangTua||''},\n\nPembayaran ${t.siswaNama} diterima:\nNo: ${t.noBayar}\nTanggal: ${formatDate(t.tanggal)}\n\n${itemList}\n\nTotal: ${formatRupiah(total)}\nStatus: LUNAS\n\nTerima kasih.\n${DB.profil.namaSekolah||'SDN 1 Selopuro'}`;
-  const adminWa = (DB.profil.noHpAdmin || '').replace(/\D/g, '');
   if (siswa && siswa.noHp) {
-    if (adminWa) {
-      window.open(`https://wa.me/${formatWaNumber(siswa.noHp)}?text=${encodeURIComponent(msg + '\n\nDari: ' + DB.profil.namaSekolah)}`, '_blank');
-    } else {
-      window.open(`https://wa.me/${formatWaNumber(siswa.noHp)}?text=${encodeURIComponent(msg)}`, '_blank');
-    }
-    logWaRiwayat(t.siswaNama, 'Struk');
+    openWaChat(siswa.noHp, msg);
+    logWaRiwayat(t.siswaNama, siswa.noHp, 'Struk', msg);
   } else alert('No HP tidak tersedia!');
 }
 
 function kirimWaStruk() { if (detailTransaksiId) kirimWaStrukById(detailTransaksiId); }
 
-async function logWaRiwayat(penerima, jenis) {
-  const data = { tanggal: formatDateShort(new Date())+' '+new Date().toLocaleTimeString('id-ID'), penerima, jenis, status: 'Terkirim' };
+async function logWaRiwayat(penerima, noHp, jenis, pesan) {
+  const data = { tanggal: new Date().toLocaleDateString('id-ID') + ' ' + new Date().toLocaleTimeString('id-ID'), penerima, noHp: noHp || '', jenis, status: 'Terkirim', pesan: pesan || '' };
   await api('/riwayat-wa', { method: 'POST', body: data });
   DB.riwayatWa = await api('/riwayat-wa');
   renderRiwayatWa();
@@ -947,14 +947,33 @@ async function logWaRiwayat(penerima, jenis) {
 
 function renderRiwayatWa() {
   document.getElementById('riwayatWaBody').innerHTML = DB.riwayatWa.map(r => `
-    <tr><td>${r.tanggal||''}</td><td>${r.penerima||''}</td><td>${r.jenis||''}</td><td><span class="badge badge-success">${r.status||'Terkirim'}</span></td>
-    <td><button class="btn btn-icon btn-whatsapp" onclick="kirimUlangWa('${(r.penerima||'').replace(/'/g,"\\'")}')" title="Kirim Ulang"><i class="fas fa-redo"></i></button></td></tr>
-  `).join('') || '<tr><td colspan="5" style="text-align:center;">Belum ada riwayat</td></tr>';
+    <tr>
+      <td>${r.tanggal||''}</td>
+      <td>${r.penerima||''}</td>
+      <td>${r.noHp||'-'}</td>
+      <td><span class="badge badge-info">${r.jenis||''}</span></td>
+      <td><span class="badge badge-success">${r.status||'Terkirim'}</span></td>
+      <td class="table-actions">
+        ${r.noHp ? `<button class="btn btn-icon btn-whatsapp" onclick="openWaChat('${r.noHp.replace(/'/g,"\\'")}','${(r.pesan||'').replace(/'/g,"\\'").replace(/\n/g,"\\n")}')" title="Kirim Ulang"><i class="fab fa-whatsapp"></i></button>` : ''}
+        <button class="btn btn-icon btn-danger" onclick="hapusRiwayatWa(${r.id})" title="Hapus"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="6" style="text-align:center;">Belum ada riwayat</td></tr>';
 }
 
-function kirimUlangWa(penerima) {
-  const s = DB.siswa.find(x => x.nama === penerima || x.orangTua === penerima);
-  if (s) { document.getElementById('waSiswa').value = s.id; previewWaMessage(); }
+async function hapusRiwayatWa(id) {
+  if (!confirm('Hapus riwayat ini?')) return;
+  await api('/riwayat-wa/' + id, { method: 'DELETE' });
+  DB.riwayatWa = await api('/riwayat-wa');
+  renderRiwayatWa();
+}
+
+async function hapusSemuaRiwayatWa() {
+  if (!DB.riwayatWa.length) return alert('Tidak ada riwayat!');
+  if (!confirm('Hapus SEMUA riwayat WhatsApp?')) return;
+  await api('/riwayat-wa', { method: 'DELETE' });
+  DB.riwayatWa = [];
+  renderRiwayatWa();
 }
 
 // ===== PENGATURAN =====
