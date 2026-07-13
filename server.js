@@ -24,7 +24,7 @@ function saveDB() {
 let DB = loadDB();
 if (!DB) {
   DB = {
-    profil: { namaSekolah: 'SD Negeri 1 Selpuro', npsn: '20345678', alamat: 'Jl. Merdeka No. 1, Desa Selpuro', telp: '(0354) 123456', email: 'sdnselpuro@gmail.com', kepsek: 'Drs. H. Ahmad Fauzi, M.Pd.', bendahara: 'Siti Aminah, S.Pd.' },
+    profil: { namaSekolah: 'SD Negeri 3 Tegiri', npsn: '20310868', alamat: 'Jl. Merdeka No. 1, Desa Tegiri', telp: '(0354) 123456', email: 'sdntegiri@gmail.com', kepsek: 'Drs. H. Ahmad Fauzi, M.Pd.', bendahara: 'Siti Aminah, S.Pd.' },
     users: [
       { id: 1, username: 'admin', password: 'admin123', nama: 'Administrator', role: 'admin', status: 'aktif' },
       { id: 2, username: 'operator', password: 'operator123', nama: 'Operator', role: 'operator', status: 'aktif' }
@@ -256,7 +256,7 @@ app.listen(PORT, '0.0.0.0', () => {
   const isCloud = !!process.env.RENDER;
   console.log('');
   console.log('  ============================================');
-  console.log('    Sistem Pembayaran SD Negeri 1 Selpuro');
+  console.log('    Sistem Pembayaran SD Negeri 3 Tegiri');
   console.log('  ============================================');
   if (isCloud) {
     console.log('    ONLINE  : https://' + (process.env.RENDER_EXTERNAL_HOSTNAME || 'app.render.com'));

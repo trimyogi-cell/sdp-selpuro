@@ -588,7 +588,7 @@ function printStor() {
 }
 
 function printStorData(data) {
-  let html = `<h2>SURAT SETOR / STOR KE BENDAHARA</h2><p>${DB.profil.namaSekolah || 'SD Negeri 1 Selpuro'}</p><hr>
+  let html = `<h2>SURAT SETOR / STOR KE BENDAHARA</h2><p>${DB.profil.namaSekolah || 'SD Negeri 3 Tegiri'}</p><hr>
     <table><thead><tr><th>No</th><th>No. Stor</th><th>Tanggal</th><th>Disetor Oleh</th><th>Jumlah</th><th>Catatan</th></tr></thead><tbody>`;
   let total = 0;
   data.forEach((s, i) => { total += s.jumlah; html += `<tr><td>${i+1}</td><td>${s.noStor}</td><td>${formatDateShort(s.tanggal)}</td><td>${s.oleh||''}</td><td>${formatRupiah(s.jumlah)}</td><td>${s.catatan||''}</td></tr>`; });
@@ -783,7 +783,7 @@ function printLaporan(type) {
       break;
     }
   }
-  document.getElementById('printArea').innerHTML=`<h2>${title}</h2><p>${DB.profil.namaSekolah||'SD Negeri 1 Selpuro'}</p><hr>${content}`;
+  document.getElementById('printArea').innerHTML=`<h2>${title}</h2><p>${DB.profil.namaSekolah||'SD Negeri 3 Tegiri'}</p><hr>${content}`;
   window.print();
 }
 
@@ -802,13 +802,13 @@ function previewWaMessage() {
     const totalBayar = DB.transaksi.filter(t => t.siswaId === siswa.id).reduce((s,t) => s+t.nominal, 0);
     const totalTagihan = DB.jenisBayar.reduce((s,jb) => s+jb.nominal, 0);
     const sisa = totalTagihan - totalBayar;
-    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nAssalamu'alaikum Wr. Wb.\n\nKami dari ${DB.profil.namaSekolah||'SD Negeri 1 Selpuro'} memberitahukan tagihan untuk ${siswa.nama} (${getKelasText(siswa.kelas)}):\n\nTagihan: ${formatRupiah(totalTagihan)}\nSudah Bayar: ${formatRupiah(totalBayar)}\nSisa: ${formatRupiah(sisa>0?sisa:0)}\n\n${sisa>0?'Mohon segera melakukan pembayaran.':'Alhamdulillah, tagihan lunas.'}\n\nWassalamu'alaikum Wr. Wb.`;
+    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nAssalamu'alaikum Wr. Wb.\n\nKami dari ${DB.profil.namaSekolah||'SD Negeri 3 Tegiri'} memberitahukan tagihan untuk ${siswa.nama} (${getKelasText(siswa.kelas)}):\n\nTagihan: ${formatRupiah(totalTagihan)}\nSudah Bayar: ${formatRupiah(totalBayar)}\nSisa: ${formatRupiah(sisa>0?sisa:0)}\n\n${sisa>0?'Mohon segera melakukan pembayaran.':'Alhamdulillah, tagihan lunas.'}\n\nWassalamu'alaikum Wr. Wb.`;
   } else if (template === 'reminder' && siswa) {
-    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nKami ingatkan tagihan ${siswa.nama} (${getKelasText(siswa.kelas)}) masih ada yang belum diselesaikan.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selpuro'}`;
+    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nKami ingatkan tagihan ${siswa.nama} (${getKelasText(siswa.kelas)}) masih ada yang belum diselesaikan.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 3 Tegiri'}`;
   } else if (template === 'lunas' && siswa) {
-    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nAlhamdulillah, pembayaran ${siswa.nama} telah LUNAS.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selpuro'}`;
+    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nAlhamdulillah, pembayaran ${siswa.nama} telah LUNAS.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 3 Tegiri'}`;
   } else if (template === 'stapor' && siswa) {
-    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nMohon kesediaan menandatangani STAPOR untuk ${siswa.nama}.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selpuro'}`;
+    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nMohon kesediaan menandatangani STAPOR untuk ${siswa.nama}.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 3 Tegiri'}`;
   } else {
     msg = 'Pilih siswa terlebih dahulu.';
   }
@@ -831,7 +831,7 @@ function kirimWaSemua() {
   belumBayarIds.forEach(id => {
     const s = DB.siswa.find(x => x.id === id);
     if (s && s.noHp) {
-      const msg = `Yth. ${s.orangTua||''},\n\nTagihan ${s.nama} (${getKelasText(s.kelas)}) masih ada yang belum dibayar.\nMohon segera bayar.\n\n${DB.profil.namaSekolah||'SDN 1 Selpuro'}`;
+      const msg = `Yth. ${s.orangTua||''},\n\nTagihan ${s.nama} (${getKelasText(s.kelas)}) masih ada yang belum dibayar.\nMohon segera bayar.\n\n${DB.profil.namaSekolah||'SDN 3 Tegiri'}`;
       setTimeout(() => window.open(`https://wa.me/${formatWaNumber(s.noHp)}?text=${encodeURIComponent(msg)}`, '_blank'), count*500);
       count++;
     }
@@ -841,7 +841,7 @@ function kirimWaSemua() {
 }
 
 function kirimWaGrup() {
-  const msg = encodeURIComponent(`Assalamu'alaikum Wr. Wb.\n\nYth. Bapak/Ibu Wali Kelas,\n\nMohon informasikan tagihan LKS, Aktivitas & Iuran.\n\n${DB.profil.namaSekolah||'SDN 1 Selpuro'}`);
+  const msg = encodeURIComponent(`Assalamu'alaikum Wr. Wb.\n\nYth. Bapak/Ibu Wali Kelas,\n\nMohon informasikan tagihan LKS, Aktivitas & Iuran.\n\n${DB.profil.namaSekolah||'SDN 3 Tegiri'}`);
   window.open(`https://chat.whatsapp.com/?text=${msg}`, '_blank');
   logWaRiwayat('Grup Wali Kelas', 'Grup');
 }
@@ -850,7 +850,7 @@ function kirimWaStrukById(id) {
   const t = DB.transaksi.find(x => x.id === id);
   if (!t) return;
   const siswa = DB.siswa.find(s => s.id === t.siswaId);
-  const msg = `Yth. ${siswa?.orangTua||''},\n\nPembayaran ${t.siswaNama} diterima:\nNo: ${t.noBayar}\nTanggal: ${formatDate(t.tanggal)}\nJenis: ${t.jenisNama}\nNominal: ${formatRupiah(t.nominal)}\nStatus: LUNAS\n\n${DB.profil.namaSekolah||'SDN 1 Selpuro'}`;
+  const msg = `Yth. ${siswa?.orangTua||''},\n\nPembayaran ${t.siswaNama} diterima:\nNo: ${t.noBayar}\nTanggal: ${formatDate(t.tanggal)}\nJenis: ${t.jenisNama}\nNominal: ${formatRupiah(t.nominal)}\nStatus: LUNAS\n\n${DB.profil.namaSekolah||'SDN 3 Tegiri'}`;
   if (siswa && siswa.noHp) {
     window.open(`https://wa.me/${formatWaNumber(siswa.noHp)}?text=${encodeURIComponent(msg)}`, '_blank');
     logWaRiwayat(t.siswaNama, 'Struk');
