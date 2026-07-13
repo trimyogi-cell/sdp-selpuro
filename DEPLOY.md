@@ -22,7 +22,7 @@ Siapapun bisa akses dari HP/PC manapun di seluruh dunia.
 2. Klik tombol **+** → **New repository**
 3. Isi:
    - Repository name: `sdp-selpuro`
-   - Description: `Sistem Pembayaran SDN 1 Selpuro`
+   - Description: `Sistem Pembayaran SDN 1 Selopuro`
    - Pilih **Public**
 4. Klik **Create repository**
 5. Klik **"uploading an existing file"**

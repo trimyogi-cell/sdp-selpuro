@@ -1,7 +1,7 @@
 {
-  "name": "Sistem Pembayaran SDN 3 Tegiri",
-  "short_name": "SPP SDN3 Tegiri",
-  "description": "Sistem Pembayaran LKS, Aktivitas & Iuran SD Negeri 3 Tegiri",
+  "name": "Sistem Pembayaran SDN 1 Selopuro",
+  "short_name": "SPP SDN 1 Selopuro",
+  "description": "Sistem Pembayaran LKS, Aktivitas & Iuran SD Negeri 1 Selopuro",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1e3a5f",

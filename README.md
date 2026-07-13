@@ -1,4 +1,4 @@
-# Sistem Pembayaran SD Negeri 1 Selpuro
+# Sistem Pembayaran SD Negeri 1 Selopuro
 
 ## Cara Install
 

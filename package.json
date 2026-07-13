@@ -1,7 +1,7 @@
 {
   "name": "sdpayment-tegiri",
   "version": "1.0.0",
-  "description": "Sistem Pembayaran SD Negeri 3 Tegiri",
+  "description": "Sistem Pembayaran SD Negeri 1 Selopuro",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

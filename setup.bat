@@ -1,5 +1,5 @@
 @echo off
-title Sistem Pembayaran SDN 1 Selpuro
+title Sistem Pembayaran SDN 1 Selopuro
 cd /d "%~dp0"
 
 :: Find Node.js
@@ -24,7 +24,7 @@ if exist "node-portable\node.exe" (
 
 echo.
 echo   ============================================
-echo     Sistem Pembayaran SDN 1 Selpuro
+echo     Sistem Pembayaran SDN 1 Selopuro
 echo   ============================================
 echo     Server: http://localhost:3000
 echo     Login  : admin / admin123

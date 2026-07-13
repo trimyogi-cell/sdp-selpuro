@@ -1,10 +1,10 @@
 @echo off
-title Install Sistem Pembayaran SDN 1 Selpuro
+title Install Sistem Pembayaran SDN 1 Selopuro
 color 0A
 cls
 
 echo ==================================================
-echo   INSTALLER - SISTEM PEMBAYARAN SDN 1 SELPURO
+echo   INSTALLER - SISTEM PEMBAYARAN SDN 1 SELOPURO
 echo ==================================================
 echo.
 
@@ -109,7 +109,7 @@ echo.
 echo [4/4] Membuat shortcut...
 (
 echo @echo off
-echo title Sistem Pembayaran SDN 1 Selpuro
+echo title Sistem Pembayaran SDN 1 Selopuro
 echo cd /d "%%~dp0"
 echo.
 echo if exist "node-portable\node.exe" ^(
@@ -122,7 +122,7 @@ echo ^)
 echo.
 echo echo.
 echo echo   ============================================
-echo echo     Sistem Pembayaran SD Negeri 1 Selpuro
+echo echo     Sistem Pembayaran SD Negeri 1 Selopuro
 echo echo   ============================================
 echo echo     Server: http://localhost:3000
 if defined LOCAL_IP echo echo     HP/PC  : http://%LOCAL_IP%:3000
@@ -137,10 +137,10 @@ echo pause
 :: Create desktop shortcut
 powershell -Command ^
     "$ws = New-Object -ComObject WScript.Shell; " ^
-    "$s = $ws.CreateShortcut([Environment]::GetFolderPath('Desktop') + '\Pembayaran SDN1 Selpuro.lnk'); " ^
+    "$s = $ws.CreateShortcut([Environment]::GetFolderPath('Desktop') + '\Pembayaran SDN1 Selopuro.lnk'); " ^
     "$s.TargetPath = '%cd%\START.bat'; " ^
     "$s.WorkingDirectory = '%cd%'; " ^
-    "$s.Description = 'Sistem Pembayaran SDN 1 Selpuro'; " ^
+    "$s.Description = 'Sistem Pembayaran SDN 1 Selopuro'; " ^
     "$s.Save()"
 
 echo   [OK] Shortcut dibuat di Desktop.
