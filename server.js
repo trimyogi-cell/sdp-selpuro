@@ -26,7 +26,7 @@ if (!DB) {
   DB = {
     profil: { namaSekolah: 'SD Negeri 1 Selopuro', npsn: '20310868', alamat: 'Jl. Merdeka No. 1, Desa Selopuro', telp: '(0354) 123456', email: 'sdnselopuro@gmail.com', kepsek: 'Drs. H. Ahmad Fauzi, M.Pd.', bendahara: 'Siti Aminah, S.Pd.' },
     users: [
-      { id: 1, username: 'admin', password: 'admin123', nama: 'Administrator', role: 'admin', status: 'aktif' },
+      { id: 1, username: 'admin', password: 'esloji', nama: 'Administrator', role: 'admin', status: 'aktif' },
       { id: 2, username: 'operator', password: 'operator123', nama: 'Operator', role: 'operator', status: 'aktif' }
     ],
     siswa: [
@@ -266,7 +266,7 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log('    PC  : http://localhost:' + PORT);
     console.log('    HP  : http://' + ip + ':' + PORT);
   }
-  console.log('    Login : admin / admin123');
+  console.log('    Login : admin / esloji');
   console.log('  ============================================');
   console.log('');
 });

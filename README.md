@@ -5,7 +5,7 @@
 ### Windows (PC)
 1. Double-click **`setup.bat`** (otomatis download Node.js & install)
 2. Buka browser ke `http://localhost:3000`
-3. Login: `admin` / `admin123`
+3. Login: `admin` / `esloji`
 
 ### Android (HP)
 1. Pastikan HP & PC **1 jaringan WiFi** yang sama

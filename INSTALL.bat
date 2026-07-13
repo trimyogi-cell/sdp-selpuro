@@ -126,7 +126,7 @@ echo echo     Sistem Pembayaran SD Negeri 1 Selopuro
 echo echo   ============================================
 echo echo     Server: http://localhost:3000
 if defined LOCAL_IP echo echo     HP/PC  : http://%LOCAL_IP%:3000
-echo echo     Login  : admin / admin123
+echo echo     Login : admin / esloji
 echo echo   ============================================
 echo echo.
 echo start "" /b cmd /c "timeout /t 2 ^>nul ^&^& start http://localhost:3000"
@@ -154,7 +154,7 @@ echo.
 echo   CARA PAKAI:
 echo   1. Klik 2x START.bat (atau shortcut di Desktop)
 echo   2. Browser otomatis buka aplikasi
-echo   3. Login: admin / admin123
+echo   3. Login: admin / esloji
 echo.
 if defined LOCAL_IP (
 echo   Untuk akses dari PC/HP lain:

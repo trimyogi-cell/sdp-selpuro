@@ -57,7 +57,7 @@ Setelah deploy selesai, aplikasi bisa diakses di:
 https://sdp-selpuro.onrender.com
 ```
 
-Login: **admin** / **admin123**
+Login: **admin** / **esloji**
 
 **Siapapun** di seluruh dunia bisa akses link ini!
 - Di HP: buka Chrome, ketik link di atas
@@ -77,7 +77,7 @@ Kalau ada perubahan kode, upload ulang ke GitHub:
 5. Render otomatis deploy ulang (~2 menit)
 
 ### Login Default
-- **admin** / admin123 (Administrator)
+- **admin** / esloji (Administrator)
 - **operator** / operator123 (Operator)
 
 ### Data Tersimpan

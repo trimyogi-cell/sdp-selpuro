@@ -27,7 +27,7 @@ echo   ============================================
 echo     Sistem Pembayaran SDN 1 Selopuro
 echo   ============================================
 echo     Server: http://localhost:3000
-echo     Login  : admin / admin123
+echo     Login : admin / esloji
 echo   ============================================
 echo.
 
