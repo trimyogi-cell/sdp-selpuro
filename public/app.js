@@ -885,7 +885,14 @@ function previewWaMessage() {
 
 function openWaChat(phone, message) {
   const num = formatWaNumber(phone);
-  window.open(`https://api.whatsapp.com/send?phone=${num}&text=${encodeURIComponent(message)}`, '_blank');
+  const url = `https://api.whatsapp.com/send?phone=${num}&text=${encodeURIComponent(message)}`;
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 function kirimWaIndividu() {
@@ -918,7 +925,14 @@ function kirimWaSemua() {
 function kirimWaGrup() {
   const adminName = DB.profil.bendahara || DB.profil.kepsek || 'Admin';
   const msg = `Assalamu'alaikum Wr. Wb.\n\nYth. Bapak/Ibu Wali Kelas,\n\nMohon informasikan tagihan LKS, Aktivitas & Iuran.\n\n${DB.profil.namaSekolah||'SDN 1 Selopuro'}\n_${adminName}_`;
-  window.open(`https://chat.whatsapp.com/?text=${encodeURIComponent(msg)}`, '_blank');
+  const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
   logWaRiwayat('Grup Wali Kelas', '', 'Grup', msg);
 }
 
