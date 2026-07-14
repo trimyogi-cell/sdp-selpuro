@@ -564,12 +564,7 @@ function cetakBuktiTransaksi() {
   const namaAdmin = p.namaAdmin || p.bendahara || p.kepsek || 'Admin';
   const itemList = sameNo.map((tx, i) => `<tr><td>${i+1}</td><td>${esc(tx.jenisNama)}</td><td>${esc(tx.kategori||'')}</td><td style="text-align:right;">${formatRupiah(tx.nominal)}</td></tr>`).join('');
   const html = `
-    <div style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;padding:20px;">
-      <div class="no-print" style="text-align:center;margin-bottom:15px;">
-        <button onclick="downloadBuktiPDF(${t.id})" style="background:#e74c3c;color:#fff;border:none;padding:10px 16px;border-radius:8px;font-size:13px;cursor:pointer;margin-right:6px;"><i class="fas fa-file-pdf"></i> Download PDF</button>
-        <button onclick="kirimBuktiPDFWa(${t.id})" style="background:#25D366;color:#fff;border:none;padding:10px 16px;border-radius:8px;font-size:13px;cursor:pointer;margin-right:6px;"><i class="fab fa-whatsapp"></i> Kirim PDF via WA</button>
-        <button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:10px 16px;border-radius:8px;font-size:13px;cursor:pointer;"><i class="fas fa-print"></i> Cetak</button>
-      </div>
+    <div style="font-family:Arial,sans-serif;max-width:100%;">
       <div style="text-align:center;border-bottom:2px solid #333;padding-bottom:10px;margin-bottom:15px;">
         <h3 style="margin:0;">${esc(p.namaSekolah || 'SD Negeri 1 Selopuro')}</h3>
         <p style="margin:2px 0;font-size:12px;">${esc(p.alamat || '')}</p>
@@ -592,7 +587,7 @@ function cetakBuktiTransaksi() {
         <tr><td>Metode Bayar</td><td>: ${esc(t.metode)}</td></tr>
         <tr><td>Status</td><td>: <strong style="color:green;">LUNAS</strong></td></tr>
       </table>
-      <div style="display:flex;justify-content:space-between;margin-top:50px;font-size:13px;">
+      <div style="display:flex;justify-content:space-between;margin-top:40px;font-size:13px;">
         <div style="text-align:center;width:140px;">
           <p style="margin:0;">Yang Membayar</p><br><br><br>
           <p style="border-top:1px solid #333;margin:0;padding-top:3px;">(${esc(siswa?.orangTua || '')})</p>
@@ -602,9 +597,15 @@ function cetakBuktiTransaksi() {
           <p style="border-top:1px solid #333;margin:0;padding-top:3px;">(${esc(namaAdmin)})</p>
         </div>
       </div>
-      <p style="text-align:center;font-size:11px;margin-top:20px;color:#888;">Bukti ini dicetak otomatis dari sistem pembayaran</p>
+      <p style="text-align:center;font-size:11px;margin-top:15px;color:#888;">Bukti ini dicetak otomatis dari sistem pembayaran</p>
     </div>`;
-  document.getElementById('printArea').innerHTML = html;
+  document.getElementById('buktiPreviewContent').innerHTML = html;
+  openModal('buktiPreviewModal');
+}
+
+function printBuktiPreview() {
+  const content = document.getElementById('buktiPreviewContent').innerHTML;
+  document.getElementById('printArea').innerHTML = content;
   window.print();
 }
 
@@ -703,14 +704,15 @@ function generateBuktiPDF(id) {
   return doc;
 }
 
-function downloadBuktiPDF(id) {
-  const doc = generateBuktiPDF(id);
+function downloadBuktiPDF() {
+  const doc = generateBuktiPDF(detailTransaksiId);
   if (!doc) return;
-  const t = DB.transaksi.find(x => x.id === id);
+  const t = DB.transaksi.find(x => x.id === detailTransaksiId);
   doc.save('Bukti-Bayar-' + (t?.noBayar || 'transaksi') + '.pdf');
 }
 
-async function kirimBuktiPDFWa(id) {
+async function kirimBuktiPDFWa() {
+  const id = detailTransaksiId;
   const t = DB.transaksi.find(x => x.id === id);
   if (!t) return;
   const siswa = DB.siswa.find(s => s.id === t.siswaId);
@@ -736,9 +738,8 @@ async function kirimBuktiPDFWa(id) {
   URL.revokeObjectURL(url);
   const sameNo = DB.transaksi.filter(x => x.noBayar === t.noBayar);
   const total = sameNo.reduce((s, tx) => s + tx.nominal, 0);
-  const itemList = sameNo.map((tx, i) => `${i+1}. ${tx.jenisNama} (${tx.kategori||''}): ${formatRupiah(tx.nominal)}`).join('\n');
   const p = DB.profil || {};
-  const msg = `*Bukti Pembayaran* 📎\n\n${p.namaSekolah||'SD Negeri 1 Selopuro'}\nNo: ${t.noBayar}\nSiswa: ${t.siswaNama}\nTotal: ${formatRupiah(total)}\n\n*File PDF terlampir*\nSilakan download dan simpan.`;
+  const msg = `*Bukti Pembayaran*\n\n${p.namaSekolah||'SD Negeri 1 Selopuro'}\nNo: ${t.noBayar}\nSiswa: ${t.siswaNama}\nTotal: ${formatRupiah(total)}\n\n*File PDF terlampir*\nSilakan download dan simpan.`;
   openWaChat(siswa.noHp, msg);
   logWaRiwayat(t.siswaNama, siswa.noHp, 'PDF', msg);
 }
