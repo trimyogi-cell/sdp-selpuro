@@ -765,6 +765,10 @@
                                 <label>No. HP Admin (untuk Kirim WA)</label>
                                 <input type="text" id="profilNoHpAdmin" placeholder="08xxxxxxxxxx">
                             </div>
+                            <div class="form-group">
+                                <label>Nama Guru/Admin (untuk Cetak Bukti)</label>
+                                <input type="text" id="profilNamaAdmin" placeholder="Nama yang tanda tangan di bukti">
+                            </div>
                             <div class="form-actions">
                                 <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Profil</button>
                             </div>
@@ -1041,6 +1045,9 @@
         <div class="detail-content" id="detailTransaksiContent"></div>
         <div class="form-actions">
             <button class="btn btn-secondary" onclick="closeModal('detailTransaksiModal')">Tutup</button>
+            <button class="btn btn-primary" onclick="cetakBuktiTransaksi()">
+                <i class="fas fa-print"></i> Cetak Bukti
+            </button>
             <button class="btn btn-whatsapp" onclick="kirimWaStruk()">
                 <i class="fab fa-whatsapp"></i> Kirim Struk WA
             </button>

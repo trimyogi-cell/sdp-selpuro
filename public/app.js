@@ -553,6 +553,56 @@ async function deleteTransaksi(id) {
   renderTransaksiTable();
 }
 
+function cetakBuktiTransaksi() {
+  if (!detailTransaksiId) return;
+  const t = DB.transaksi.find(x => x.id === detailTransaksiId);
+  if (!t) return;
+  const siswa = DB.siswa.find(s => s.id === t.siswaId);
+  const sameNo = DB.transaksi.filter(x => x.noBayar === t.noBayar);
+  const total = sameNo.reduce((s, tx) => s + tx.nominal, 0);
+  const p = DB.profil || {};
+  const namaAdmin = p.namaAdmin || p.bendahara || p.kepsek || 'Admin';
+  const itemList = sameNo.map((tx, i) => `<tr><td>${i+1}</td><td>${esc(tx.jenisNama)}</td><td>${esc(tx.kategori||'')}</td><td style="text-align:right;">${formatRupiah(tx.nominal)}</td></tr>`).join('');
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;padding:20px;">
+      <div style="text-align:center;border-bottom:2px solid #333;padding-bottom:10px;margin-bottom:15px;">
+        <h3 style="margin:0;">${esc(p.namaSekolah || 'SD Negeri 1 Selopuro')}</h3>
+        <p style="margin:2px 0;font-size:12px;">${esc(p.alamat || '')}</p>
+        <p style="margin:2px 0;font-size:12px;">Telp: ${esc(p.telp || '')}</p>
+      </div>
+      <h4 style="text-align:center;margin:10px 0;">BUKTI PEMBAYARAN</h4>
+      <table style="width:100%;font-size:13px;margin-bottom:10px;">
+        <tr><td style="width:100px;">No. Bayar</td><td>: <strong>${esc(t.noBayar)}</strong></td></tr>
+        <tr><td>Tanggal</td><td>: ${formatDate(t.tanggal)} ${esc(t.waktu||'')}</td></tr>
+        <tr><td>Nama Siswa</td><td>: ${esc(t.siswaNama)}</td></tr>
+        <tr><td>Kelas</td><td>: ${getKelasText(t.siswaKelas)}</td></tr>
+        <tr><td>Orang Tua</td><td>: ${esc(siswa?.orangTua || '-')}</td></tr>
+      </table>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;margin:10px 0;">
+        <thead><tr style="background:#f0f0f0;"><th style="padding:5px;border:1px solid #ddd;text-align:center;">No</th><th style="padding:5px;border:1px solid #ddd;text-align:left;">Item</th><th style="padding:5px;border:1px solid #ddd;text-align:left;">Kategori</th><th style="padding:5px;border:1px solid #ddd;text-align:right;">Nominal</th></tr></thead>
+        <tbody>${itemList}</tbody>
+        <tfoot><tr><td colspan="3" style="padding:5px;border:1px solid #ddd;text-align:right;font-weight:bold;">TOTAL</td><td style="padding:5px;border:1px solid #ddd;text-align:right;font-weight:bold;">${formatRupiah(total)}</td></tr></tfoot>
+      </table>
+      <table style="width:100%;font-size:13px;margin-top:5px;">
+        <tr><td>Metode Bayar</td><td>: ${esc(t.metode)}</td></tr>
+        <tr><td>Status</td><td>: <strong style="color:green;">LUNAS</strong></td></tr>
+      </table>
+      <div style="display:flex;justify-content:space-between;margin-top:50px;font-size:13px;">
+        <div style="text-align:center;width:140px;">
+          <p style="margin:0;">Yang Membayar</p><br><br><br>
+          <p style="border-top:1px solid #333;margin:0;padding-top:3px;">(${esc(siswa?.orangTua || '')})</p>
+        </div>
+        <div style="text-align:center;width:140px;">
+          <p style="margin:0;">Bendahara / Admin</p><br><br><br>
+          <p style="border-top:1px solid #333;margin:0;padding-top:3px;">(${esc(namaAdmin)})</p>
+        </div>
+      </div>
+      <p style="text-align:center;font-size:11px;margin-top:20px;color:#888;">Bukti ini dicetak otomatis dari sistem pembayaran</p>
+    </div>`;
+  document.getElementById('printArea').innerHTML = html;
+  window.print();
+}
+
 async function bulkDeleteTransaksiGroup(noBayar) {
   const items = DB.transaksi.filter(t => t.noBayar === noBayar);
   if (!items.length) return;
@@ -1148,6 +1198,7 @@ function loadProfil() {
   document.getElementById('profilKepsek').value = p.kepsek || '';
   document.getElementById('profilBendahara').value = p.bendahara || '';
   document.getElementById('profilNoHpAdmin').value = p.noHpAdmin || '';
+  document.getElementById('profilNamaAdmin').value = p.namaAdmin || '';
 }
 
 async function handleProfilForm(e) {
@@ -1160,7 +1211,8 @@ async function handleProfilForm(e) {
     email: document.getElementById('profilEmail').value,
     kepsek: document.getElementById('profilKepsek').value,
     bendahara: document.getElementById('profilBendahara').value,
-    noHpAdmin: document.getElementById('profilNoHpAdmin').value
+    noHpAdmin: document.getElementById('profilNoHpAdmin').value,
+    namaAdmin: document.getElementById('profilNamaAdmin').value
   };
   await api('/profil', { method: 'PUT', body: data });
   DB.profil = data;
