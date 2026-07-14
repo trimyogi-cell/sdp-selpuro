@@ -716,11 +716,12 @@ async function kirimBuktiPDFWa() {
   const t = DB.transaksi.find(x => x.id === id);
   if (!t) return;
   const siswa = DB.siswa.find(s => s.id === t.siswaId);
-  if (!siswa || !siswa.noHp) return alert('No HP tidak tersedia!');
+  if (!siswa || !siswa.noHp) return alert('No HP orang tua tidak tersedia!');
   const doc = generateBuktiPDF(id);
   if (!doc) return;
   const blob = doc.output('blob');
-  const file = new File([blob], 'Bukti-Bayar-' + t.noBayar + '.pdf', { type: 'application/pdf' });
+  const fileName = 'Bukti-Bayar-' + t.noBayar + '.pdf';
+  const file = new File([blob], fileName, { type: 'application/pdf' });
   if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({ files: [file], title: 'Bukti Pembayaran ' + t.siswaNama });
@@ -731,7 +732,7 @@ async function kirimBuktiPDFWa() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'Bukti-Bayar-' + t.noBayar + '.pdf';
+  a.download = fileName;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -739,9 +740,16 @@ async function kirimBuktiPDFWa() {
   const sameNo = DB.transaksi.filter(x => x.noBayar === t.noBayar);
   const total = sameNo.reduce((s, tx) => s + tx.nominal, 0);
   const p = DB.profil || {};
-  const msg = `*Bukti Pembayaran*\n\n${p.namaSekolah||'SD Negeri 1 Selopuro'}\nNo: ${t.noBayar}\nSiswa: ${t.siswaNama}\nTotal: ${formatRupiah(total)}\n\n*File PDF terlampir*\nSilakan download dan simpan.`;
-  openWaChat(siswa.noHp, msg);
+  const itemLines = sameNo.map((tx, i) => `${i+1}. ${tx.jenisNama} (${tx.kategori||''}): ${formatRupiah(tx.nominal)}`).join('\n');
+  const namaAdm = p.namaAdmin || p.bendahara || p.kepsek || 'Admin';
+  const msg = `*Bukti Pembayaran*\n\n${p.namaSekolah||'SD Negeri 1 Selopuro'}\nNo: ${t.noBayar}\nTanggal: ${formatDate(t.tanggal)}\nSiswa: ${t.siswaNama} (Kelas ${t.siswaKelas})\n\n*Item dibayar:*\n${itemLines}\n\n*Total: ${formatRupiah(total)}*\nMetode: ${t.metode}\nStatus: LUNAS\n\n_Diterima oleh:_ ${namaAdm}`;
+  const waNum = formatWaNumber(siswa.noHp);
+  const waUrl = `https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`;
   logWaRiwayat(t.siswaNama, siswa.noHp, 'PDF', msg);
+    setTimeout(() => {
+    window.open(waUrl, '_blank');
+    alert(`PDF "${fileName}" sudah didownload.\n\nLangkah selanjutnya:\n1. Buka WhatsApp di chat orang tua\n2. Klik tombol 📎 (lampirkan)\n3. Pilih file "${fileName}" dari folder Downloads`);
+  }, 500);
 }
 
 async function bulkDeleteTransaksiGroup(noBayar) {
