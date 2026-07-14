@@ -565,6 +565,10 @@ function cetakBuktiTransaksi() {
   const itemList = sameNo.map((tx, i) => `<tr><td>${i+1}</td><td>${esc(tx.jenisNama)}</td><td>${esc(tx.kategori||'')}</td><td style="text-align:right;">${formatRupiah(tx.nominal)}</td></tr>`).join('');
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;padding:20px;">
+      <div class="no-print" style="text-align:center;margin-bottom:15px;">
+        <button onclick="kirimWaStrukById(${t.id})" style="background:#25D366;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:14px;cursor:pointer;margin-right:8px;"><i class="fab fa-whatsapp"></i> Kirim via WA</button>
+        <button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:14px;cursor:pointer;"><i class="fas fa-print"></i> Cetak</button>
+      </div>
       <div style="text-align:center;border-bottom:2px solid #333;padding-bottom:10px;margin-bottom:15px;">
         <h3 style="margin:0;">${esc(p.namaSekolah || 'SD Negeri 1 Selopuro')}</h3>
         <p style="margin:2px 0;font-size:12px;">${esc(p.alamat || '')}</p>
@@ -1017,9 +1021,11 @@ function kirimWaStrukById(id) {
   if (!t) return;
   const siswa = DB.siswa.find(s => s.id === t.siswaId);
   const sameNo = DB.transaksi.filter(x => x.noBayar === t.noBayar);
-  const itemList = sameNo.map(tx => `✅ ${tx.jenisNama}: ${formatRupiah(tx.nominal)}`).join('\n');
+  const itemList = sameNo.map((tx, i) => `${i+1}. ${tx.jenisNama} (${tx.kategori||''}): ${formatRupiah(tx.nominal)}`).join('\n');
   const total = sameNo.reduce((s, tx) => s + tx.nominal, 0);
-  const msg = `Yth. ${siswa?.orangTua||''},\n\nPembayaran ${t.siswaNama} (${getKelasText(siswa?.kelas)}) diterima:\nNo: ${t.noBayar}\nTanggal: ${formatDate(t.tanggal)}\n\nItem dibayar:\n${itemList}\n\nTotal: ${formatRupiah(total)}\nStatus: LUNAS\n\nTerima kasih.\n${DB.profil.namaSekolah||'SDN 1 Selopuro'}`;
+  const p = DB.profil || {};
+  const namaAdmin = p.namaAdmin || p.bendahara || p.kepsek || 'Admin';
+  const msg = `${p.namaSekolah||'SD Negeri 1 Selopuro'}\n${p.alamat||''}\nTelp: ${p.telp||''}\n\n━━━ BUKTI PEMBAYARAN ━━━\n\nNo. Bayar: ${t.noBayar}\nTanggal: ${formatDate(t.tanggal)} ${t.waktu||''}\nSiswa: ${t.siswaNama} (${getKelasText(t.siswaKelas)})\nOrang Tua: ${siswa?.orangTua||'-'}\n\nItem dibayar:\n${itemList}\n\nTotal: ${formatRupiah(total)}\nMetode: ${t.metode}\nStatus: LUNAS\n\nDiterima oleh:\n_${namaAdmin}_\n\nTerima kasih 🙏`;
   if (siswa && siswa.noHp) {
     openWaChat(siswa.noHp, msg);
     logWaRiwayat(t.siswaNama, siswa.noHp, 'Struk', msg);

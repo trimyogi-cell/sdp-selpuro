@@ -1007,6 +1007,7 @@ body {
         width: 100%;
         padding: 20px;
     }
+    .no-print { display: none !important; }
     .print-area h2 { text-align: center; margin-bottom: 5px; }
     .print-area p { text-align: center; margin-bottom: 15px; }
     .print-area table { width: 100%; border-collapse: collapse; }
