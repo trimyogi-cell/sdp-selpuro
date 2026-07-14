@@ -31,10 +31,13 @@ function hashPassword(password) {
 }
 
 function verifyPassword(password, stored) {
-  if (!stored || !stored.includes(':')) return false;
-  const [salt, hash] = stored.split(':');
-  const verify = crypto.scryptSync(password, salt, 64).toString('hex');
-  return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(verify, 'hex'));
+  if (!stored) return false;
+  if (stored.includes(':')) {
+    const [salt, hash] = stored.split(':');
+    const verify = crypto.scryptSync(password, salt, 64).toString('hex');
+    return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(verify, 'hex'));
+  }
+  return password === stored;
 }
 
 function isPasswordHashed(pw) { return pw && typeof pw === 'string' && pw.includes(':') && pw.split(':').length === 2; }
@@ -181,6 +184,10 @@ app.post('/api/login', async (req, res) => {
     const user = users.find(u => u.username === username);
     if (!user || !verifyPassword(password, user.password)) return res.status(401).json({ error: 'Username atau password salah' });
     if (user.status === 'nonaktif') return res.status(403).json({ error: 'Akun dinonaktifkan' });
+    if (!isPasswordHashed(user.password)) {
+      user.password = hashPassword(password);
+      await saveTable('users', users);
+    }
     const token = createToken(user.id, user.role);
     const { password: _, ...safe } = user;
     res.json({ ...safe, token });
