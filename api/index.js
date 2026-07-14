@@ -89,7 +89,7 @@ function nextId(arr) { return arr.length ? Math.max(...arr.map(x => x.id || 0)) 
 function getClientIp(req) { return req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown'; }
 
 // ===== STATELESS TOKEN AUTH =====
-const SECRET = process.env.JWT_SECRET || crypto.randomBytes(64).toString('hex');
+const SECRET = process.env.JWT_SECRET || crypto.createHmac('sha256', 'sdp-selpuro-v2').update(SUPABASE_KEY).digest('hex');
 
 function createToken(userId, role) {
   const payload = JSON.stringify({ userId, role, exp: Date.now() + 12 * 60 * 60 * 1000 });
