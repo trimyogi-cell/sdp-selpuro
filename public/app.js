@@ -876,24 +876,28 @@ function previewWaMessage() {
     const totalTagihan = DB.jenisBayar.reduce((s,jb) => s+jb.nominal, 0);
     const sisa = totalTagihan - totalBayar;
     const sudahBayarList = txSiswa.map(t => `✅ ${t.jenisNama}: ${formatRupiah(t.nominal)}`).join('\n');
-    const belumBayarList = DB.jenisBayar.filter(jb => !txSiswa.some(t => t.jenisBayarId === jb.id)).map(jb => `❌ ${jb.nama}: ${formatRupiah(jb.nominal)}`).join('\n');
-    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nAssalamu'alaikum Wr. Wb.\n\nKami dari ${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'} memberitahukan tagihan untuk ${siswa.nama} (${getKelasText(siswa.kelas)}):\n\n` +
+    const belumBayarItems = DB.jenisBayar.filter(jb => !txSiswa.some(t => t.jenisId === jb.id));
+    const belumBayarList = belumBayarItems.map(jb => `❌ ${jb.nama}: ${formatRupiah(jb.nominal)}`).join('\n');
+    msg = `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nAssalamu'alaikum Wr. Wb.\n\nKami dari ${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'} memberitahukan tagihan untuk ${siswa.nama} (${getKelasText(siswa.kelas)}):\n\n` +
       (sudahBayarList ? `Sudah dibayar:\n${sudahBayarList}\n\n` : '') +
       (belumBayarList ? `Belum dibayar:\n${belumBayarList}\n\n` : 'Semua tagihan sudah lunas.\n\n') +
       `Total tagihan: ${formatRupiah(totalTagihan)}\nTotal dibayar: ${formatRupiah(totalBayar)}\nSisa: ${formatRupiah(sisa>0?sisa:0)}\n\n` +
       `${sisa>0?'Mohon segera melakukan pembayaran.':'Alhamdulillah, tagihan lunas.'}\n\nWassalamu'alaikum Wr. Wb.\n\n_${adminName}_`;
   } else if (template === 'reminder' && siswa) {
     const txSiswa = DB.transaksi.filter(t => t.siswaId === siswa.id);
-    const belumBayarList = DB.jenisBayar.filter(jb => !txSiswa.some(t => t.jenisBayarId === jb.id)).map(jb => `❌ ${jb.nama}: ${formatRupiah(jb.nominal)}`).join('\n');
-    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nKami ingatkan tagihan ${siswa.nama} (${getKelasText(siswa.kelas)}) yang belum diselesaikan:\n\n` +
+    const belumBayarItems = DB.jenisBayar.filter(jb => !txSiswa.some(t => t.jenisId === jb.id));
+    const belumBayarList = belumBayarItems.map(jb => `❌ ${jb.nama}: ${formatRupiah(jb.nominal)}`).join('\n');
+    const totalBelum = belumBayarItems.reduce((s,jb) => s+jb.nominal, 0);
+    msg = `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nKami ingatkan tagihan ${siswa.nama} (${getKelasText(siswa.kelas)}) yang belum diselesaikan:\n\n` +
       (belumBayarList ? belumBayarList : 'Semua tagihan sudah lunas.') +
-      `\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
+      `\n\nTotal belum dibayar: ${formatRupiah(totalBelum)}\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
   } else if (template === 'lunas' && siswa) {
     const txSiswa = DB.transaksi.filter(t => t.siswaId === siswa.id);
     const itemList = txSiswa.map(t => `✅ ${t.jenisNama}: ${formatRupiah(t.nominal)}`).join('\n');
-    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nAlhamdulillah, pembayaran ${siswa.nama} telah LUNAS:\n\n${itemList}\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
+    const totalBayar = txSiswa.reduce((s,t) => s+t.nominal, 0);
+    msg = `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nAlhamdulillah, pembayaran ${siswa.nama} telah LUNAS:\n\n${itemList}\n\nTotal dibayar: ${formatRupiah(totalBayar)}\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
   } else if (template === 'stapor' && siswa) {
-    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nMohon kesediaan menandatangani STAPOR untuk ${siswa.nama}.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
+    msg = `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nMohon kesediaan menandatangani STAPOR untuk ${siswa.nama}.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
   } else {
     msg = 'Pilih siswa terlebih dahulu.';
   }
@@ -932,8 +936,10 @@ function kirimWaSemua() {
     const s = DB.siswa.find(x => x.id === id);
     if (s && s.noHp) {
       const txSiswa = DB.transaksi.filter(t => t.siswaId === s.id);
-      const belumBayarList = DB.jenisBayar.filter(jb => !txSiswa.some(t => t.jenisBayarId === jb.id)).map(jb => `❌ ${jb.nama}: ${formatRupiah(jb.nominal)}`).join('\n');
-      const msg = `Yth. ${s.orangTua||''},\n\nKami dari ${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'} memberitahukan tagihan ${s.nama} (${getKelasText(s.kelas)}):\n\nBelum dibayar:\n${belumBayarList||'Semua sudah lunas.'}\n\nMohon segera melakukan pembayaran.\n\n_${adminName}_`;
+      const belumBayarItems = DB.jenisBayar.filter(jb => !txSiswa.some(t => t.jenisId === jb.id));
+      const belumBayarList = belumBayarItems.map(jb => `❌ ${jb.nama}: ${formatRupiah(jb.nominal)}`).join('\n');
+      const totalBelum = belumBayarItems.reduce((s,jb) => s+jb.nominal, 0);
+      const msg = `Yth. ${esc(s.orangTua||'')},\n\nKami dari ${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'} memberitahukan tagihan ${s.nama} (${getKelasText(s.kelas)}):\n\nBelum dibayar:\n${belumBayarList||'Semua sudah lunas.'}\n\nTotal belum dibayar: ${formatRupiah(totalBelum)}\n\nMohon segera melakukan pembayaran.\n\n_${adminName}_`;
       setTimeout(() => openWaChat(s.noHp, msg), count*500);
       logWaRiwayat(s.nama, s.noHp, 'Bulk', msg);
       count++;
