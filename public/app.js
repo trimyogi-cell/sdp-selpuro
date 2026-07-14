@@ -566,8 +566,9 @@ function cetakBuktiTransaksi() {
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;padding:20px;">
       <div class="no-print" style="text-align:center;margin-bottom:15px;">
-        <button onclick="kirimWaStrukById(${t.id})" style="background:#25D366;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:14px;cursor:pointer;margin-right:8px;"><i class="fab fa-whatsapp"></i> Kirim via WA</button>
-        <button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:14px;cursor:pointer;"><i class="fas fa-print"></i> Cetak</button>
+        <button onclick="downloadBuktiPDF(${t.id})" style="background:#e74c3c;color:#fff;border:none;padding:10px 16px;border-radius:8px;font-size:13px;cursor:pointer;margin-right:6px;"><i class="fas fa-file-pdf"></i> Download PDF</button>
+        <button onclick="kirimBuktiPDFWa(${t.id})" style="background:#25D366;color:#fff;border:none;padding:10px 16px;border-radius:8px;font-size:13px;cursor:pointer;margin-right:6px;"><i class="fab fa-whatsapp"></i> Kirim PDF via WA</button>
+        <button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:10px 16px;border-radius:8px;font-size:13px;cursor:pointer;"><i class="fas fa-print"></i> Cetak</button>
       </div>
       <div style="text-align:center;border-bottom:2px solid #333;padding-bottom:10px;margin-bottom:15px;">
         <h3 style="margin:0;">${esc(p.namaSekolah || 'SD Negeri 1 Selopuro')}</h3>
@@ -605,6 +606,141 @@ function cetakBuktiTransaksi() {
     </div>`;
   document.getElementById('printArea').innerHTML = html;
   window.print();
+}
+
+function generateBuktiPDF(id) {
+  const t = DB.transaksi.find(x => x.id === id);
+  if (!t) return null;
+  const siswa = DB.siswa.find(s => s.id === t.siswaId);
+  const sameNo = DB.transaksi.filter(x => x.noBayar === t.noBayar);
+  const total = sameNo.reduce((s, tx) => s + tx.nominal, 0);
+  const p = DB.profil || {};
+  const namaAdmin = p.namaAdmin || p.bendahara || p.kepsek || 'Admin';
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: [80, 200] });
+  const w = 80;
+  let y = 8;
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text(p.namaSekolah || 'SD Negeri 1 Selopuro', w/2, y, { align: 'center' });
+  y += 5;
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.text(p.alamat || '', w/2, y, { align: 'center' });
+  y += 4;
+  doc.text('Telp: ' + (p.telp || ''), w/2, y, { align: 'center' });
+  y += 6;
+  doc.setLineWidth(0.3);
+  doc.line(5, y, w-5, y);
+  y += 6;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('BUKTI PEMBAYARAN', w/2, y, { align: 'center' });
+  y += 7;
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  const info = [
+    ['No. Bayar', t.noBayar],
+    ['Tanggal', formatDate(t.tanggal) + ' ' + (t.waktu||'')],
+    ['Siswa', t.siswaNama],
+    ['Kelas', getKelasText(t.siswaKelas)],
+    ['Orang Tua', siswa?.orangTua || '-']
+  ];
+  info.forEach(([label, val]) => {
+    doc.text(label + ':', 5, y);
+    doc.text(String(val), 28, y);
+    y += 4.5;
+  });
+  y += 2;
+  doc.setLineWidth(0.2);
+  doc.line(5, y, w-5, y);
+  y += 5;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7);
+  doc.text('No', 7, y);
+  doc.text('Item', 13, y);
+  doc.text('Kategori', 48, y);
+  doc.text('Nominal', w-5, y, { align: 'right' });
+  y += 1;
+  doc.line(5, y, w-5, y);
+  y += 4;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  sameNo.forEach((tx, i) => {
+    doc.text(String(i+1), 7, y);
+    doc.text(String(tx.jenisNama).substring(0, 22), 13, y);
+    doc.text(String(tx.kategori||'').substring(0, 10), 48, y);
+    doc.text(formatRupiah(tx.nominal), w-5, y, { align: 'right' });
+    y += 4;
+  });
+  doc.line(5, y, w-5, y);
+  y += 4;
+  doc.setFont('helvetica', 'bold');
+  doc.text('TOTAL', 48, y, { align: 'right' });
+  doc.text(formatRupiah(total), w-5, y, { align: 'right' });
+  y += 5;
+  doc.line(5, y, w-5, y);
+  y += 5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.text('Metode: ' + (t.metode || 'Tunai'), 5, y);
+  y += 4;
+  doc.setFont('helvetica', 'bold');
+  doc.text('Status: LUNAS', 5, y);
+  y += 14;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.text('( ' + (siswa?.orangTua || '') + ' )', 18, y, { align: 'center' });
+  doc.text('( ' + namaAdmin + ' )', w-18, y, { align: 'center' });
+  y -= 10;
+  doc.line(8, y, 28, y);
+  doc.line(w-28, y, w-8, y);
+  y += 5;
+  doc.setFontSize(6);
+  doc.setFont('helvetica', 'italic');
+  doc.text('Yang Membayar', 18, y, { align: 'center' });
+  doc.text('Bendahara / Admin', w-18, y, { align: 'center' });
+  return doc;
+}
+
+function downloadBuktiPDF(id) {
+  const doc = generateBuktiPDF(id);
+  if (!doc) return;
+  const t = DB.transaksi.find(x => x.id === id);
+  doc.save('Bukti-Bayar-' + (t?.noBayar || 'transaksi') + '.pdf');
+}
+
+async function kirimBuktiPDFWa(id) {
+  const t = DB.transaksi.find(x => x.id === id);
+  if (!t) return;
+  const siswa = DB.siswa.find(s => s.id === t.siswaId);
+  if (!siswa || !siswa.noHp) return alert('No HP tidak tersedia!');
+  const doc = generateBuktiPDF(id);
+  if (!doc) return;
+  const blob = doc.output('blob');
+  const file = new File([blob], 'Bukti-Bayar-' + t.noBayar + '.pdf', { type: 'application/pdf' });
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: 'Bukti Pembayaran ' + t.siswaNama });
+      logWaRiwayat(t.siswaNama, siswa.noHp, 'PDF', 'Bukti pembayaran dikirim sebagai PDF');
+      return;
+    } catch (e) { if (e.name === 'AbortError') return; }
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Bukti-Bayar-' + t.noBayar + '.pdf';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  const sameNo = DB.transaksi.filter(x => x.noBayar === t.noBayar);
+  const total = sameNo.reduce((s, tx) => s + tx.nominal, 0);
+  const itemList = sameNo.map((tx, i) => `${i+1}. ${tx.jenisNama} (${tx.kategori||''}): ${formatRupiah(tx.nominal)}`).join('\n');
+  const p = DB.profil || {};
+  const msg = `*Bukti Pembayaran* 📎\n\n${p.namaSekolah||'SD Negeri 1 Selopuro'}\nNo: ${t.noBayar}\nSiswa: ${t.siswaNama}\nTotal: ${formatRupiah(total)}\n\n*File PDF terlampir*\nSilakan download dan simpan.`;
+  openWaChat(siswa.noHp, msg);
+  logWaRiwayat(t.siswaNama, siswa.noHp, 'PDF', msg);
 }
 
 async function bulkDeleteTransaksiGroup(noBayar) {
