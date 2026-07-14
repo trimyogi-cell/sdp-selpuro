@@ -2,6 +2,11 @@
 const API = '/api';
 let authToken = localStorage.getItem('sdp_token') || null;
 
+function esc(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 async function api(url, opts = {}) {
   const headers = { 'Content-Type': 'application/json' };
   if (authToken) headers['x-auth-token'] = authToken;
@@ -50,7 +55,7 @@ async function init() {
       currentUser = JSON.parse(savedUser);
       document.getElementById('loginPage').classList.add('hidden');
       document.getElementById('mainApp').classList.remove('hidden');
-      document.getElementById('currentUser').innerHTML = '<i class="fas fa-user"></i> ' + currentUser.nama;
+      document.getElementById('currentUser').innerHTML = '<i class="fas fa-user"></i> ' + esc(currentUser.nama);
       document.getElementById('currentDate').textContent = formatDate(new Date());
       document.getElementById('filterTanggal').value = new Date().toISOString().split('T')[0];
       const savedPage = localStorage.getItem('sdp_currentPage') || 'dashboard';
@@ -132,7 +137,7 @@ async function handleLogin(e) {
     localStorage.setItem('sdp_user', JSON.stringify({ id: user.id, nama: user.nama, username: user.username, role: user.role }));
     document.getElementById('loginPage').classList.add('hidden');
     document.getElementById('mainApp').classList.remove('hidden');
-    document.getElementById('currentUser').innerHTML = '<i class="fas fa-user"></i> ' + user.nama;
+    document.getElementById('currentUser').innerHTML = '<i class="fas fa-user"></i> ' + esc(user.nama);
     document.getElementById('loginError').textContent = '';
     document.getElementById('currentDate').textContent = formatDate(new Date());
     document.getElementById('filterTanggal').value = new Date().toISOString().split('T')[0];
@@ -268,11 +273,11 @@ function renderSiswaTable() {
     <tr>
       <td><input type="checkbox" class="siswa-check" value="${s.id}" onchange="updateBulkSiswaBtn()"></td>
       <td>${i + 1}</td>
-      <td>${s.nis}</td>
-      <td>${s.nama}</td>
-      <td><span class="badge badge-primary">${getKelasText(s.kelas)}</span></td>
-      <td>${s.orangTua || '-'}</td>
-      <td>${s.noHp || '-'}</td>
+      <td>${esc(s.nis)}</td>
+      <td>${esc(s.nama)}</td>
+      <td><span class="badge badge-primary">${esc(getKelasText(s.kelas))}</span></td>
+      <td>${esc(s.orangTua) || '-'}</td>
+      <td>${esc(s.noHp) || '-'}</td>
       <td class="table-actions">
         <button class="btn btn-icon btn-info" onclick="editSiswa(${s.id})" title="Edit"><i class="fas fa-edit"></i></button>
         <button class="btn btn-icon btn-danger" onclick="deleteSiswa(${s.id})" title="Hapus"><i class="fas fa-trash"></i></button>
@@ -359,11 +364,11 @@ function renderJenisBayarTable() {
     <tr>
       <td><input type="checkbox" class="jenisbayar-check" value="${j.id}" onchange="updateBulkJenisBayarBtn()"></td>
       <td>${i + 1}</td>
-      <td><span class="badge badge-info">${j.kode}</span></td>
-      <td>${j.nama}</td>
-      <td><span class="badge badge-${getKategoriBadge(j.kategori)}">${j.kategori}</span></td>
+      <td><span class="badge badge-info">${esc(j.kode)}</span></td>
+      <td>${esc(j.nama)}</td>
+      <td><span class="badge badge-${getKategoriBadge(j.kategori)}">${esc(j.kategori)}</span></td>
       <td>${formatRupiah(j.nominal)}</td>
-      <td>${j.tahun || '-'}</td>
+      <td>${esc(j.tahun) || '-'}</td>
       <td class="table-actions">
         <button class="btn btn-icon btn-info" onclick="editJenisBayar(${j.id})" title="Edit"><i class="fas fa-edit"></i></button>
         <button class="btn btn-icon btn-danger" onclick="deleteJenisBayar(${j.id})" title="Hapus"><i class="fas fa-trash"></i></button>
@@ -398,7 +403,7 @@ async function hapusSemuaJenisBayar() {
 function populateTransaksiForm() {
   const select = document.getElementById('txSiswa');
   select.innerHTML = '<option value="">-- Pilih Siswa --</option>' +
-    DB.siswa.map(s => `<option value="${s.id}">${s.nama} (${getKelasText(s.kelas)})</option>`).join('');
+    DB.siswa.map(s => `<option value="${s.id}">${esc(s.nama)} (${esc(getKelasText(s.kelas))})</option>`).join('');
 }
 
 function loadJenisBayarForSiswa() {
@@ -425,8 +430,8 @@ function loadJenisBayarForSiswa() {
     <label class="jenis-checkbox-item">
       <input type="checkbox" class="tx-jenis-check" value="${jb.id}" onchange="updateTxTotal()">
       <div class="item-info">
-        <div class="item-nama">${jb.nama}</div>
-        <div class="item-meta"><span class="badge badge-${getKategoriBadge(jb.kategori)}" style="font-size:10px;padding:1px 6px;">${jb.kategori}</span> ${jb.kode}</div>
+        <div class="item-nama">${esc(jb.nama)}</div>
+        <div class="item-meta"><span class="badge badge-${getKategoriBadge(jb.kategori)}" style="font-size:10px;padding:1px 6px;">${esc(jb.kategori)}</span> ${esc(jb.kode)}</div>
       </div>
       <div class="item-nominal">${formatRupiah(jb.nominal)}</div>
     </label>
@@ -492,16 +497,16 @@ function renderTransaksiTable() {
   });
   const rows = Object.values(grouped).map((g, i) => {
     const total = g.items.reduce((s, t) => s + t.nominal, 0);
-    const jenisList = g.items.map(t => `<span class="badge badge-${getKategoriBadge(t.kategori)}" style="font-size:10px;padding:1px 6px;margin:1px;">${t.jenisNama}</span>`).join(' ');
+    const jenisList = g.items.map(t => `<span class="badge badge-${getKategoriBadge(t.kategori)}" style="font-size:10px;padding:1px 6px;margin:1px;">${esc(t.jenisNama)}</span>`).join(' ');
     return `<tr>
-      <td><input type="checkbox" class="transaksi-check" value="${g.id}" data-nobayar="${g.noBayar}" onchange="updateBulkTransaksiBtn()"></td>
+      <td><input type="checkbox" class="transaksi-check" value="${g.id}" data-nobayar="${esc(g.noBayar)}" onchange="updateBulkTransaksiBtn()"></td>
       <td>${i + 1}</td>
-      <td><span class="badge badge-info">${g.noBayar}</span></td>
+      <td><span class="badge badge-info">${esc(g.noBayar)}</span></td>
       <td>${formatDateShort(g.tanggal)}</td>
-      <td>${g.siswaNama}</td>
+      <td>${esc(g.siswaNama)}</td>
       <td>${jenisList}</td>
       <td style="font-weight:600;">${formatRupiah(total)}${g.items.length>1?'<br><small style="color:var(--text-light);">'+g.items.length+' item</small>':''}</td>
-      <td><span class="badge badge-success">${g.status}</span></td>
+      <td><span class="badge badge-success">${esc(g.status)}</span></td>
       <td class="table-actions">
         <button class="btn btn-icon btn-info" onclick="detailTransaksi(${g.id})" title="Detail"><i class="fas fa-eye"></i></button>
         <button class="btn btn-icon btn-whatsapp" onclick="kirimWaStrukById(${g.id})" title="Kirim WA"><i class="fab fa-whatsapp"></i></button>
@@ -523,20 +528,20 @@ function detailTransaksi(id) {
   if (!t) return;
   detailTransaksiId = id;
   const sameNo = DB.transaksi.filter(x => x.noBayar === t.noBayar);
-  let itemsHtml = sameNo.map(tx => `<div class="detail-row"><span class="detail-label">${tx.jenisNama}</span><span class="detail-value">${formatRupiah(tx.nominal)}</span></div>`).join('');
+  let itemsHtml = sameNo.map(tx => `<div class="detail-row"><span class="detail-label">${esc(tx.jenisNama)}</span><span class="detail-value">${formatRupiah(tx.nominal)}</span></div>`).join('');
   const total = sameNo.reduce((s, tx) => s + tx.nominal, 0);
   document.getElementById('detailTransaksiContent').innerHTML = `
-    <div class="detail-row"><span class="detail-label">No. Bayar</span><span class="detail-value">${t.noBayar}</span></div>
-    <div class="detail-row"><span class="detail-label">Tanggal</span><span class="detail-value">${formatDate(t.tanggal)} ${t.waktu||''}</span></div>
-    <div class="detail-row"><span class="detail-label">Siswa</span><span class="detail-value">${t.siswaNama}</span></div>
-    <div class="detail-row"><span class="detail-label">Kelas</span><span class="detail-value">${getKelasText(t.siswaKelas)}</span></div>
+    <div class="detail-row"><span class="detail-label">No. Bayar</span><span class="detail-value">${esc(t.noBayar)}</span></div>
+    <div class="detail-row"><span class="detail-label">Tanggal</span><span class="detail-value">${formatDate(t.tanggal)} ${esc(t.waktu)||''}</span></div>
+    <div class="detail-row"><span class="detail-label">Siswa</span><span class="detail-value">${esc(t.siswaNama)}</span></div>
+    <div class="detail-row"><span class="detail-label">Kelas</span><span class="detail-value">${esc(getKelasText(t.siswaKelas))}</span></div>
     <hr style="margin:10px 0;border-color:var(--border);">
     ${itemsHtml}
     <hr style="margin:10px 0;border-color:var(--border);">
     <div class="detail-row" style="font-weight:700;"><span class="detail-label">Total</span><span class="detail-value" style="color:var(--primary);">${formatRupiah(total)}</span></div>
-    <div class="detail-row"><span class="detail-label">Metode</span><span class="detail-value">${t.metode}</span></div>
-    <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span class="badge badge-success">${t.status}</span></span></div>
-    ${t.keterangan ? `<div class="detail-row"><span class="detail-label">Keterangan</span><span class="detail-value">${t.keterangan}</span></div>` : ''}
+    <div class="detail-row"><span class="detail-label">Metode</span><span class="detail-value">${esc(t.metode)}</span></div>
+    <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span class="badge badge-success">${esc(t.status)}</span></span></div>
+    ${t.keterangan ? `<div class="detail-row"><span class="detail-label">Keterangan</span><span class="detail-value">${esc(t.keterangan)}</span></div>` : ''}
   `;
   openModal('detailTransaksiModal');
 }
@@ -601,11 +606,11 @@ function renderStorTable() {
     <tr>
       <td><input type="checkbox" class="stor-check" value="${s.id}" onchange="updateBulkStorBtn()"></td>
       <td>${i + 1}</td>
-      <td><span class="badge badge-info">${s.noStor}</span></td>
+      <td><span class="badge badge-info">${esc(s.noStor)}</span></td>
       <td>${formatDateShort(s.tanggal)}</td>
-      <td>${s.oleh || '-'}</td>
+      <td>${esc(s.oleh) || '-'}</td>
       <td>${formatRupiah(s.jumlah)}</td>
-      <td>${s.catatan || '-'}</td>
+      <td>${esc(s.catatan) || '-'}</td>
       <td class="table-actions">
         <button class="btn btn-icon btn-info" onclick="printStorById(${s.id})" title="Cetak"><i class="fas fa-print"></i></button>
         <button class="btn btn-icon btn-danger" onclick="deleteStor(${s.id})" title="Hapus"><i class="fas fa-trash"></i></button>
@@ -654,10 +659,10 @@ function printStor() {
 }
 
 function printStorData(data) {
-  let html = `<h2>SURAT SETOR / STOR KE BENDAHARA</h2><p>${DB.profil.namaSekolah || 'SD Negeri 1 Selopuro'}</p><hr>
+  let html = `<h2>SURAT SETOR / STOR KE BENDAHARA</h2><p>${esc(DB.profil.namaSekolah) || 'SD Negeri 1 Selopuro'}</p><hr>
     <table><thead><tr><th>No</th><th>No. Stor</th><th>Tanggal</th><th>Disetor Oleh</th><th>Jumlah</th><th>Catatan</th></tr></thead><tbody>`;
   let total = 0;
-  data.forEach((s, i) => { total += s.jumlah; html += `<tr><td>${i+1}</td><td>${s.noStor}</td><td>${formatDateShort(s.tanggal)}</td><td>${s.oleh||''}</td><td>${formatRupiah(s.jumlah)}</td><td>${s.catatan||''}</td></tr>`; });
+  data.forEach((s, i) => { total += s.jumlah; html += `<tr><td>${i+1}</td><td>${esc(s.noStor)}</td><td>${formatDateShort(s.tanggal)}</td><td>${esc(s.oleh)||''}</td><td>${formatRupiah(s.jumlah)}</td><td>${esc(s.catatan)||''}</td></tr>`; });
   html += `</tbody><tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;">TOTAL</td><td style="font-weight:bold;">${formatRupiah(total)}</td><td></td></tr></tfoot></table>
     <br><br><div style="display:flex;justify-content:space-between;margin-top:40px;">
     <div style="text-align:center;width:200px;"><p><strong>Yang Menyetor</strong></p><br><br><br><p>_________________</p></div>
@@ -676,8 +681,8 @@ function refreshDashboard() {
 
   const recent = [...DB.transaksi].slice(0, 5);
   document.getElementById('recentTransactionsBody').innerHTML = recent.map(t => `
-    <tr><td>${formatDateShort(t.tanggal)}</td><td>${t.siswaNama}</td>
-    <td><span class="badge badge-${getKategoriBadge(t.kategori)}">${t.jenisNama}</span></td>
+    <tr><td>${formatDateShort(t.tanggal)}</td><td>${esc(t.siswaNama)}</td>
+    <td><span class="badge badge-${getKategoriBadge(t.kategori)}">${esc(t.jenisNama)}</span></td>
     <td>${formatRupiah(t.nominal)}</td></tr>
   `).join('') || '<tr><td colspan="4" style="text-align:center;color:#94a3b8;">Belum ada transaksi</td></tr>';
 
@@ -686,7 +691,7 @@ function refreshDashboard() {
   DB.jenisBayar.forEach(jb => {
     const txs = DB.transaksi.filter(t => t.jenisId === jb.id);
     const total = txs.reduce((s, t) => s + t.nominal, 0);
-    summaryHtml += `<div class="summary-item"><div class="summary-label"><div class="summary-dot" style="background:${colors[jb.kategori]||'#06b6d4'}"></div><span>${jb.nama}</span></div><div><span class="badge badge-info">${txs.length}</span> <span style="margin-left:8px;font-weight:600;">${formatRupiah(total)}</span></div></div>`;
+    summaryHtml += `<div class="summary-item"><div class="summary-label"><div class="summary-dot" style="background:${colors[jb.kategori]||'#06b6d4'}"></div><span>${esc(jb.nama)}</span></div><div><span class="badge badge-info">${txs.length}</span> <span style="margin-left:8px;font-weight:600;">${formatRupiah(total)}</span></div></div>`;
   });
   document.getElementById('summaryList').innerHTML = summaryHtml || '<p style="text-align:center;color:#94a3b8;">Belum ada data</p>';
 }
@@ -707,7 +712,7 @@ function generateLaporanHarian() {
   const tanggal = document.getElementById('filterTanggal').value;
   const filtered = DB.transaksi.filter(t => t.tanggal === tanggal);
   document.getElementById('laporanHarianBody').innerHTML = filtered.map((t, i) =>
-    `<tr><td>${i+1}</td><td>${t.noBayar}</td><td>${t.siswaNama}</td><td>${getKelasText(t.siswaKelas)}</td><td>${t.jenisNama}</td><td>${formatRupiah(t.nominal)}</td><td>${t.waktu||''}</td></tr>`
+    `<tr><td>${i+1}</td><td>${esc(t.noBayar)}</td><td>${esc(t.siswaNama)}</td><td>${esc(getKelasText(t.siswaKelas))}</td><td>${esc(t.jenisNama)}</td><td>${formatRupiah(t.nominal)}</td><td>${esc(t.waktu)||''}</td></tr>`
   ).join('') || '<tr><td colspan="7" style="text-align:center;">Tidak ada transaksi</td></tr>';
   const total = filtered.reduce((s, t) => s + t.nominal, 0);
   document.getElementById('laporanHarianTotal').innerHTML = `<span>Total: <strong>${formatRupiah(total)}</strong></span><span>Jumlah: <strong>${filtered.length}</strong></span>`;
@@ -718,7 +723,7 @@ function generateLaporanBulanan() {
   const tahun = parseInt(document.getElementById('filterTahun').value);
   const filtered = DB.transaksi.filter(t => { const d = new Date(t.tanggal); return (d.getMonth()+1) === bulan && d.getFullYear() === tahun; });
   document.getElementById('laporanBulananBody').innerHTML = filtered.map((t, i) =>
-    `<tr><td>${i+1}</td><td>${t.noBayar}</td><td>${t.siswaNama}</td><td>${getKelasText(t.siswaKelas)}</td><td>${t.jenisNama}</td><td>${formatDateShort(t.tanggal)}</td><td>${formatRupiah(t.nominal)}</td></tr>`
+    `<tr><td>${i+1}</td><td>${esc(t.noBayar)}</td><td>${esc(t.siswaNama)}</td><td>${esc(getKelasText(t.siswaKelas))}</td><td>${esc(t.jenisNama)}</td><td>${formatDateShort(t.tanggal)}</td><td>${formatRupiah(t.nominal)}</td></tr>`
   ).join('') || '<tr><td colspan="7" style="text-align:center;">Tidak ada transaksi</td></tr>';
   const total = filtered.reduce((s, t) => s + t.nominal, 0);
   document.getElementById('laporanBulananTotal').innerHTML = `<span>Total: <strong>${formatRupiah(total)}</strong></span><span>Jumlah: <strong>${filtered.length}</strong></span>`;
@@ -743,7 +748,7 @@ function generateLaporanKelas() {
     if (sisa <= 0) { status = 'Lunas'; badge = 'badge-success'; }
     else if (totalBayar > 0) { status = 'Sebagian'; badge = 'badge-warning'; }
     else { status = 'Belum'; badge = 'badge-danger'; }
-    return `<tr><td>${i+1}</td><td>${s.nama}</td><td>${getKelasText(s.kelas)}</td><td>${formatRupiah(lks)}</td><td>${formatRupiah(akt)}</td><td>${formatRupiah(iuran)}</td><td>${formatRupiah(totalBayar)}</td><td><span class="badge ${badge}">${status}</span></td></tr>`;
+    return `<tr><td>${i+1}</td><td>${esc(s.nama)}</td><td>${esc(getKelasText(s.kelas))}</td><td>${formatRupiah(lks)}</td><td>${formatRupiah(akt)}</td><td>${formatRupiah(iuran)}</td><td>${formatRupiah(totalBayar)}</td><td><span class="badge ${badge}">${status}</span></td></tr>`;
   }).join('');
 }
 
@@ -766,7 +771,7 @@ function generateRingkasan() {
       const paid = txSiswa.filter(t => t.jenisId === jb.id).reduce((sum, t) => sum + t.nominal, 0);
       const color = paid >= jb.nominal ? '#16a34a' : (paid > 0 ? '#f97316' : '#dc2626');
       const icon = paid >= jb.nominal ? 'fa-check-circle' : (paid > 0 ? 'fa-clock' : 'fa-times-circle');
-      return `<span class="item-tag" style="background:${color}15;color:${color};border:1px solid ${color}40;"><i class="fas ${icon}"></i> ${jb.nama}: ${formatRupiah(paid)}/${formatRupiah(jb.nominal)}</span>`;
+      return `<span class="item-tag" style="background:${color}15;color:${color};border:1px solid ${color}40;"><i class="fas ${icon}"></i> ${esc(jb.nama)}: ${formatRupiah(paid)}/${formatRupiah(jb.nominal)}</span>`;
     }).join(' ');
     const sisa = totalTagihan - totalBayar;
     let status, badgeClass;
@@ -776,7 +781,7 @@ function generateRingkasan() {
     if (statusFilter==='lunas' && status!=='Lunas') return null;
     if (statusFilter==='belum' && status!=='Belum Bayar') return null;
     if (statusFilter==='sebagian' && status!=='Sebagian') return null;
-    return `<tr><td>${i+1}</td><td><strong>${s.nama}</strong></td><td><span class="badge badge-primary">${getKelasText(s.kelas)}</span></td><td>${s.orangTua||''}</td><td>${s.noHp||''}</td><td>${formatRupiah(totalTagihan)}</td><td style="color:var(--success);font-weight:600;">${formatRupiah(totalBayar)}</td><td style="color:${sisa>0?'var(--danger)':'var(--success)'};font-weight:600;">${formatRupiah(sisa>0?sisa:0)}</td><td><div class="item-tags-container">${detailHtml}</div></td><td><span class="badge ${badgeClass}">${status}</span></td></tr>`;
+    return `<tr><td>${i+1}</td><td><strong>${esc(s.nama)}</strong></td><td><span class="badge badge-primary">${esc(getKelasText(s.kelas))}</span></td><td>${esc(s.orangTua)||''}</td><td>${esc(s.noHp)||''}</td><td>${formatRupiah(totalTagihan)}</td><td style="color:var(--success);font-weight:600;">${formatRupiah(totalBayar)}</td><td style="color:${sisa>0?'var(--danger)':'var(--success)'};font-weight:600;">${formatRupiah(sisa>0?sisa:0)}</td><td><div class="item-tags-container">${detailHtml}</div></td><td><span class="badge ${badgeClass}">${status}</span></td></tr>`;
   }).filter(Boolean);
 
   document.getElementById('laporanRingkasanBody').innerHTML = rows.join('') || '<tr><td colspan="10" style="text-align:center;">Tidak ada data</td></tr>';
@@ -799,7 +804,7 @@ function generateLpihak() {
       if (jb.kelas.includes('-')) { const parts = jb.kelas.split('-').map(Number); return (parseInt(s.kelas) >= parts[0] && parseInt(s.kelas) <= parts[1]) ? sum + jb.nominal : sum; }
       return jb.kelas === s.kelas ? sum + jb.nominal : sum;
     }, 0);
-    return `<tr><td>${i+1}</td><td>${s.nama}</td><td>${getKelasText(s.kelas)}</td><td>${s.orangTua||''}</td><td>${s.noHp||''}</td><td>${formatRupiah(totalTagihan)}</td><td>${formatRupiah(totalBayar)}</td><td style="color:${(totalTagihan-totalBayar)>0?'var(--danger)':'var(--success)'};font-weight:600;">${formatRupiah(totalTagihan-totalBayar)}</td></tr>`;
+    return `<tr><td>${i+1}</td><td>${esc(s.nama)}</td><td>${esc(getKelasText(s.kelas))}</td><td>${esc(s.orangTua)||''}</td><td>${esc(s.noHp)||''}</td><td>${formatRupiah(totalTagihan)}</td><td>${formatRupiah(totalBayar)}</td><td style="color:${(totalTagihan-totalBayar)>0?'var(--danger)':'var(--success)'};font-weight:600;">${formatRupiah(totalTagihan-totalBayar)}</td></tr>`;
   }).join('');
 }
 
@@ -811,7 +816,7 @@ function printLaporan(type) {
       title='Laporan Harian';
       const filtered = DB.transaksi.filter(t => t.tanggal===tanggal);
       content=`<p>Tanggal: ${formatDate(tanggal)}</p><table><thead><tr><th>No</th><th>No. Bayar</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Nominal</th><th>Jam</th></tr></thead><tbody>`;
-      let total=0; filtered.forEach((t,i)=>{total+=t.nominal; content+=`<tr><td>${i+1}</td><td>${t.noBayar}</td><td>${t.siswaNama}</td><td>${getKelasText(t.siswaKelas)}</td><td>${t.jenisNama}</td><td>${formatRupiah(t.nominal)}</td><td>${t.waktu||''}</td></tr>`;});
+      let total=0; filtered.forEach((t,i)=>{total+=t.nominal; content+=`<tr><td>${i+1}</td><td>${esc(t.noBayar)}</td><td>${esc(t.siswaNama)}</td><td>${esc(getKelasText(t.siswaKelas))}</td><td>${esc(t.jenisNama)}</td><td>${formatRupiah(t.nominal)}</td><td>${esc(t.waktu)||''}</td></tr>`;});
       content+=`</tbody><tfoot><tr><td colspan="5" style="text-align:right;font-weight:bold;">TOTAL</td><td style="font-weight:bold;">${formatRupiah(total)}</td><td></td></tr></tfoot></table>`;
       break;
     }
@@ -821,7 +826,7 @@ function printLaporan(type) {
       title=`Laporan Bulanan - ${nb[bulan-1]} ${tahun}`;
       const filtered=DB.transaksi.filter(t=>{const d=new Date(t.tanggal);return(d.getMonth()+1)===parseInt(bulan)&&d.getFullYear()===parseInt(tahun);});
       content=`<table><thead><tr><th>No</th><th>No. Bayar</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Tanggal</th><th>Nominal</th></tr></thead><tbody>`;
-      let total=0;filtered.forEach((t,i)=>{total+=t.nominal;content+=`<tr><td>${i+1}</td><td>${t.noBayar}</td><td>${t.siswaNama}</td><td>${getKelasText(t.siswaKelas)}</td><td>${t.jenisNama}</td><td>${formatDateShort(t.tanggal)}</td><td>${formatRupiah(t.nominal)}</td></tr>`;});
+      let total=0;filtered.forEach((t,i)=>{total+=t.nominal;content+=`<tr><td>${i+1}</td><td>${esc(t.noBayar)}</td><td>${esc(t.siswaNama)}</td><td>${esc(getKelasText(t.siswaKelas))}</td><td>${esc(t.jenisNama)}</td><td>${formatDateShort(t.tanggal)}</td><td>${formatRupiah(t.nominal)}</td></tr>`;});
       content+=`</tbody><tfoot><tr><td colspan="6" style="text-align:right;font-weight:bold;">TOTAL</td><td style="font-weight:bold;">${formatRupiah(total)}</td></tr></tfoot></table>`;
       break;
     }
@@ -832,7 +837,7 @@ function printLaporan(type) {
         const totalBayar=DB.transaksi.filter(t=>t.siswaId===s.id).reduce((sum,t)=>sum+t.nominal,0);
         const totalTagihan=DB.jenisBayar.reduce((sum,jb)=>{if(jb.kelas==='all')return sum+jb.nominal;if(jb.kelas.includes('-')){const parts=jb.kelas.split('-').map(Number);return(parseInt(s.kelas)>=parts[0]&&parseInt(s.kelas)<=parts[1])?sum+jb.nominal:sum;}return jb.kelas===s.kelas?sum+jb.nominal:sum;},0);
         const sisa=totalTagihan-totalBayar;const status=sisa<=0?'Lunas':totalBayar>0?'Sebagian':'Belum';
-        content+=`<tr><td>${i+1}</td><td>${s.nama}</td><td>${getKelasText(s.kelas)}</td><td>${formatRupiah(totalTagihan)}</td><td>${formatRupiah(totalBayar)}</td><td>${formatRupiah(sisa>0?sisa:0)}</td><td>${status}</td></tr>`;
+        content+=`<tr><td>${i+1}</td><td>${esc(s.nama)}</td><td>${esc(getKelasText(s.kelas))}</td><td>${formatRupiah(totalTagihan)}</td><td>${formatRupiah(totalBayar)}</td><td>${formatRupiah(sisa>0?sisa:0)}</td><td>${status}</td></tr>`;
       });
       content+=`</tbody></table>`;
       break;
@@ -843,20 +848,20 @@ function printLaporan(type) {
       DB.siswa.forEach((s,i)=>{
         const totalBayar=DB.transaksi.filter(t=>t.siswaId===s.id).reduce((sum,t)=>sum+t.nominal,0);
         const totalTagihan=DB.jenisBayar.reduce((sum,jb)=>{if(jb.kelas==='all')return sum+jb.nominal;if(jb.kelas.includes('-')){const parts=jb.kelas.split('-').map(Number);return(parseInt(s.kelas)>=parts[0]&&parseInt(s.kelas)<=parts[1])?sum+jb.nominal:sum;}return jb.kelas===s.kelas?sum+jb.nominal:sum;},0);
-        content+=`<tr><td>${i+1}</td><td>${s.nama}</td><td>${getKelasText(s.kelas)}</td><td>${s.orangTua||''}</td><td>${s.noHp||''}</td><td>${formatRupiah(totalTagihan)}</td><td>${formatRupiah(totalBayar)}</td><td>${formatRupiah(totalTagihan-totalBayar)}</td></tr>`;
+        content+=`<tr><td>${i+1}</td><td>${esc(s.nama)}</td><td>${esc(getKelasText(s.kelas))}</td><td>${esc(s.orangTua)||''}</td><td>${esc(s.noHp)||''}</td><td>${formatRupiah(totalTagihan)}</td><td>${formatRupiah(totalBayar)}</td><td>${formatRupiah(totalTagihan-totalBayar)}</td></tr>`;
       });
       content+=`</tbody></table>`;
       break;
     }
   }
-  document.getElementById('printArea').innerHTML=`<h2>${title}</h2><p>${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}</p><hr>${content}`;
+  document.getElementById('printArea').innerHTML=`<h2>${title}</h2><p>${esc(DB.profil.namaSekolah)||'SD Negeri 1 Selopuro'}</p><hr>${content}`;
   window.print();
 }
 
 // ===== WHATSAPP =====
 function populateWaSiswa() {
   document.getElementById('waSiswa').innerHTML = '<option value="">-- Pilih Siswa --</option>' +
-    DB.siswa.map(s => `<option value="${s.id}">${s.nama} - ${s.orangTua||''} (${s.noHp||''})</option>`).join('');
+    DB.siswa.map(s => `<option value="${s.id}">${esc(s.nama)} - ${esc(s.orangTua)||''} (${esc(s.noHp)||''})</option>`).join('');
   previewWaMessage();
 }
 
@@ -978,12 +983,12 @@ function renderRiwayatWa() {
   document.getElementById('riwayatWaBody').innerHTML = DB.riwayatWa.map(r => `
     <tr>
       <td>${r.tanggal||''}</td>
-      <td>${r.penerima||''}</td>
-      <td>${r.noHp||'-'}</td>
-      <td><span class="badge badge-info">${r.jenis||''}</span></td>
-      <td><span class="badge badge-success">${r.status||'Terkirim'}</span></td>
+      <td>${esc(r.penerima)||''}</td>
+      <td>${esc(r.noHp)||'-'}</td>
+      <td><span class="badge badge-info">${esc(r.jenis)||''}</span></td>
+      <td><span class="badge badge-success">${esc(r.status)||'Terkirim'}</span></td>
       <td class="table-actions">
-        ${r.noHp ? `<button class="btn btn-icon btn-whatsapp" onclick="openWaChat('${r.noHp.replace(/'/g,"\\'")}','${(r.pesan||'').replace(/'/g,"\\'").replace(/\n/g,"\\n")}')" title="Kirim Ulang"><i class="fab fa-whatsapp"></i></button>` : ''}
+        ${r.noHp ? `<button class="btn btn-icon btn-whatsapp" onclick="openWaChat(this.dataset.phone,this.dataset.msg)" data-phone="${esc(r.noHp)}" data-msg="${esc(r.pesan||'').replace(/\n/g,"&#10;")}" title="Kirim Ulang"><i class="fab fa-whatsapp"></i></button>` : ''}
         <button class="btn btn-icon btn-danger" onclick="hapusRiwayatWa(${r.id})" title="Hapus"><i class="fas fa-trash"></i></button>
       </td>
     </tr>
@@ -1019,8 +1024,8 @@ function renderUserTable() {
     const rb = u.role==='admin' ? 'badge-primary' : u.role==='bendahara' ? 'badge-success' : 'badge-info';
     return `<tr>
       <td><input type="checkbox" class="user-check" value="${u.id}" onchange="updateBulkUserBtn()"></td>
-      <td>${i+1}</td><td><strong>${u.username}</strong></td><td>${u.nama}</td>
-      <td><span class="badge ${rb}">${(u.role||'').charAt(0).toUpperCase()+(u.role||'').slice(1)}</span></td><td>${sb}</td>
+      <td>${i+1}</td><td><strong>${esc(u.username)}</strong></td><td>${esc(u.nama)}</td>
+      <td><span class="badge ${rb}">${esc((u.role||'').charAt(0).toUpperCase()+(u.role||'').slice(1))}</span></td><td>${sb}</td>
       <td class="table-actions">
         <button class="btn btn-icon btn-info" onclick="editUser(${u.id})" title="Edit"><i class="fas fa-edit"></i></button>
         <button class="btn btn-icon btn-${u.status==='aktif'?'warning':'success'}" onclick="toggleUserStatus(${u.id})" title="${u.status==='aktif'?'Nonaktifkan':'Aktifkan'}"><i class="fas fa-${u.status==='aktif'?'ban':'check'}"></i></button>
@@ -1105,7 +1110,7 @@ async function hapusSemuaUser() {
 
 function renderChangePasswordSelect() {
   document.getElementById('cpUserSelect').innerHTML = '<option value="">-- Pilih User --</option>' +
-    DB.users.map(u => `<option value="${u.id}">${u.nama} (${u.username})</option>`).join('');
+    DB.users.map(u => `<option value="${u.id}">${esc(u.nama)} (${esc(u.username)})</option>`).join('');
 }
 
 function loadCurrentPassword() {}

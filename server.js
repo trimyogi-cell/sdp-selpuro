@@ -20,10 +20,48 @@ try {
   console.log('  Supabase: tidak tersedia, pakai file lokal');
 }
 
+// ===== SECURITY UTILS =====
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+  return salt + ':' + hash;
+}
+
+function verifyPassword(password, stored) {
+  if (!stored || !stored.includes(':')) return false;
+  const [salt, hash] = stored.split(':');
+  const verify = crypto.scryptSync(password, salt, 64).toString('hex');
+  return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(verify, 'hex'));
+}
+
+function isPasswordHashed(pw) { return pw && typeof pw === 'string' && pw.includes(':') && pw.split(':').length === 2; }
+
+// ===== RATE LIMITING =====
+const loginAttempts = {};
+function checkRateLimit(ip) {
+  const now = Date.now();
+  if (!loginAttempts[ip]) loginAttempts[ip] = [];
+  loginAttempts[ip] = loginAttempts[ip].filter(t => now - t < 15 * 60 * 1000);
+  if (loginAttempts[ip].length >= 8) return false;
+  loginAttempts[ip].push(now);
+  return true;
+}
+setInterval(() => {
+  const now = Date.now();
+  for (const ip in loginAttempts) {
+    loginAttempts[ip] = loginAttempts[ip].filter(t => now - t < 15 * 60 * 1000);
+    if (!loginAttempts[ip].length) delete loginAttempts[ip];
+  }
+}, 5 * 60 * 1000);
+
 // ===== JSON DATABASE =====
 function loadDB() {
   try {
-    if (fs.existsSync(DB_FILE)) return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+    if (fs.existsSync(DB_FILE)) {
+      const content = fs.readFileSync(DB_FILE, 'utf8');
+      if (content.length > 10 * 1024 * 1024) { console.error('DB file too large'); return null; }
+      return JSON.parse(content);
+    }
   } catch (e) { console.error('DB error:', e.message); }
   return null;
 }
@@ -41,32 +79,8 @@ const DEFAULTS = {
     { id: 1, username: 'admin', password: 'esloji', nama: 'Administrator', role: 'admin', status: 'aktif' },
     { id: 2, username: 'operator', password: 'operator123', nama: 'Operator', role: 'operator', status: 'aktif' }
   ],
-  siswa: [
-    { id: 1, nis: '2026001', nama: 'Ahmad Rizki Pratama', kelas: '1', angkatan: '2026', orangTua: 'Budi Pratama', noHp: '081234567890', alamat: 'Jl. Merdeka No. 10' },
-    { id: 2, nis: '2026002', nama: 'Siti Nurhaliza', kelas: '1', angkatan: '2026', orangTua: 'Hasanudin', noHp: '081234567891', alamat: 'Jl. Sudirman No. 5' },
-    { id: 3, nis: '2026003', nama: 'Muhammad Fadil', kelas: '2', angkatan: '2026', orangTua: 'Ahmad Fadillah', noHp: '081234567892', alamat: 'Jl. Pahlawan No. 8' },
-    { id: 4, nis: '2026004', nama: 'Aisyah Putri Ramadhani', kelas: '2', angkatan: '2026', orangTua: 'Ramadhani', noHp: '081234567893', alamat: 'Jl. Mawar No. 12' },
-    { id: 5, nis: '2026005', nama: 'Rafif Ahmad Syahputra', kelas: '3', angkatan: '2026', orangTua: 'Syahputra', noHp: '081234567894', alamat: 'Jl. Kenanga No. 3' },
-    { id: 6, nis: '2026006', nama: 'Fatimah Azzahra', kelas: '3', angkatan: '2026', orangTua: 'Abdullah', noHp: '081234567895', alamat: 'Jl. Melati No. 7' },
-    { id: 7, nis: '2026007', nama: 'Dimas Aditya Pratama', kelas: '4', angkatan: '2026', orangTua: 'Agus Pratama', noHp: '081234567896', alamat: 'Jl. Flamboyan No. 4' },
-    { id: 8, nis: '2026008', nama: 'Naura Syakira', kelas: '4', angkatan: '2026', orangTua: 'Syakir', noHp: '081234567897', alamat: 'Jl. Anggrek No. 9' },
-    { id: 9, nis: '2026009', nama: 'Farhan Maulana', kelas: '5', angkatan: '2026', orangTua: 'Maulana', noHp: '081234567898', alamat: 'Jl. Dahlia No. 6' },
-    { id: 10, nis: '2026010', nama: 'Kayla Azahra', kelas: '5', angkatan: '2026', orangTua: 'Azahara', noHp: '081234567899', alamat: 'Jl. Cendana No. 11' },
-    { id: 11, nis: '2026011', nama: 'Arkan Prasetyo', kelas: '6', angkatan: '2026', orangTua: 'Prasetyo', noHp: '081234567800', alamat: 'Jl. Sudirman No. 15' },
-    { id: 12, nis: '2026012', nama: 'Zahra Amalia Putri', kelas: '6', angkatan: '2026', orangTua: 'Amalia', noHp: '081234567801', alamat: 'Jl. Merdeka No. 20' }
-  ],
-  jenisBayar: [
-    { id: 1, kode: 'LKS-MTK', nama: 'LKS Matematika', kategori: 'LKS', nominal: 35000, tahun: '2025/2026', kelas: 'all' },
-    { id: 2, kode: 'LKS-IND', nama: 'LKS Bahasa Indonesia', kategori: 'LKS', nominal: 35000, tahun: '2025/2026', kelas: 'all' },
-    { id: 3, kode: 'LKS-ENG', nama: 'LKS Bahasa Inggris', kategori: 'LKS', nominal: 35000, tahun: '2025/2026', kelas: 'all' },
-    { id: 4, kode: 'LKS-IPA', nama: 'LKS IPA', kategori: 'LKS', nominal: 35000, tahun: '2025/2026', kelas: '3-6' },
-    { id: 5, kode: 'AKT-OLA', nama: 'Aktivitas Olahraga', kategori: 'Aktivitas', nominal: 25000, tahun: '2025/2026', kelas: 'all' },
-    { id: 6, kode: 'AKT-SEN', nama: 'Aktivitas Seni', kategori: 'Aktivitas', nominal: 20000, tahun: '2025/2026', kelas: 'all' },
-    { id: 7, kode: 'AKT-PRM', nama: 'Perpisahan', kategori: 'Aktivitas', nominal: 50000, tahun: '2025/2026', kelas: '6' },
-    { id: 8, kode: 'IUR-SPP', nama: 'SPP Bulanan', kategori: 'Iuran', nominal: 100000, tahun: '2025/2026', kelas: 'all' },
-    { id: 9, kode: 'IUR-KAS', nama: 'Kas Kelas', kategori: 'Iuran', nominal: 15000, tahun: '2025/2026', kelas: 'all' },
-    { id: 10, kode: 'IUR-KEG', nama: 'Iuran Kegiatan', kategori: 'Iuran', nominal: 30000, tahun: '2025/2026', kelas: 'all' }
-  ],
+  siswa: [],
+  jenisBayar: [],
   transaksi: [],
   stor: [],
   riwayatWa: []
@@ -139,10 +153,22 @@ let DB = loadDB();
 if (!DB) DB = { ...DEFAULTS };
 saveDB();
 
-// Try to sync from Supabase on startup
+// Migrate plaintext passwords to hashed
+let pwChanged = false;
+if (DB.users) {
+  for (const u of DB.users) {
+    if (u.password && !isPasswordHashed(u.password)) {
+      u.password = hashPassword(u.password);
+      pwChanged = true;
+    }
+  }
+  if (pwChanged) saveDB();
+}
+
 syncFromSupabase().catch(() => {});
 
 function nextId(arr) { return arr.length ? Math.max(...arr.map(x => x.id)) + 1 : 1; }
+function getClientIp(req) { return req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown'; }
 let saveTimer = null;
 function scheduleSave() { if (saveTimer) clearTimeout(saveTimer); saveTimer = setTimeout(saveDB, 200); }
 function scheduleSync(key) {
@@ -156,9 +182,9 @@ function scheduleSync(key) {
 // ===== SESSIONS =====
 const sessions = {};
 
-function createSession(userId) {
+function createSession(userId, role) {
   const token = crypto.randomBytes(32).toString('hex');
-  sessions[token] = { userId, createdAt: Date.now() };
+  sessions[token] = { userId, role, createdAt: Date.now() };
   return token;
 }
 
@@ -166,16 +192,32 @@ function requireAuth(req, res, next) {
   const token = req.headers['x-auth-token'];
   if (!token || !sessions[token]) return res.status(401).json({ error: 'Sesi berakhir, silakan login ulang' });
   const session = sessions[token];
-  if (Date.now() - session.createdAt > 24 * 60 * 60 * 1000) {
+  if (Date.now() - session.createdAt > 12 * 60 * 60 * 1000) {
     delete sessions[token];
     return res.status(401).json({ error: 'Sesi expired, silakan login ulang' });
   }
   req.userId = session.userId;
+  req.userRole = session.role;
+  next();
+}
+
+function requireAdmin(req, res, next) {
+  if (req.userRole !== 'admin') return res.status(403).json({ error: 'Hanya admin yang bisa melakukan aksi ini' });
   next();
 }
 
 // ===== MIDDLEWARE =====
-app.use(express.json());
+app.use(express.json({ limit: '500kb' }));
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  res.removeHeader('X-Powered-By');
+  next();
+});
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Content-Type, x-auth-token');
@@ -200,11 +242,14 @@ function broadcast(event, data) {
 
 // ===== AUTH (public) =====
 app.post('/api/login', (req, res) => {
+  const ip = getClientIp(req);
+  if (!checkRateLimit(ip)) return res.status(429).json({ error: 'Terlalu banyak percobaan, coba lagi dalam 15 menit' });
   const { username, password } = req.body;
-  const user = DB.users.find(u => u.username === username && u.password === password);
-  if (!user) return res.status(401).json({ error: 'Username atau password salah' });
+  if (!username || !password) return res.status(400).json({ error: 'Username dan password wajib diisi' });
+  const user = DB.users.find(u => u.username === username);
+  if (!user || !verifyPassword(password, user.password)) return res.status(401).json({ error: 'Username atau password salah' });
   if (user.status === 'nonaktif') return res.status(403).json({ error: 'Akun dinonaktifkan' });
-  const token = createSession(user.id);
+  const token = createSession(user.id, user.role);
   const { password: _, ...safe } = user;
   res.json({ ...safe, token });
 });
@@ -230,103 +275,157 @@ app.use('/api', requireAuth);
 
 // ===== PROFIL =====
 app.get('/api/profil', (req, res) => res.json(DB.profil));
-app.put('/api/profil', (req, res) => { Object.assign(DB.profil, req.body); scheduleSync('profil'); broadcast('profil', { action: 'update' }); res.json({ ok: true }); });
+app.put('/api/profil', requireAdmin, (req, res) => {
+  const allowed = ['namaSekolah', 'npsn', 'alamat', 'telp', 'email', 'kepsek', 'bendahara', 'noHpAdmin'];
+  for (const key of allowed) {
+    if (req.body[key] !== undefined) DB.profil[key] = String(req.body[key]).slice(0, 200);
+  }
+  scheduleSync('profil'); broadcast('profil', { action: 'update' }); res.json({ ok: true });
+});
 
-// ===== USERS =====
+// ===== USERS (admin only) =====
 app.get('/api/users', (req, res) => res.json(DB.users.map(({ password: _, ...u }) => u)));
-app.post('/api/users', (req, res) => {
+app.post('/api/users', requireAdmin, (req, res) => {
   const { username, nama, password, role } = req.body;
+  if (!username || !nama || !password) return res.status(400).json({ error: 'Username, nama, dan password wajib diisi' });
+  if (username.length < 3 || username.length > 30) return res.status(400).json({ error: 'Username 3-30 karakter' });
+  if (password.length < 6) return res.status(400).json({ error: 'Password minimal 6 karakter' });
+  if (!['admin', 'operator', 'bendahara'].includes(role)) return res.status(400).json({ error: 'Role tidak valid' });
   if (DB.users.find(u => u.username === username)) return res.status(400).json({ error: 'Username sudah digunakan' });
-  const user = { id: nextId(DB.users), username, nama, password, role: role || 'operator', status: 'aktif' };
+  const user = { id: nextId(DB.users), username, nama: String(nama).slice(0, 100), password: hashPassword(password), role: role || 'operator', status: 'aktif' };
   DB.users.push(user); scheduleSync('users'); broadcast('users', { action: 'add', id: user.id });
   res.json({ id: user.id });
 });
-app.put('/api/users/:id', (req, res) => {
+app.put('/api/users/:id', requireAdmin, (req, res) => {
   const id = parseInt(req.params.id);
+  if (isNaN(id)) return res.status(400).json({ error: 'ID tidak valid' });
   const u = DB.users.find(x => x.id === id);
   if (!u) return res.status(404).json({ error: 'User tidak ditemukan' });
   const { username, nama, password, role, status } = req.body;
-  u.username = username; u.nama = nama; u.role = role; u.status = status || 'aktif';
-  if (password && password !== '********') u.password = password;
+  if (username) u.username = String(username).slice(0, 30);
+  if (nama) u.nama = String(nama).slice(0, 100);
+  if (role && ['admin', 'operator', 'bendahara'].includes(role)) u.role = role;
+  if (status) u.status = status;
+  if (password && password !== '********' && password.length >= 6) u.password = hashPassword(password);
   scheduleSync('users'); broadcast('users', { action: 'update', id });
   res.json({ ok: true });
 });
-app.delete('/api/users/:id', (req, res) => {
+app.delete('/api/users/:id', requireAdmin, (req, res) => {
   const id = parseInt(req.params.id);
+  if (isNaN(id)) return res.status(400).json({ error: 'ID tidak valid' });
+  if (id === req.userId) return res.status(400).json({ error: 'Tidak bisa hapus akun sendiri' });
   DB.users = DB.users.filter(u => u.id !== id); scheduleSync('users'); broadcast('users', { action: 'delete', id });
   res.json({ ok: true });
 });
-app.delete('/api/users', (req, res) => {
+app.delete('/api/users', requireAdmin, (req, res) => {
   const keepId = req.query.keepId ? parseInt(req.query.keepId) : null;
-  DB.users = keepId ? DB.users.filter(u => u.id === keepId) : [];
+  if (!keepId || isNaN(keepId)) return res.status(400).json({ error: 'keepId wajib diisi' });
+  const filtered = DB.users.filter(u => u.id === keepId);
+  if (!filtered.length) return res.status(400).json({ error: 'User keeper tidak ditemukan' });
+  DB.users = filtered;
   scheduleSync('users'); broadcast('users', { action: 'deleteAll' }); res.json({ ok: true });
 });
 
-// ===== CHANGE PASSWORD =====
+// ===== CHANGE PASSWORD (only self) =====
 app.post('/api/change-password', (req, res) => {
-  const { userId, passLama, passBaru } = req.body;
-  const u = DB.users.find(x => x.id === userId);
+  const { passLama, passBaru } = req.body;
+  if (!passLama || !passBaru) return res.status(400).json({ error: 'Password lama dan baru wajib diisi' });
+  if (passBaru.length < 6) return res.status(400).json({ error: 'Password baru minimal 6 karakter' });
+  const u = DB.users.find(x => x.id === req.userId);
   if (!u) return res.status(404).json({ error: 'User tidak ditemukan' });
-  if (u.password !== passLama) return res.status(400).json({ error: 'Password lama salah' });
-  u.password = passBaru; scheduleSync('users'); res.json({ ok: true });
+  if (!verifyPassword(passLama, u.password)) return res.status(400).json({ error: 'Password lama salah' });
+  u.password = hashPassword(passBaru);
+  scheduleSync('users'); res.json({ ok: true });
 });
 
 // ===== SISWA =====
 app.get('/api/siswa', (req, res) => res.json([...DB.siswa].sort((a, b) => a.kelas.localeCompare(b.kelas) || a.nama.localeCompare(b.nama))));
 app.post('/api/siswa', (req, res) => {
-  const s = { id: nextId(DB.siswa), nis: req.body.nis, nama: req.body.nama, kelas: req.body.kelas, angkatan: req.body.angkatan || '', orangTua: req.body.orangTua || '', noHp: req.body.noHp || '', alamat: req.body.alamat || '' };
+  const s = { id: nextId(DB.siswa), nis: String(req.body.nis || '').slice(0, 20), nama: String(req.body.nama || '').slice(0, 100), kelas: String(req.body.kelas || '').slice(0, 10), angkatan: String(req.body.angkatan || '').slice(0, 10), orangTua: String(req.body.orangTua || '').slice(0, 100), noHp: String(req.body.noHp || '').replace(/[^0-9+\-\s]/g, '').slice(0, 20), alamat: String(req.body.alamat || '').slice(0, 200) };
+  if (!s.nama) return res.status(400).json({ error: 'Nama siswa wajib diisi' });
   DB.siswa.push(s); scheduleSync('siswa'); broadcast('siswa', { action: 'add', id: s.id }); res.json({ id: s.id });
 });
 app.put('/api/siswa/:id', (req, res) => {
-  const id = parseInt(req.params.id); const idx = DB.siswa.findIndex(s => s.id === id);
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) return res.status(400).json({ error: 'ID tidak valid' });
+  const idx = DB.siswa.findIndex(s => s.id === id);
   if (idx < 0) return res.status(404).json({ error: 'Tidak ditemukan' });
-  Object.assign(DB.siswa[idx], { nis: req.body.nis, nama: req.body.nama, kelas: req.body.kelas, angkatan: req.body.angkatan || '', orangTua: req.body.orangTua || '', noHp: req.body.noHp || '', alamat: req.body.alamat || '' });
+  const s = DB.siswa[idx];
+  s.nis = String(req.body.nis || '').slice(0, 20);
+  s.nama = String(req.body.nama || '').slice(0, 100);
+  s.kelas = String(req.body.kelas || '').slice(0, 10);
+  s.angkatan = String(req.body.angkatan || '').slice(0, 10);
+  s.orangTua = String(req.body.orangTua || '').slice(0, 100);
+  s.noHp = String(req.body.noHp || '').replace(/[^0-9+\-\s]/g, '').slice(0, 20);
+  s.alamat = String(req.body.alamat || '').slice(0, 200);
   scheduleSync('siswa'); broadcast('siswa', { action: 'update', id }); res.json({ ok: true });
 });
 app.delete('/api/siswa/:id', (req, res) => {
   const id = parseInt(req.params.id);
+  if (isNaN(id)) return res.status(400).json({ error: 'ID tidak valid' });
   DB.siswa = DB.siswa.filter(s => s.id !== id); DB.transaksi = DB.transaksi.filter(t => t.siswaId !== id);
   scheduleSync('siswa'); scheduleSync('transaksi'); broadcast('siswa', { action: 'delete', id }); res.json({ ok: true });
 });
-app.delete('/api/siswa', (req, res) => { DB.siswa = []; DB.transaksi = []; scheduleSync('siswa'); scheduleSync('transaksi'); broadcast('siswa', { action: 'deleteAll' }); res.json({ ok: true }); });
+app.delete('/api/siswa', requireAdmin, (req, res) => { DB.siswa = []; DB.transaksi = []; scheduleSync('siswa'); scheduleSync('transaksi'); broadcast('siswa', { action: 'deleteAll' }); res.json({ ok: true }); });
 
 // ===== JENIS BAYAR =====
 app.get('/api/jenisbayar', (req, res) => res.json([...DB.jenisBayar].sort((a, b) => a.kategori.localeCompare(b.kategori) || a.kode.localeCompare(b.kode))));
 app.post('/api/jenisbayar', (req, res) => {
-  const j = { id: nextId(DB.jenisBayar), kode: req.body.kode, nama: req.body.nama, kategori: req.body.kategori, nominal: parseInt(req.body.nominal) || 0, tahun: req.body.tahun || '', kelas: req.body.kelas || 'all' };
+  const j = { id: nextId(DB.jenisBayar), kode: String(req.body.kode || '').slice(0, 20), nama: String(req.body.nama || '').slice(0, 100), kategori: String(req.body.kategori || '').slice(0, 30), nominal: Math.max(0, parseInt(req.body.nominal) || 0), tahun: String(req.body.tahun || '').slice(0, 20), kelas: String(req.body.kelas || 'all').slice(0, 10) };
+  if (!j.nama) return res.status(400).json({ error: 'Nama jenis bayar wajib diisi' });
   DB.jenisBayar.push(j); scheduleSync('jenisBayar'); broadcast('jenisbayar', { action: 'add', id: j.id }); res.json({ id: j.id });
 });
 app.put('/api/jenisbayar/:id', (req, res) => {
-  const id = parseInt(req.params.id); const idx = DB.jenisBayar.findIndex(j => j.id === id);
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) return res.status(400).json({ error: 'ID tidak valid' });
+  const idx = DB.jenisBayar.findIndex(j => j.id === id);
   if (idx < 0) return res.status(404).json({ error: 'Tidak ditemukan' });
-  Object.assign(DB.jenisBayar[idx], { kode: req.body.kode, nama: req.body.nama, kategori: req.body.kategori, nominal: parseInt(req.body.nominal) || 0, tahun: req.body.tahun || '', kelas: req.body.kelas || 'all' });
+  const j = DB.jenisBayar[idx];
+  j.kode = String(req.body.kode || '').slice(0, 20);
+  j.nama = String(req.body.nama || '').slice(0, 100);
+  j.kategori = String(req.body.kategori || '').slice(0, 30);
+  j.nominal = Math.max(0, parseInt(req.body.nominal) || 0);
+  j.tahun = String(req.body.tahun || '').slice(0, 20);
+  j.kelas = String(req.body.kelas || 'all').slice(0, 10);
   scheduleSync('jenisBayar'); broadcast('jenisbayar', { action: 'update', id }); res.json({ ok: true });
 });
-app.delete('/api/jenisbayar/:id', (req, res) => { const id = parseInt(req.params.id); DB.jenisBayar = DB.jenisBayar.filter(j => j.id !== id); scheduleSync('jenisBayar'); broadcast('jenisbayar', { action: 'delete', id }); res.json({ ok: true }); });
-app.delete('/api/jenisbayar', (req, res) => { DB.jenisBayar = []; scheduleSync('jenisBayar'); broadcast('jenisbayar', { action: 'deleteAll' }); res.json({ ok: true }); });
+app.delete('/api/jenisbayar/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) return res.status(400).json({ error: 'ID tidak valid' });
+  DB.jenisBayar = DB.jenisBayar.filter(j => j.id !== id); scheduleSync('jenisBayar'); broadcast('jenisbayar', { action: 'delete', id }); res.json({ ok: true });
+});
+app.delete('/api/jenisbayar', requireAdmin, (req, res) => { DB.jenisBayar = []; scheduleSync('jenisBayar'); broadcast('jenisbayar', { action: 'deleteAll' }); res.json({ ok: true }); });
 
 // ===== TRANSAKSI =====
 app.get('/api/transaksi', (req, res) => res.json([...DB.transaksi].sort((a, b) => b.id - a.id)));
 app.post('/api/transaksi', (req, res) => {
-  const t = { id: nextId(DB.transaksi), noBayar: req.body.noBayar, tanggal: req.body.tanggal, siswaId: req.body.siswaId || 0, siswaNama: req.body.siswaNama || '', siswaKelas: req.body.siswaKelas || '', jenisId: req.body.jenisId || 0, jenisNama: req.body.jenisNama || '', kategori: req.body.kategori || '', nominal: req.body.nominal || 0, metode: req.body.metode || 'Tunai', keterangan: req.body.keterangan || '', status: req.body.status || 'Lunas', waktu: req.body.waktu || '' };
+  const t = { id: nextId(DB.transaksi), noBayar: String(req.body.noBayar || '').slice(0, 30), tanggal: String(req.body.tanggal || '').slice(0, 30), siswaId: parseInt(req.body.siswaId) || 0, siswaNama: String(req.body.siswaNama || '').slice(0, 100), siswaKelas: String(req.body.siswaKelas || '').slice(0, 10), jenisId: parseInt(req.body.jenisId) || 0, jenisNama: String(req.body.jenisNama || '').slice(0, 100), kategori: String(req.body.kategori || '').slice(0, 30), nominal: Math.max(0, parseInt(req.body.nominal) || 0), metode: String(req.body.metode || 'Tunai').slice(0, 20), keterangan: String(req.body.keterangan || '').slice(0, 200), status: String(req.body.status || 'Lunas').slice(0, 20), waktu: String(req.body.waktu || '').slice(0, 30) };
   DB.transaksi.push(t); scheduleSync('transaksi'); broadcast('transaksi', { action: 'add', id: t.id }); res.json({ id: t.id });
 });
-app.delete('/api/transaksi/:id', (req, res) => { const id = parseInt(req.params.id); DB.transaksi = DB.transaksi.filter(t => t.id !== id); scheduleSync('transaksi'); broadcast('transaksi', { action: 'delete', id }); res.json({ ok: true }); });
-app.delete('/api/transaksi', (req, res) => { DB.transaksi = []; scheduleSync('transaksi'); broadcast('transaksi', { action: 'deleteAll' }); res.json({ ok: true }); });
+app.delete('/api/transaksi/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) return res.status(400).json({ error: 'ID tidak valid' });
+  DB.transaksi = DB.transaksi.filter(t => t.id !== id); scheduleSync('transaksi'); broadcast('transaksi', { action: 'delete', id }); res.json({ ok: true });
+});
+app.delete('/api/transaksi', requireAdmin, (req, res) => { DB.transaksi = []; scheduleSync('transaksi'); broadcast('transaksi', { action: 'deleteAll' }); res.json({ ok: true }); });
 
 // ===== STOR =====
 app.get('/api/stor', (req, res) => res.json([...DB.stor].sort((a, b) => b.id - a.id)));
 app.post('/api/stor', (req, res) => {
-  const s = { id: nextId(DB.stor), noStor: req.body.noStor, tanggal: req.body.tanggal, oleh: req.body.oleh || '', jumlah: req.body.jumlah || 0, catatan: req.body.catatan || '' };
+  const s = { id: nextId(DB.stor), noStor: String(req.body.noStor || '').slice(0, 30), tanggal: String(req.body.tanggal || '').slice(0, 30), oleh: String(req.body.oleh || '').slice(0, 100), jumlah: Math.max(0, parseInt(req.body.jumlah) || 0), catatan: String(req.body.catatan || '').slice(0, 200) };
   DB.stor.push(s); scheduleSync('stor'); broadcast('stor', { action: 'add', id: s.id }); res.json({ id: s.id });
 });
-app.delete('/api/stor/:id', (req, res) => { const id = parseInt(req.params.id); DB.stor = DB.stor.filter(s => s.id !== id); scheduleSync('stor'); broadcast('stor', { action: 'delete', id }); res.json({ ok: true }); });
-app.delete('/api/stor', (req, res) => { DB.stor = []; scheduleSync('stor'); broadcast('stor', { action: 'deleteAll' }); res.json({ ok: true }); });
+app.delete('/api/stor/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) return res.status(400).json({ error: 'ID tidak valid' });
+  DB.stor = DB.stor.filter(s => s.id !== id); scheduleSync('stor'); broadcast('stor', { action: 'delete', id }); res.json({ ok: true });
+});
+app.delete('/api/stor', requireAdmin, (req, res) => { DB.stor = []; scheduleSync('stor'); broadcast('stor', { action: 'deleteAll' }); res.json({ ok: true }); });
 
 // ===== RIWAYAT WA =====
 app.get('/api/riwayat-wa', (req, res) => res.json([...DB.riwayatWa].sort((a, b) => b.id - a.id).slice(0, 100)));
 app.post('/api/riwayat-wa', (req, res) => {
-  const r = { id: nextId(DB.riwayatWa), tanggal: req.body.tanggal || '', penerima: req.body.penerima || '', jenis: req.body.jenis || '', status: req.body.status || 'Terkirim' };
+  const r = { id: nextId(DB.riwayatWa), tanggal: String(req.body.tanggal || '').slice(0, 30), penerima: String(req.body.penerima || '').slice(0, 100), noHp: String(req.body.noHp || '').replace(/[^0-9+\-\s]/g, '').slice(0, 20), jenis: String(req.body.jenis || '').slice(0, 20), status: String(req.body.status || 'Terkirim').slice(0, 20), pesan: String(req.body.pesan || '').slice(0, 2000) };
   DB.riwayatWa.push(r); scheduleSync('riwayatWa'); res.json({ id: r.id });
 });
 
@@ -342,7 +441,7 @@ app.post('/api/sync', async (req, res) => {
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 // ===== START =====
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '127.0.0.1', () => {
   const os = require('os');
   let ip = 'localhost';
   for (const ifaces of Object.values(os.networkInterfaces())) {
