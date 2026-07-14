@@ -870,17 +870,29 @@ function previewWaMessage() {
     const totalBayar = txSiswa.reduce((s,t) => s+t.nominal, 0);
     const totalTagihan = DB.jenisBayar.reduce((s,jb) => s+jb.nominal, 0);
     const sisa = totalTagihan - totalBayar;
-    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nAssalamu'alaikum Wr. Wb.\n\nKami dari ${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'} memberitahukan tagihan untuk ${siswa.nama} (${getKelasText(siswa.kelas)}):\n\nTagihan: ${formatRupiah(totalTagihan)}\nSudah Bayar: ${formatRupiah(totalBayar)}\nSisa: ${formatRupiah(sisa>0?sisa:0)}\n\n${sisa>0?'Mohon segera melakukan pembayaran.':'Alhamdulillah, tagihan lunas.'}\n\nWassalamu'alaikum Wr. Wb.\n\n_${adminName}_`;
+    const sudahBayarList = txSiswa.map(t => `✅ ${t.jenisNama}: ${formatRupiah(t.nominal)}`).join('\n');
+    const belumBayarList = DB.jenisBayar.filter(jb => !txSiswa.some(t => t.jenisBayarId === jb.id)).map(jb => `❌ ${jb.nama}: ${formatRupiah(jb.nominal)}`).join('\n');
+    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nAssalamu'alaikum Wr. Wb.\n\nKami dari ${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'} memberitahukan tagihan untuk ${siswa.nama} (${getKelasText(siswa.kelas)}):\n\n` +
+      (sudahBayarList ? `Sudah dibayar:\n${sudahBayarList}\n\n` : '') +
+      (belumBayarList ? `Belum dibayar:\n${belumBayarList}\n\n` : 'Semua tagihan sudah lunas.\n\n') +
+      `Total tagihan: ${formatRupiah(totalTagihan)}\nTotal dibayar: ${formatRupiah(totalBayar)}\nSisa: ${formatRupiah(sisa>0?sisa:0)}\n\n` +
+      `${sisa>0?'Mohon segera melakukan pembayaran.':'Alhamdulillah, tagihan lunas.'}\n\nWassalamu'alaikum Wr. Wb.\n\n_${adminName}_`;
   } else if (template === 'reminder' && siswa) {
-    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nKami ingatkan tagihan ${siswa.nama} (${getKelasText(siswa.kelas)}) masih ada yang belum diselesaikan.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
+    const txSiswa = DB.transaksi.filter(t => t.siswaId === siswa.id);
+    const belumBayarList = DB.jenisBayar.filter(jb => !txSiswa.some(t => t.jenisBayarId === jb.id)).map(jb => `❌ ${jb.nama}: ${formatRupiah(jb.nominal)}`).join('\n');
+    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nKami ingatkan tagihan ${siswa.nama} (${getKelasText(siswa.kelas)}) yang belum diselesaikan:\n\n` +
+      (belumBayarList ? belumBayarList : 'Semua tagihan sudah lunas.') +
+      `\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
   } else if (template === 'lunas' && siswa) {
-    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nAlhamdulillah, pembayaran ${siswa.nama} telah LUNAS.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
+    const txSiswa = DB.transaksi.filter(t => t.siswaId === siswa.id);
+    const itemList = txSiswa.map(t => `✅ ${t.jenisNama}: ${formatRupiah(t.nominal)}`).join('\n');
+    msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nAlhamdulillah, pembayaran ${siswa.nama} telah LUNAS:\n\n${itemList}\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
   } else if (template === 'stapor' && siswa) {
     msg = `Yth. Bapak/Ibu ${siswa.orangTua||''},\n\nMohon kesediaan menandatangani STAPOR untuk ${siswa.nama}.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
   } else {
     msg = 'Pilih siswa terlebih dahulu.';
   }
-  document.getElementById('waPreview').textContent = msg;
+  document.getElementById('waPreview').value = msg;
 }
 
 function openWaChat(phone, message) {
@@ -899,7 +911,8 @@ function kirimWaIndividu() {
   const siswa = DB.siswa.find(s => s.id === parseInt(document.getElementById('waSiswa').value));
   if (!siswa) return alert('Pilih siswa!');
   if (!siswa.noHp) return alert('No HP siswa tidak tersedia!');
-  const msg = document.getElementById('waPreview').textContent;
+  const msg = document.getElementById('waPreview').value;
+  if (!msg.trim()) return alert('Pesan kosong!');
   openWaChat(siswa.noHp, msg);
   logWaRiwayat(siswa.nama, siswa.noHp, 'Individu', msg);
 }
@@ -913,7 +926,9 @@ function kirimWaSemua() {
   belumBayarIds.forEach(id => {
     const s = DB.siswa.find(x => x.id === id);
     if (s && s.noHp) {
-      const msg = `Yth. ${s.orangTua||''},\n\nTagihan ${s.nama} (${getKelasText(s.kelas)}) masih ada yang belum dibayar.\nMohon segera bayar.\n\n${DB.profil.namaSekolah||'SDN 1 Selopuro'}\n_${adminName}_`;
+      const txSiswa = DB.transaksi.filter(t => t.siswaId === s.id);
+      const belumBayarList = DB.jenisBayar.filter(jb => !txSiswa.some(t => t.jenisBayarId === jb.id)).map(jb => `❌ ${jb.nama}: ${formatRupiah(jb.nominal)}`).join('\n');
+      const msg = `Yth. ${s.orangTua||''},\n\nKami dari ${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'} memberitahukan tagihan ${s.nama} (${getKelasText(s.kelas)}):\n\nBelum dibayar:\n${belumBayarList||'Semua sudah lunas.'}\n\nMohon segera melakukan pembayaran.\n\n_${adminName}_`;
       setTimeout(() => openWaChat(s.noHp, msg), count*500);
       logWaRiwayat(s.nama, s.noHp, 'Bulk', msg);
       count++;
@@ -941,9 +956,9 @@ function kirimWaStrukById(id) {
   if (!t) return;
   const siswa = DB.siswa.find(s => s.id === t.siswaId);
   const sameNo = DB.transaksi.filter(x => x.noBayar === t.noBayar);
-  const itemList = sameNo.map(tx => `- ${tx.jenisNama}: ${formatRupiah(tx.nominal)}`).join('\n');
+  const itemList = sameNo.map(tx => `✅ ${tx.jenisNama}: ${formatRupiah(tx.nominal)}`).join('\n');
   const total = sameNo.reduce((s, tx) => s + tx.nominal, 0);
-  const msg = `Yth. ${siswa?.orangTua||''},\n\nPembayaran ${t.siswaNama} diterima:\nNo: ${t.noBayar}\nTanggal: ${formatDate(t.tanggal)}\n\n${itemList}\n\nTotal: ${formatRupiah(total)}\nStatus: LUNAS\n\nTerima kasih.\n${DB.profil.namaSekolah||'SDN 1 Selopuro'}`;
+  const msg = `Yth. ${siswa?.orangTua||''},\n\nPembayaran ${t.siswaNama} (${getKelasText(siswa?.kelas)}) diterima:\nNo: ${t.noBayar}\nTanggal: ${formatDate(t.tanggal)}\n\nItem dibayar:\n${itemList}\n\nTotal: ${formatRupiah(total)}\nStatus: LUNAS\n\nTerima kasih.\n${DB.profil.namaSekolah||'SDN 1 Selopuro'}`;
   if (siswa && siswa.noHp) {
     openWaChat(siswa.noHp, msg);
     logWaRiwayat(t.siswaNama, siswa.noHp, 'Struk', msg);
