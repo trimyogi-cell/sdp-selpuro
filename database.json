@@ -1,0 +1,44 @@
+{
+    "siswa":  [
+
+              ],
+    "riwayatWa":  [
+
+                  ],
+    "profil":  {
+                   "alamat":  "Jl. Merdeka No. 1, Desa Selopuro",
+                   "bendahara":  "Siti Aminah, S.Pd.",
+                   "npsn":  "20310868",
+                   "namaSekolah":  "SD Negeri 1 Selopuro",
+                   "kepsek":  "Drs. H. Ahmad Fauzi, M.Pd.",
+                   "email":  "sdnselopuro@gmail.com",
+                   "telp":  "(0354) 123456"
+               },
+    "stor":  [
+
+             ],
+    "users":  [
+                  {
+                      "id":  1,
+                      "password":  "esloji",
+                      "username":  "admin",
+                      "role":  "admin",
+                      "nama":  "Administrator",
+                      "status":  "aktif"
+                  },
+                  {
+                      "id":  2,
+                      "password":  "operator123",
+                      "username":  "operator",
+                      "role":  "operator",
+                      "nama":  "Operator",
+                      "status":  "aktif"
+                  }
+              ],
+    "jenisBayar":  [
+
+                   ],
+    "transaksi":  [
+
+                  ]
+}
