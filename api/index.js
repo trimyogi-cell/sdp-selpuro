@@ -10,7 +10,6 @@ const GITHUB_REPO = process.env.GITHUB_REPO || 'trimyogi-cell/sdp-selpuro';
 const GITHUB_FILE = 'database.json';
 let dbCache = null;
 let dbSha = null;
-let saveTimer = null;
 let saveQueue = null;
 
 async function loadDatabase() {
@@ -61,7 +60,7 @@ async function loadDatabase() {
         const fresh = await loadDatabase();
         for (const k of Object.keys(payload)) fresh[k] = structuredClone(payload[k]);
         saveQueue = fresh;
-        setTimeout(flushSave, 500);
+        await flushSave();
       }
     } else {
       const data = await res.json();
@@ -70,14 +69,6 @@ async function loadDatabase() {
   } catch (e) {
     console.error('GitHub save exception:', e.message);
   }
-}
-
-function scheduleSave() {
-  if (saveTimer) return;
-  saveTimer = setTimeout(async () => {
-    saveTimer = null;
-    await flushSave();
-  }, 800);
 }
 
 async function loadTable(key) {
@@ -95,7 +86,7 @@ async function saveTable(key, value) {
     const db = await loadDatabase();
     db[key] = structuredClone(value);
     saveQueue = db;
-    scheduleSave();
+    await flushSave();
   } catch (e) {
     console.error('Save exception [' + key + ']:', e.message);
   }
