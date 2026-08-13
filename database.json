@@ -1,5 +1,16 @@
 {
-  "siswa": [],
+  "siswa": [
+    {
+      "id": 1,
+      "nis": "VERCEL001",
+      "nama": "Uji Vercel",
+      "kelas": "2",
+      "angkatan": "2026",
+      "orangTua": "Orang Tua Vercel",
+      "noHp": "082222222222",
+      "alamat": "Jl. Uji Vercel"
+    }
+  ],
   "riwayatWa": [],
   "profil": {
     "alamat": "Jl. Merdeka No. 1, Desa Selopuro",
