@@ -1,14 +1,105 @@
 const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
-const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 
-// ===== SUPABASE =====
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://zizonqnqqgxrxqkivpzs.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inppem9ucW5xcWd4cnhxa2l2cHpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5MzU0MTYsImV4cCI6MjA5OTUxMTQxNn0.OARAvtw1YnH4GfQXZlU-r74XWmBxH8yrTO2p_Z0ZVc8';
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+// ===== GITHUB STORAGE =====
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
+const GITHUB_REPO = process.env.GITHUB_REPO || 'trimyogi-cell/sdp-selpuro';
+const GITHUB_FILE = 'database.json';
+let dbCache = null;
+let dbSha = null;
+let saveTimer = null;
+let saveQueue = null;
+
+async function loadDatabase() {
+  if (dbCache) return dbCache;
+  const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`, {
+    headers: {
+      'Authorization': 'token ' + GITHUB_TOKEN,
+      'Accept': 'application/vnd.github.v3+json',
+      'User-Agent': 'sdp-selpuro'
+    }
+  });
+  if (res.status === 404) {
+    dbCache = {};
+    dbSha = null;
+    return dbCache;
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error('GitHub load failed: ' + res.status + ' ' + (err.message || ''));
+  }
+  const data = await res.json();
+  dbSha = data.sha;
+  const content = Buffer.from(data.content.replace(/\n/g, ''), 'base64').toString('utf8');
+  dbCache = JSON.parse(content || '{}');
+  return dbCache;
+}async function flushSave() {
+  if (!saveQueue) return;
+  const payload = saveQueue;
+  saveQueue = null;
+  const content = Buffer.from(JSON.stringify(payload, null, 2), 'utf8').toString('base64');
+  const body = { message: 'Auto-save data', content, sha: dbSha || undefined };
+  try {
+    const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'token ' + GITHUB_TOKEN,
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'sdp-selpuro'
+      },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      console.error('GitHub save failed:', res.status, err.message || '');
+      if (res.status === 409) {
+        dbSha = null;
+        dbCache = null;
+        const fresh = await loadDatabase();
+        for (const k of Object.keys(payload)) fresh[k] = structuredClone(payload[k]);
+        saveQueue = fresh;
+        setTimeout(flushSave, 500);
+      }
+    } else {
+      const data = await res.json();
+      dbSha = data.content.sha;
+    }
+  } catch (e) {
+    console.error('GitHub save exception:', e.message);
+  }
+}
+
+function scheduleSave() {
+  if (saveTimer) return;
+  saveTimer = setTimeout(async () => {
+    saveTimer = null;
+    await flushSave();
+  }, 800);
+}
+
+async function loadTable(key) {
+  try {
+    const db = await loadDatabase();
+    return structuredClone(db[key] !== undefined ? db[key] : (DEFAULTS[key] !== undefined ? DEFAULTS[key] : []));
+  } catch (e) {
+    console.error('Load error [' + key + ']:', e.message);
+    return structuredClone(DEFAULTS[key] || []);
+  }
+}
+
+async function saveTable(key, value) {
+  try {
+    const db = await loadDatabase();
+    db[key] = structuredClone(value);
+    saveQueue = db;
+    scheduleSave();
+  } catch (e) {
+    console.error('Save exception [' + key + ']:', e.message);
+  }
+}
 
 const DEFAULTS = {
   profil: { namaSekolah: 'SD Negeri 1 Selopuro', npsn: '20310868', alamat: 'Jl. Merdeka No. 1, Desa Selopuro', telp: '(0354) 123456', email: 'sdnselopuro@gmail.com', kepsek: 'Drs. H. Ahmad Fauzi, M.Pd.', bendahara: 'Siti Aminah, S.Pd.' },
@@ -65,31 +156,12 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
-// ===== SUPABASE HELPERS =====
-async function loadTable(key) {
-  try {
-    const { data, error } = await supabase.from('data_store').select('value').eq('key', key).single();
-    if (error || !data) return structuredClone(DEFAULTS[key] || []);
-    return data.value ?? structuredClone(DEFAULTS[key] || []);
-  } catch (e) {
-    return structuredClone(DEFAULTS[key] || []);
-  }
-}
-
-async function saveTable(key, value) {
-  try {
-    const { error } = await supabase.from('data_store').upsert({ key, value }, { onConflict: 'key' });
-    if (error) console.error('Save error [' + key + ']:', error.message);
-  } catch (e) {
-    console.error('Save exception [' + key + ']:', e.message);
-  }
-}
-
+// ===== NEXT ID / IP =====
 function nextId(arr) { return arr.length ? Math.max(...arr.map(x => x.id || 0)) + 1 : 1; }
 function getClientIp(req) { return req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown'; }
 
 // ===== STATELESS TOKEN AUTH =====
-const SECRET = process.env.JWT_SECRET || crypto.createHmac('sha256', 'sdp-selpuro-v2').update(SUPABASE_KEY).digest('hex');
+const SECRET = process.env.JWT_SECRET || crypto.createHmac('sha256', 'sdp-selpuro-v3').update(GITHUB_REPO).digest('hex');
 
 function createToken(userId, role) {
   const payload = JSON.stringify({ userId, role, exp: Date.now() + 12 * 60 * 60 * 1000 });
@@ -568,5 +640,10 @@ app.post('/api/sync', async (req, res) => {
 
 // ===== SPA FALLBACK =====
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'index.html')));
+
+if (!process.env.VERCEL) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log('API running on http://localhost:' + PORT));
+}
 
 module.exports = app;
