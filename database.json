@@ -179,7 +179,7 @@
     {
       "id": 1,
       "username": "admin",
-      "password": "c139c23d9991b67444d68807d0459252:54939d9c7fc2c485f0fa53c3fb35f3ff44743b220519c1cb76e0b57226bcc4cd54c242c7cb1686a0b34c57dfba54096a1b579a8ba88989e671dbd62ded945701",
+      "password": "0021b7a216edad23278d06e6a2d52acd:4e84241dc3251a010163c75cf1ff4645795992ae8306ba4289a26ae00868ae8a1d58b664556e6f7d8d6235aec8562dc539eacae3328c4dd768ad8f3c0251b030",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -187,7 +187,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "515b2f277279cdb24c6c62a0586dfb2a:bbc0c8ec1dfc77a5d13a0fbfdbb8e77fdb270296562980dcb6691485b8d86b0ea266161d68befb5db1d2f8d639537692a54a95cabd3b87ca77545c221e3aabc5",
+      "password": "db2397ba761b5dc59b49c8e9051532d8:b223e272ab4c41fa431db3cb06889a954dc72dfe080ce6f6a2def45a0013fe4be80dfec2f014f0d16ef57c4251402347c373104b83d7f67e116049de875ce4fd",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
@@ -225,7 +225,7 @@
       "id": 4,
       "kode": "LKS",
       "nama": "SENI RUPA",
-      "kategori": "Aktivitas",
+      "kategori": "LKS",
       "nominal": 12000,
       "tahun": "2026",
       "kelas": "3"
