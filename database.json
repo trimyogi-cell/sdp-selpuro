@@ -218,6 +218,15 @@
       "nominal": 12000,
       "tahun": "2026",
       "kelas": "3"
+    },
+    {
+      "id": 5,
+      "kode": "LKS",
+      "nama": "PJOK",
+      "kategori": "LKS",
+      "nominal": 12000,
+      "tahun": "2026",
+      "kelas": "3"
     }
   ],
   "transaksi": []
