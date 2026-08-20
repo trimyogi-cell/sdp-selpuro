@@ -154,12 +154,14 @@
   "riwayatWa": [],
   "profil": {
     "alamat": "Jl. Merdeka No. 1, Desa Selopuro",
-    "bendahara": "Siti Aminah, S.Pd.",
+    "bendahara": "Admin 1",
     "npsn": "20310868",
     "namaSekolah": "SD Negeri 1 Selopuro",
-    "kepsek": "Drs. H. Ahmad Fauzi, M.Pd.",
+    "kepsek": "Sri Rejeki., S.pd",
     "email": "sdnselopuro@gmail.com",
-    "telp": "(0354) 123456"
+    "telp": "(0354) 123456",
+    "noHpAdmin": "",
+    "namaAdmin": "Admin 1"
   },
   "stor": [],
   "users": [
