@@ -151,7 +151,17 @@
       "alamat": ""
     }
   ],
-  "riwayatWa": [],
+  "riwayatWa": [
+    {
+      "id": 1,
+      "tanggal": "20/8/2026 14.26.39",
+      "penerima": "ARSYAD KHOIRUL AZZAM",
+      "noHp": "+62 851-2486-3530",
+      "jenis": "Individu",
+      "status": "Terkirim",
+      "pesan": "Pilih siswa terlebih dahulu."
+    }
+  ],
   "profil": {
     "alamat": "Jl. Narasoma No. 1, Lingkungan Pendem, Kelurahan Selopuro",
     "bendahara": "Admin",
