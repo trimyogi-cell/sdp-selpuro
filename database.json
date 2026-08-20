@@ -89,16 +89,6 @@
       "orangTua": "WALI NASYWA PUTRI TSALISA",
       "noHp": "+62 812-2774-3395",
       "alamat": ""
-    },
-    {
-      "id": 10,
-      "nis": "1557",
-      "nama": "NOVA VIRGINNISA",
-      "kelas": "3",
-      "angkatan": "2026-2027",
-      "orangTua": "WALI NOVA VIRGINNISA",
-      "noHp": "+62 858-7032-7501",
-      "alamat": ""
     }
   ],
   "riwayatWa": [],
@@ -116,7 +106,7 @@
     {
       "id": 1,
       "username": "admin",
-      "password": "873b2c624ee74b7ad71119222e6721b2:3f248d90c6183664960ec76c66c5be6d4ea15035abe3034353f017f15100aba7b58f3b0c8b73cde29ec0084321b1be65f0828ac37a477589505b05357dd4c1d3",
+      "password": "f2eb23d73d96772bc9da0bfbbbb57664:644fc74b88b84eaf915df6d8b5e05088c49ca0cde5f9194ba314ba0f870b742eecb9bc9619639315014a9dc7d057a06c82926d1a59c7e8a20f6079dbcd6ec1a0",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -124,7 +114,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "344c96d5922edc885f7e149bc9a5cd0e:2171c8018c5a112a5d0315f5c81c63234a4607fe66246c5640f8cbba9238ba5259aac8358f5fd6197fb6935d3cfaae98d779d90e64ccfe3504ff1664f3fbb648",
+      "password": "c7b419361a289ac7154e8ee2b6249c9c:487cbf4ba885f30d6a00a28e42025c40ade4df72a83a5dea6e3e76e3ebf24e3a64043dc0b11e08f765c973c4c519cae3d046a5dc6774b3336737879e3b1e56a8",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
