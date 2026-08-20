@@ -89,6 +89,16 @@
       "orangTua": "WALI NASYWA PUTRI TSALISA",
       "noHp": "+62 812-2774-3395",
       "alamat": ""
+    },
+    {
+      "id": 10,
+      "nis": "1558",
+      "nama": "QHAIRA NAILA PUTRI",
+      "kelas": "3",
+      "angkatan": "2026-2027",
+      "orangTua": "WALI QHAIRA NAILA PUTRI",
+      "noHp": "+62 857-0244-2792",
+      "alamat": ""
     }
   ],
   "riwayatWa": [],
@@ -106,7 +116,7 @@
     {
       "id": 1,
       "username": "admin",
-      "password": "eb7e14acb90ddb6dc153b7808cdad176:d5ac71d07e94bba235992055ebb706ecd117a3b2dd4276037e30badace5abf7949dbaa3682640f7e4b759710fa67641e624def0d480925025b4d751f2718e7f9",
+      "password": "f2eb23d73d96772bc9da0bfbbbb57664:644fc74b88b84eaf915df6d8b5e05088c49ca0cde5f9194ba314ba0f870b742eecb9bc9619639315014a9dc7d057a06c82926d1a59c7e8a20f6079dbcd6ec1a0",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -114,7 +124,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "09fb0263800e25ce67c29b00819daf09:06f1f9ad1141a7ad188e3542c5511a6c16c34202f100571c55bf2417461378bd192504800f0d01c4bc9fddb957ac10bf1697512a20bae3d0164159ccdae58786",
+      "password": "c7b419361a289ac7154e8ee2b6249c9c:487cbf4ba885f30d6a00a28e42025c40ade4df72a83a5dea6e3e76e3ebf24e3a64043dc0b11e08f765c973c4c519cae3d046a5dc6774b3336737879e3b1e56a8",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
