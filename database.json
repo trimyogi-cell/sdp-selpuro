@@ -168,7 +168,7 @@
     {
       "id": 1,
       "username": "admin",
-      "password": "9c670d2311abe4549ec01df77a2d8796:692b3c0cc372085802beddff54a40b048a9caf2a0f20083394c1dec7d1a8b996a36f5fa79ae9be18f442035cc1ae2995c8cd2b13064c0481b02d33d64872f697",
+      "password": "ed6110018211e4e9af0788d6871c09c6:4629b3db58b901a8ed3f076f01bb420ce400b61484be53f94b85ec4ad957a94cbdedb333f51cd49bf896e3af8b0aec3c6b09603fd5832dadc8c2750c10e72495",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -176,7 +176,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "f61c882c4e63ce8da45f2292a437a82f:53d253f00debb211424491e00f0b3a0734be86c8ef9e0bc2b6f6d814ec4962613a72b9a8d62f6e6a999a9fd8d9beda7b6edfb4631426827a57612a3d00079e90",
+      "password": "007079f0daaebb670a5595b7951778e0:29ebccc93cf5eb71786148bb1c2da1954bed304cb1a3f771c1ce6da33f33acea5691cb480838204700ab994d839da15bfc2ad4692bdbbf2557dd85e812203048",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
@@ -225,6 +225,15 @@
       "nama": "PJOK",
       "kategori": "LKS",
       "nominal": 12000,
+      "tahun": "2026",
+      "kelas": "3"
+    },
+    {
+      "id": 6,
+      "kode": "JRN",
+      "nama": "JURNAL 7 K",
+      "kategori": "Aktivitas",
+      "nominal": 18000,
       "tahun": "2026",
       "kelas": "3"
     }
