@@ -10,21 +10,44 @@ function esc(s) {
 async function api(url, opts = {}) {
   const headers = { 'Content-Type': 'application/json' };
   if (authToken) headers['x-auth-token'] = authToken;
-  const res = await fetch(API + url, { ...opts, headers, body: opts.body ? JSON.stringify(opts.body) : undefined });
-  if (res.status === 401) {
-    authToken = null;
-    localStorage.removeItem('sdp_token');
-    localStorage.removeItem('sdp_user');
-    currentUser = null;
-    document.getElementById('loginPage').classList.remove('hidden');
-    document.getElementById('mainApp').classList.add('hidden');
-    throw new Error('Sesi berakhir');
+  const isWrite = opts.method && opts.method !== 'GET';
+  let lastErr;
+  for (let attempt = 0; attempt < (isWrite ? 2 : 1); attempt++) {
+    try {
+      const res = await fetch(API + url, { ...opts, headers, body: opts.body ? JSON.stringify(opts.body) : undefined });
+      if (res.status === 401) {
+        authToken = null;
+        localStorage.removeItem('sdp_token');
+        localStorage.removeItem('sdp_user');
+        currentUser = null;
+        document.getElementById('loginPage').classList.remove('hidden');
+        document.getElementById('mainApp').classList.add('hidden');
+        throw new Error('Sesi berakhir');
+      }
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Error' }));
+        throw new Error(err.error || 'Request failed');
+      }
+      return res.json();
+    } catch (e) {
+      lastErr = e;
+      if (!isWrite || attempt === 0) throw e;
+      await new Promise(r => setTimeout(r, 1500));
+    }
   }
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Error' }));
-    throw new Error(err.error || 'Request failed');
+  throw lastErr;
+}
+
+function setBtnLoading(btn, loading, originalText) {
+  if (!btn) return;
+  if (loading) {
+    btn.dataset.originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+    btn.disabled = true;
+  } else {
+    btn.innerHTML = btn.dataset.originalText || originalText || '';
+    btn.disabled = false;
   }
-  return res.json();
 }
 
 // ===== SSE REAL-TIME SYNC =====
@@ -220,24 +243,29 @@ function closeModal(id) {
 // ===== SISWA =====
 async function handleSiswaForm(e) {
   e.preventDefault();
-  const editId = document.getElementById('siswaEditId').value;
-  const data = {
-    nis: document.getElementById('siswaNis').value,
-    nama: document.getElementById('siswaNama').value,
-    kelas: document.getElementById('siswaKelas').value,
-    angkatan: document.getElementById('siswaAngkatan').value,
-    orangTua: document.getElementById('siswaOrangTua').value,
-    noHp: document.getElementById('siswaNoHp').value,
-    alamat: document.getElementById('siswaAlamat').value
-  };
-  if (editId) {
-    await api(`/siswa/${editId}`, { method: 'PUT', body: data });
-  } else {
-    await api('/siswa', { method: 'POST', body: data });
-  }
-  DB.siswa = await api('/siswa');
-  closeModal('siswaModal');
-  renderSiswaTable();
+  const btn = e.target.querySelector('button[type="submit"]');
+  setBtnLoading(btn, true);
+  try {
+    const editId = document.getElementById('siswaEditId').value;
+    const data = {
+      nis: document.getElementById('siswaNis').value,
+      nama: document.getElementById('siswaNama').value,
+      kelas: document.getElementById('siswaKelas').value,
+      angkatan: document.getElementById('siswaAngkatan').value,
+      orangTua: document.getElementById('siswaOrangTua').value,
+      noHp: document.getElementById('siswaNoHp').value,
+      alamat: document.getElementById('siswaAlamat').value
+    };
+    if (editId) {
+      await api(`/siswa/${editId}`, { method: 'PUT', body: data });
+    } else {
+      await api('/siswa', { method: 'POST', body: data });
+    }
+    DB.siswa = await api('/siswa');
+    closeModal('siswaModal');
+    renderSiswaTable();
+  } catch (e) { alert('Gagal menyimpan: ' + e.message); }
+  finally { setBtnLoading(btn, false); }
 }
 
 function editSiswa(id) {
@@ -321,20 +349,25 @@ function exportSiswa() {
 // ===== JENIS BAYAR =====
 async function handleJenisBayarForm(e) {
   e.preventDefault();
-  const editId = document.getElementById('jenisBayarEditId').value;
-  const data = {
-    kode: document.getElementById('jenisBayarKode').value,
-    nama: document.getElementById('jenisBayarNama').value,
-    kategori: document.getElementById('jenisBayarKategori').value,
-    nominal: parseInt(document.getElementById('jenisBayarNominal').value) || 0,
-    tahun: document.getElementById('jenisBayarTahun').value,
-    kelas: document.getElementById('jenisBayarKelas').value
-  };
-  if (editId) { await api(`/jenisbayar/${editId}`, { method: 'PUT', body: data }); }
-  else { await api('/jenisbayar', { method: 'POST', body: data }); }
-  DB.jenisBayar = await api('/jenisbayar');
-  closeModal('jenisBayarModal');
-  renderJenisBayarTable();
+  const btn = e.target.querySelector('button[type="submit"]');
+  setBtnLoading(btn, true);
+  try {
+    const editId = document.getElementById('jenisBayarEditId').value;
+    const data = {
+      kode: document.getElementById('jenisBayarKode').value,
+      nama: document.getElementById('jenisBayarNama').value,
+      kategori: document.getElementById('jenisBayarKategori').value,
+      nominal: parseInt(document.getElementById('jenisBayarNominal').value) || 0,
+      tahun: document.getElementById('jenisBayarTahun').value,
+      kelas: document.getElementById('jenisBayarKelas').value
+    };
+    if (editId) { await api(`/jenisbayar/${editId}`, { method: 'PUT', body: data }); }
+    else { await api('/jenisbayar', { method: 'POST', body: data }); }
+    DB.jenisBayar = await api('/jenisbayar');
+    closeModal('jenisBayarModal');
+    renderJenisBayarTable();
+  } catch (e) { alert('Gagal menyimpan: ' + e.message); }
+  finally { setBtnLoading(btn, false); }
 }
 
 function editJenisBayar(id) {
@@ -457,29 +490,33 @@ function updateTxTotal() {
 
 async function handleTransaksiForm(e) {
   e.preventDefault();
-  const siswaId = parseInt(document.getElementById('txSiswa').value);
-  const siswa = DB.siswa.find(s => s.id === siswaId);
-  const checked = [...document.querySelectorAll('.tx-jenis-check:checked')];
-  if (!siswa) return alert('Pilih siswa!');
-  if (!checked.length) return alert('Pilih minimal satu jenis pembayaran!');
+  const btn = e.target.querySelector('button[type="submit"]');
+  setBtnLoading(btn, true);
+  try {
+    const siswaId = parseInt(document.getElementById('txSiswa').value);
+    const siswa = DB.siswa.find(s => s.id === siswaId);
+    const checked = [...document.querySelectorAll('.tx-jenis-check:checked')];
+    if (!siswa) return alert('Pilih siswa!');
+    if (!checked.length) return alert('Pilih minimal satu jenis pembayaran!');
 
-  const tanggal = document.getElementById('txTanggal').value;
-  const metode = document.getElementById('txMetode').value;
-  const keterangan = document.getElementById('txKeterangan').value;
-  const noBayar = generateNoBayar();
-  const waktu = new Date().toLocaleTimeString('id-ID');
+    const tanggal = document.getElementById('txTanggal').value;
+    const metode = document.getElementById('txMetode').value;
+    const keterangan = document.getElementById('txKeterangan').value;
+    const noBayar = generateNoBayar();
+    const waktu = new Date().toLocaleTimeString('id-ID');
 
-  const items = checked.map(cb => {
-    const jenis = DB.jenisBayar.find(j => j.id === parseInt(cb.value));
-    return { noBayar, tanggal, siswaId: siswa.id, siswaNama: siswa.nama, siswaKelas: siswa.kelas, jenisId: jenis.id, jenisNama: jenis.nama, kategori: jenis.kategori, nominal: jenis.nominal, metode, keterangan, status: 'Lunas', waktu };
-  });
+    const items = checked.map(cb => {
+      const jenis = DB.jenisBayar.find(j => j.id === parseInt(cb.value));
+      return { noBayar, tanggal, siswaId: siswa.id, siswaNama: siswa.nama, siswaKelas: siswa.kelas, jenisId: jenis.id, jenisNama: jenis.nama, kategori: jenis.kategori, nominal: jenis.nominal, metode, keterangan, status: 'Lunas', waktu };
+    });
 
-  await api('/transaksi', { method: 'POST', body: items });
-
-  DB.transaksi = await api('/transaksi');
-  closeModal('transaksiModal');
-  renderTransaksiTable();
-  alert(`Transaksi berhasil! ${items.length} item dibayar.\nNo: ${noBayar}\nTotal: ${formatRupiah(items.reduce((s, t) => s + t.nominal, 0))}`);
+    await api('/transaksi', { method: 'POST', body: items });
+    DB.transaksi = await api('/transaksi');
+    closeModal('transaksiModal');
+    renderTransaksiTable();
+    alert(`Transaksi berhasil! ${items.length} item dibayar.\nNo: ${noBayar}\nTotal: ${formatRupiah(items.reduce((s, t) => s + t.nominal, 0))}`);
+  } catch (e) { alert('Gagal menyimpan transaksi: ' + e.message); }
+  finally { setBtnLoading(btn, false); }
 }
 
 function renderTransaksiTable() {
@@ -783,17 +820,22 @@ async function hapusSemuaTransaksi() {
 // ===== STOR =====
 async function handleStorForm(e) {
   e.preventDefault();
-  const stor = {
-    noStor: generateNoStor(), tanggal: document.getElementById('storTanggal').value,
-    oleh: document.getElementById('storOleh').value,
-    jumlah: parseInt(document.getElementById('storJumlah').value) || 0,
-    catatan: document.getElementById('storCatatan').value
-  };
-  await api('/stor', { method: 'POST', body: stor });
-  DB.stor = await api('/stor');
-  closeModal('storModal');
-  renderStorTable();
-  alert('Berhasil! No: ' + stor.noStor);
+  const btn = e.target.querySelector('button[type="submit"]');
+  setBtnLoading(btn, true);
+  try {
+    const stor = {
+      noStor: generateNoStor(), tanggal: document.getElementById('storTanggal').value,
+      oleh: document.getElementById('storOleh').value,
+      jumlah: parseInt(document.getElementById('storJumlah').value) || 0,
+      catatan: document.getElementById('storCatatan').value
+    };
+    await api('/stor', { method: 'POST', body: stor });
+    DB.stor = await api('/stor');
+    closeModal('storModal');
+    renderStorTable();
+    alert('Berhasil! No: ' + stor.noStor);
+  } catch (e) { alert('Gagal menyimpan stor: ' + e.message); }
+  finally { setBtnLoading(btn, false); }
 }
 
 function renderStorTable() {
@@ -1107,14 +1149,38 @@ function printLaporan(type) {
 
 // ===== WHATSAPP =====
 function populateWaSiswa() {
-  document.getElementById('waSiswa').innerHTML = '<option value="">-- Pilih Siswa --</option>' +
-    DB.siswa.map(s => `<option value="${s.id}">${esc(s.nama)} - ${esc(s.orangTua)||''} (${esc(s.noHp)||''})</option>`).join('');
+  const container = document.getElementById('waSiswaList');
+  container.innerHTML = DB.siswa.map(s =>
+    `<label style="display:flex;align-items:center;gap:8px;padding:5px 8px;cursor:pointer;border-radius:4px;transition:background 0.15s;" onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background='transparent'">
+      <input type="checkbox" class="wa-siswa-check" value="${s.id}" onchange="updateWaSelectedCount();previewWaMessage()">
+      <span><strong>${esc(s.nama)}</strong> <small style="color:var(--text-light);">(${esc(s.kelas)}) - ${esc(s.orangTua)||''} ${esc(s.noHp)||''}</small></span>
+    </label>`
+  ).join('');
+  updateWaSelectedCount();
   previewWaMessage();
+}
+
+function toggleAllWaSiswa(checked) {
+  document.querySelectorAll('.wa-siswa-check').forEach(cb => { cb.checked = checked; });
+  updateWaSelectedCount();
+  previewWaMessage();
+}
+
+function getSelectedWaSiswa() {
+  const ids = [...document.querySelectorAll('.wa-siswa-check:checked')].map(cb => parseInt(cb.value));
+  return DB.siswa.filter(s => ids.includes(s.id));
+}
+
+function updateWaSelectedCount() {
+  const count = document.querySelectorAll('.wa-siswa-check:checked').length;
+  const el = document.getElementById('waSelectedCount');
+  el.textContent = count ? `(${count} dipilih)` : '';
 }
 
 function previewWaMessage() {
   const template = document.getElementById('waTemplate').value;
-  const siswa = DB.siswa.find(s => s.id === parseInt(document.getElementById('waSiswa').value));
+  const selected = getSelectedWaSiswa();
+  const siswa = selected[0] || null;
   const adminName = DB.profil.bendahara || DB.profil.kepsek || 'Admin';
   let msg = '';
   if (template === 'tagihan' && siswa) {
@@ -1130,6 +1196,7 @@ function previewWaMessage() {
       (belumBayarList ? `Belum dibayar:\n${belumBayarList}\n\n` : 'Semua tagihan sudah lunas.\n\n') +
       `Total tagihan: ${formatRupiah(totalTagihan)}\nTotal dibayar: ${formatRupiah(totalBayar)}\nSisa: ${formatRupiah(sisa>0?sisa:0)}\n\n` +
       `${sisa>0?'Mohon segera melakukan pembayaran.':'Alhamdulillah, tagihan lunas.'}\n\nWassalamu'alaikum Wr. Wb.\n\n_${adminName}_`;
+    if (selected.length > 1) msg += `\n\n⚠️ Preview ini untuk "${siswa.nama}". Pesan akan otomatis disesuaikan untuk ${selected.length - 1} siswa lainnya.`;
   } else if (template === 'reminder' && siswa) {
     const txSiswa = DB.transaksi.filter(t => t.siswaId === siswa.id);
     const belumBayarItems = DB.jenisBayar.filter(jb => !txSiswa.some(t => t.jenisId === jb.id));
@@ -1138,15 +1205,18 @@ function previewWaMessage() {
     msg = `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nKami ingatkan tagihan ${siswa.nama} (${getKelasText(siswa.kelas)}) yang belum diselesaikan:\n\n` +
       (belumBayarList ? belumBayarList : 'Semua tagihan sudah lunas.') +
       `\n\nTotal belum dibayar: ${formatRupiah(totalBelum)}\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
+    if (selected.length > 1) msg += `\n\n⚠️ Preview ini untuk "${siswa.nama}". Pesan akan otomatis disesuaikan untuk ${selected.length - 1} siswa lainnya.`;
   } else if (template === 'lunas' && siswa) {
     const txSiswa = DB.transaksi.filter(t => t.siswaId === siswa.id);
     const itemList = txSiswa.map(t => `✅ ${t.jenisNama}: ${formatRupiah(t.nominal)}`).join('\n');
     const totalBayar = txSiswa.reduce((s,t) => s+t.nominal, 0);
     msg = `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nAlhamdulillah, pembayaran ${siswa.nama} telah LUNAS:\n\n${itemList}\n\nTotal dibayar: ${formatRupiah(totalBayar)}\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
+    if (selected.length > 1) msg += `\n\n⚠️ Preview ini untuk "${siswa.nama}". Pesan akan otomatis disesuaikan untuk ${selected.length - 1} siswa lainnya.`;
   } else if (template === 'stapor' && siswa) {
     msg = `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nMohon kesediaan menandatangani STAPOR untuk ${siswa.nama}.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
+    if (selected.length > 1) msg += `\n\n⚠️ Preview ini untuk "${siswa.nama}". Pesan akan otomatis disesuaikan untuk ${selected.length - 1} siswa lainnya.`;
   } else {
-    msg = 'Pilih siswa terlebih dahulu.';
+    msg = selected.length ? 'Pilih template pesan.' : 'Pilih minimal satu siswa.';
   }
   document.getElementById('waPreview').value = msg;
 }
@@ -1163,14 +1233,53 @@ function openWaChat(phone, message) {
   document.body.removeChild(a);
 }
 
-function kirimWaIndividu() {
-  const siswa = DB.siswa.find(s => s.id === parseInt(document.getElementById('waSiswa').value));
-  if (!siswa) return alert('Pilih siswa!');
-  if (!siswa.noHp) return alert('No HP siswa tidak tersedia!');
-  const msg = document.getElementById('waPreview').value;
-  if (!msg.trim()) return alert('Pesan kosong!');
-  openWaChat(siswa.noHp, msg);
-  logWaRiwayat(siswa.nama, siswa.noHp, 'Individu', msg);
+function kirimWaTerpilih() {
+  const selected = getSelectedWaSiswa();
+  if (!selected.length) return alert('Pilih minimal satu siswa!');
+  const template = document.getElementById('waTemplate').value;
+  const adminName = DB.profil.bendahara || DB.profil.kepsek || 'Admin';
+  let count = 0;
+  selected.forEach((siswa, idx) => {
+    if (!siswa.noHp) return;
+    const msg = buildWaMessage(template, siswa, adminName);
+    if (!msg) return;
+    setTimeout(() => openWaChat(siswa.noHp, msg), count * 500);
+    logWaRiwayat(siswa.nama, siswa.noHp, 'Individu', msg);
+    count++;
+  });
+  if (!count) return alert('Tidak ada siswa dengan No HP yang valid!');
+  alert(`Membuka ${count} chat WhatsApp.`);
+}
+
+function buildWaMessage(template, siswa, adminName) {
+  const txSiswa = DB.transaksi.filter(t => t.siswaId === siswa.id);
+  if (template === 'tagihan') {
+    const totalBayar = txSiswa.reduce((s,t) => s+t.nominal, 0);
+    const totalTagihan = DB.jenisBayar.reduce((s,jb) => s+jb.nominal, 0);
+    const sisa = totalTagihan - totalBayar;
+    const sudahBayarList = txSiswa.map(t => `✅ ${t.jenisNama}: ${formatRupiah(t.nominal)}`).join('\n');
+    const belumBayarItems = DB.jenisBayar.filter(jb => !txSiswa.some(t => t.jenisId === jb.id));
+    const belumBayarList = belumBayarItems.map(jb => `❌ ${jb.nama}: ${formatRupiah(jb.nominal)}`).join('\n');
+    return `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nAssalamu'alaikum Wr. Wb.\n\nKami dari ${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'} memberitahukan tagihan untuk ${siswa.nama} (${getKelasText(siswa.kelas)}):\n\n` +
+      (sudahBayarList ? `Sudah dibayar:\n${sudahBayarList}\n\n` : '') +
+      (belumBayarList ? `Belum dibayar:\n${belumBayarList}\n\n` : 'Semua tagihan sudah lunas.\n\n') +
+      `Total tagihan: ${formatRupiah(totalTagihan)}\nTotal dibayar: ${formatRupiah(totalBayar)}\nSisa: ${formatRupiah(sisa>0?sisa:0)}\n\n` +
+      `${sisa>0?'Mohon segera melakukan pembayaran.':'Alhamdulillah, tagihan lunas.'}\n\nWassalamu'alaikum Wr. Wb.\n\n_${adminName}_`;
+  } else if (template === 'reminder') {
+    const belumBayarItems = DB.jenisBayar.filter(jb => !txSiswa.some(t => t.jenisId === jb.id));
+    const belumBayarList = belumBayarItems.map(jb => `❌ ${jb.nama}: ${formatRupiah(jb.nominal)}`).join('\n');
+    const totalBelum = belumBayarItems.reduce((s,jb) => s+jb.nominal, 0);
+    return `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nKami ingatkan tagihan ${siswa.nama} (${getKelasText(siswa.kelas)}) yang belum diselesaikan:\n\n` +
+      (belumBayarList ? belumBayarList : 'Semua tagihan sudah lunas.') +
+      `\n\nTotal belum dibayar: ${formatRupiah(totalBelum)}\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
+  } else if (template === 'lunas') {
+    const itemList = txSiswa.map(t => `✅ ${t.jenisNama}: ${formatRupiah(t.nominal)}`).join('\n');
+    const totalBayar = txSiswa.reduce((s,t) => s+t.nominal, 0);
+    return `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nAlhamdulillah, pembayaran ${siswa.nama} telah LUNAS:\n\n${itemList}\n\nTotal dibayar: ${formatRupiah(totalBayar)}\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
+  } else if (template === 'stapor') {
+    return `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nMohon kesediaan menandatangani STAPOR untuk ${siswa.nama}.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
+  }
+  return '';
 }
 
 function kirimWaSemua() {
@@ -1293,22 +1402,27 @@ function renderUserTable() {
 
 async function handleUserForm(e) {
   e.preventDefault();
-  const editId = document.getElementById('userEditId').value;
-  const data = {
-    username: document.getElementById('userUsername').value,
-    nama: document.getElementById('userNama').value,
-    password: document.getElementById('userPassword').value,
-    role: document.getElementById('userRole').value
-  };
-  if (editId) {
-    await api(`/users/${editId}`, { method: 'PUT', body: { ...data, status: 'aktif' } });
-  } else {
-    await api('/users', { method: 'POST', body: data });
-  }
-  DB.users = await api('/users');
-  closeModal('userModal');
-  renderUserTable();
-  renderChangePasswordSelect();
+  const btn = e.target.querySelector('button[type="submit"]');
+  setBtnLoading(btn, true);
+  try {
+    const editId = document.getElementById('userEditId').value;
+    const data = {
+      username: document.getElementById('userUsername').value,
+      nama: document.getElementById('userNama').value,
+      password: document.getElementById('userPassword').value,
+      role: document.getElementById('userRole').value
+    };
+    if (editId) {
+      await api(`/users/${editId}`, { method: 'PUT', body: { ...data, status: 'aktif' } });
+    } else {
+      await api('/users', { method: 'POST', body: data });
+    }
+    DB.users = await api('/users');
+    closeModal('userModal');
+    renderUserTable();
+    renderChangePasswordSelect();
+  } catch (e) { alert('Gagal menyimpan user: ' + e.message); }
+  finally { setBtnLoading(btn, false); }
 }
 
 function editUser(id) {
@@ -1403,21 +1517,27 @@ function loadProfil() {
 
 async function handleProfilForm(e) {
   e.preventDefault();
-  const data = {
-    namaSekolah: document.getElementById('profilNamaSekolah').value,
-    npsn: document.getElementById('profilNPSN').value,
-    alamat: document.getElementById('profilAlamat').value,
-    telp: document.getElementById('profilTelp').value,
-    email: document.getElementById('profilEmail').value,
-    kepsek: document.getElementById('profilKepsek').value,
-    bendahara: document.getElementById('profilBendahara').value,
-    noHpAdmin: document.getElementById('profilNoHpAdmin').value,
-    noHpBendahara: document.getElementById('profilNoHpBendahara').value,
-    namaAdmin: document.getElementById('profilNamaAdmin').value
-  };
-  await api('/profil', { method: 'PUT', body: data });
-  DB.profil = data;
-  alert('Profil berhasil disimpan!');
+  const btn = e.target.querySelector('button[type="submit"]');
+  setBtnLoading(btn, true);
+  try {
+    const data = {
+      namaSekolah: document.getElementById('profilNamaSekolah').value,
+      npsn: document.getElementById('profilNPSN').value,
+      alamat: document.getElementById('profilAlamat').value,
+      telp: document.getElementById('profilTelp').value,
+      email: document.getElementById('profilEmail').value,
+      kepsek: document.getElementById('profilKepsek').value,
+      bendahara: document.getElementById('profilBendahara').value,
+      noHpAdmin: document.getElementById('profilNoHpAdmin').value,
+      noHpBendahara: document.getElementById('profilNoHpBendahara').value,
+      namaAdmin: document.getElementById('profilNamaAdmin').value
+    };
+    await api('/profil', { method: 'PUT', body: data });
+    DB.profil = data;
+    alert('Profil berhasil disimpan!');
+  } catch (e) { alert('Gagal menyimpan profil: ' + e.message); }
+  finally { setBtnLoading(btn, false); }
+}
 }
 
 // ===== START =====

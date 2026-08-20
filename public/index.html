@@ -595,10 +595,12 @@
                 <div class="card-body">
                     <div class="whatsapp-form">
                         <div class="form-group">
-                            <label>Pilih Siswa</label>
-                            <select id="waSiswa">
-                                <option value="">-- Pilih Siswa --</option>
-                            </select>
+                            <label>Pilih Siswa <small id="waSelectedCount" style="color:var(--accent);"></small></label>
+                            <div style="display:flex;gap:6px;margin-bottom:6px;">
+                                <button type="button" class="btn btn-sm btn-info" onclick="toggleAllWaSiswa(true)"><i class="fas fa-check-double"></i> Pilih Semua</button>
+                                <button type="button" class="btn btn-sm btn-secondary" onclick="toggleAllWaSiswa(false)"><i class="fas fa-times"></i> Hapus Pilihan</button>
+                            </div>
+                            <div id="waSiswaList" style="border:1px solid var(--border);border-radius:var(--radius);max-height:180px;overflow-y:auto;padding:6px;"></div>
                         </div>
                         <div class="form-group">
                             <label>Template Pesan</label>
@@ -614,8 +616,8 @@
                             <textarea id="waPreview" rows="10" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-family:inherit;font-size:13px;resize:vertical;"></textarea>
                         </div>
                         <div class="form-actions">
-                            <button class="btn btn-whatsapp" onclick="kirimWaIndividu()">
-                                <i class="fab fa-whatsapp"></i> Kirim ke Siswa Terpilih
+                            <button class="btn btn-whatsapp" onclick="kirimWaTerpilih()">
+                                <i class="fab fa-whatsapp"></i> Kirim ke yang Dipilih
                             </button>
                             <button class="btn btn-whatsapp" onclick="kirimWaSemua()">
                                 <i class="fab fa-whatsapp"></i> Kirim ke Semua (Belum Bayar)

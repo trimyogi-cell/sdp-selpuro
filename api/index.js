@@ -41,34 +41,42 @@ async function loadDatabase() {
   saveQueue = null;
   const content = Buffer.from(JSON.stringify(payload, null, 2), 'utf8').toString('base64');
   const body = { message: 'Auto-save data', content, sha: dbSha || undefined };
-  try {
-    const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': 'token ' + GITHUB_TOKEN,
-        'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'sdp-selpuro'
-      },
-      body: JSON.stringify(body)
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      console.error('GitHub save failed:', res.status, err.message || '');
-      if (res.status === 409) {
-        dbSha = null;
-        dbCache = null;
-        const fresh = await loadDatabase();
-        for (const k of Object.keys(payload)) fresh[k] = structuredClone(payload[k]);
-        saveQueue = fresh;
-        await flushSave();
+  let lastErr = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`, {
+        method: 'PUT',
+        headers: { 'Authorization': 'token ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'sdp-selpuro' },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(15000)
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        if (res.status === 409) {
+          dbSha = null;
+          dbCache = null;
+          const fresh = await loadDatabase();
+          for (const k of Object.keys(payload)) fresh[k] = structuredClone(payload[k]);
+          saveQueue = fresh;
+          await flushSave();
+          return;
+        }
+        lastErr = new Error('GitHub save failed: ' + res.status + ' ' + (err.message || ''));
+        console.error(lastErr.message);
+        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+        continue;
       }
-    } else {
       const data = await res.json();
       dbSha = data.content.sha;
+      return;
+    } catch (e) {
+      lastErr = e;
+      console.error('GitHub save attempt ' + (attempt + 1) + ' failed:', e.message);
+      await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
     }
-  } catch (e) {
-    console.error('GitHub save exception:', e.message);
   }
+  saveQueue = payload;
+  throw lastErr;
 }
 
 async function loadTable(key) {
@@ -82,14 +90,10 @@ async function loadTable(key) {
 }
 
 async function saveTable(key, value) {
-  try {
-    const db = await loadDatabase();
-    db[key] = structuredClone(value);
-    saveQueue = db;
-    await flushSave();
-  } catch (e) {
-    console.error('Save exception [' + key + ']:', e.message);
-  }
+  const db = await loadDatabase();
+  db[key] = structuredClone(value);
+  saveQueue = db;
+  await flushSave();
 }
 
 const DEFAULTS = {
