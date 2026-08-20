@@ -168,7 +168,7 @@
     {
       "id": 1,
       "username": "admin",
-      "password": "de58e4015cf1d638d922c46b7cf0cba9:02f9224ce69898bb7c226eaf73e0d0bc707fc24087d8961f9220df06f2d552dd89e13a8d1a095c2d6f340714e2e0a8988a3d6d6d321c900270885183c9786107",
+      "password": "ed6110018211e4e9af0788d6871c09c6:4629b3db58b901a8ed3f076f01bb420ce400b61484be53f94b85ec4ad957a94cbdedb333f51cd49bf896e3af8b0aec3c6b09603fd5832dadc8c2750c10e72495",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -176,7 +176,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "0e1d12067a4273bd87b4435967951288:9bc5908c9f6ca9c8a59b19739ec79dca91bc939bbf457b5d64759bba609cdbdebb4e1e38366beaec2187d69fa056b5b68ee31da34f8553d76d013caec5f63a01",
+      "password": "007079f0daaebb670a5595b7951778e0:29ebccc93cf5eb71786148bb1c2da1954bed304cb1a3f771c1ce6da33f33acea5691cb480838204700ab994d839da15bfc2ad4692bdbbf2557dd85e812203048",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
@@ -215,15 +215,6 @@
       "kode": "LKS",
       "nama": "SENI RUPA",
       "kategori": "Aktivitas",
-      "nominal": 12000,
-      "tahun": "2026",
-      "kelas": "3"
-    },
-    {
-      "id": 5,
-      "kode": "LKS",
-      "nama": "PJOK",
-      "kategori": "LKS",
       "nominal": 12000,
       "tahun": "2026",
       "kelas": "3"
