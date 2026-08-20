@@ -1027,6 +1027,13 @@ body {
     flex-wrap: wrap;
 }
 
+#waGroupSection {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+}
+
 /* ===== DETAIL ===== */
 .detail-content {
     padding: 20px;

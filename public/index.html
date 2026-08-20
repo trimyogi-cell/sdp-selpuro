@@ -612,6 +612,7 @@
                                 <option value="tagihan">Tagihan Pembayaran</option>
                                 <option value="reminder">Pengingat Pembayaran</option>
                                 <option value="lunas">Konfirmasi Lunas</option>
+                                <option value="rincian">Rincian Biaya & Harga</option>
                                 <option value="stapor">Stapor (Surat Pernyataan)</option>
                             </select>
                         </div>
@@ -626,9 +627,15 @@
                             <button class="btn btn-whatsapp" onclick="kirimWaSemua()">
                                 <i class="fab fa-whatsapp"></i> Kirim ke Semua (Belum Bayar)
                             </button>
-                            <button class="btn btn-primary" onclick="kirimWaGrup()">
-                                <i class="fas fa-users"></i> Kirim ke Grup Wali Kelas
-                            </button>
+                        </div>
+                        <div id="waGroupSection" style="display:none;margin-top:12px;">
+                            <label style="font-weight:600;font-size:14px;margin-bottom:8px;display:block;"><i class="fas fa-users"></i> Kirim ke Grup Kelas</label>
+                            <div id="waGroupButtons" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+                            <div style="margin-top:8px;">
+                                <button class="btn btn-primary btn-sm" onclick="kirimWaSemuaGrup()">
+                                    <i class="fas fa-paper-plane"></i> Kirim ke Semua Grup Kelas
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="card" style="margin-top:20px;">

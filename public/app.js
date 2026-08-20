@@ -1283,6 +1283,18 @@ function previewWaMessage() {
     const totalBayar = txSiswa.reduce((s,t) => s+t.nominal, 0);
     msg = `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nAlhamdulillah, pembayaran ${siswa.nama} telah LUNAS:\n\n${itemList}\n\nTotal dibayar: ${formatRupiah(totalBayar)}\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
     if (selected.length > 1) msg += `\n\n⚠️ Preview ini untuk "${siswa.nama}". Pesan akan otomatis disesuaikan untuk ${selected.length - 1} siswa lainnya.`;
+  } else if (template === 'rincian' && siswa) {
+    const txSiswa = DB.transaksi.filter(t => t.siswaId === siswa.id);
+    const totalBayar = txSiswa.reduce((s,t) => s+t.nominal, 0);
+    const totalTagihan = DB.jenisBayar.reduce((s,jb) => s+jb.nominal, 0);
+    const sisa = totalTagihan - totalBayar;
+    const itemList = DB.jenisBayar.map(jb => {
+      const tx = txSiswa.find(t => t.jenisId === jb.id);
+      const status = tx ? `✅ Sudah bayar` : `❌ Belum bayar`;
+      return `• ${jb.nama}\n  Harga: ${formatRupiah(jb.nominal)}\n  Status: ${status}`;
+    }).join('\n\n');
+    msg = `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nAssalamu'alaikum Wr. Wb.\n\nBerikut rincian biaya ${siswa.nama} (${getKelasText(siswa.kelas)}):\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n${itemList}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n💰 Total tagihan: ${formatRupiah(totalTagihan)}\n✅ Total dibayar: ${formatRupiah(totalBayar)}\n📋 Sisa: ${formatRupiah(sisa>0?sisa:0)}\n\n${sisa>0?'Mohon segera melakukan pembayaran.':'Alhamdulillah, tagihan lunas.'}\n\nWassalamu'alaikum Wr. Wb.\n\n_${adminName}_`;
+    if (selected.length > 1) msg += `\n\n⚠️ Preview ini untuk "${siswa.nama}". Pesan akan otomatis disesuaikan untuk ${selected.length - 1} siswa lainnya.`;
   } else if (template === 'stapor' && siswa) {
     msg = `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nMohon kesediaan menandatangani STAPOR untuk ${siswa.nama}.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
     if (selected.length > 1) msg += `\n\n⚠️ Preview ini untuk "${siswa.nama}". Pesan akan otomatis disesuaikan untuk ${selected.length - 1} siswa lainnya.`;
@@ -1290,6 +1302,7 @@ function previewWaMessage() {
     msg = selected.length ? 'Pilih template pesan.' : 'Pilih minimal satu siswa.';
   }
   document.getElementById('waPreview').value = msg;
+  updateWaGroupButtons();
 }
 
 function openWaChat(phone, message) {
@@ -1347,6 +1360,16 @@ function buildWaMessage(template, siswa, adminName) {
     const itemList = txSiswa.map(t => `✅ ${t.jenisNama}: ${formatRupiah(t.nominal)}`).join('\n');
     const totalBayar = txSiswa.reduce((s,t) => s+t.nominal, 0);
     return `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nAlhamdulillah, pembayaran ${siswa.nama} telah LUNAS:\n\n${itemList}\n\nTotal dibayar: ${formatRupiah(totalBayar)}\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
+  } else if (template === 'rincian') {
+    const totalBayar = txSiswa.reduce((s,t) => s+t.nominal, 0);
+    const totalTagihan = DB.jenisBayar.reduce((s,jb) => s+jb.nominal, 0);
+    const sisa = totalTagihan - totalBayar;
+    const itemList = DB.jenisBayar.map(jb => {
+      const tx = txSiswa.find(t => t.jenisId === jb.id);
+      const status = tx ? `✅ Sudah bayar` : `❌ Belum bayar`;
+      return `• ${jb.nama}\n  Harga: ${formatRupiah(jb.nominal)}\n  Status: ${status}`;
+    }).join('\n\n');
+    return `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nAssalamu'alaikum Wr. Wb.\n\nBerikut rincian biaya ${siswa.nama} (${getKelasText(siswa.kelas)}):\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n${itemList}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n💰 Total tagihan: ${formatRupiah(totalTagihan)}\n✅ Total dibayar: ${formatRupiah(totalBayar)}\n📋 Sisa: ${formatRupiah(sisa>0?sisa:0)}\n\n${sisa>0?'Mohon segera melakukan pembayaran.':'Alhamdulillah, tagihan lunas.'}\n\nWassalamu'alaikum Wr. Wb.\n\n_${adminName}_`;
   } else if (template === 'stapor') {
     return `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nMohon kesediaan menandatangani STAPOR untuk ${siswa.nama}.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
   }
@@ -1375,17 +1398,74 @@ function kirimWaSemua() {
   alert(`Membuka ${count} chat WhatsApp.`);
 }
 
+function updateWaGroupButtons() {
+  const selected = getSelectedWaSiswa();
+  const section = document.getElementById('waGroupSection');
+  const container = document.getElementById('waGroupButtons');
+  if (!selected.length) { section.style.display = 'none'; return; }
+  const kelasSet = [...new Set(selected.map(s => s.kelas).filter(Boolean))].sort();
+  if (!kelasSet.length) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  container.innerHTML = kelasSet.map(k => {
+    const count = selected.filter(s => s.kelas === k).length;
+    return `<button class="btn btn-primary btn-sm" onclick="kirimWaGrupKelas('${esc(k)}')">
+      <i class="fas fa-users"></i> Kelas ${esc(k)} (${count} siswa)
+    </button>`;
+  }).join('');
+}
+
+function buildGrupMessage(kelas, template, adminName) {
+  const kelasSiswa = DB.siswa.filter(s => s.kelas === kelas);
+  const totalSiswa = kelasSiswa.length;
+  const listTagihan = kelasSiswa.map(s => {
+    const txSiswa = DB.transaksi.filter(t => t.siswaId === s.id);
+    const totalBayar = txSiswa.reduce((acc, t) => acc + t.nominal, 0);
+    const totalTagihan = DB.jenisBayar.reduce((acc, jb) => acc + jb.nominal, 0);
+    const sisa = totalTagihan - totalBayar;
+    const status = sisa <= 0 ? '✅ Lunas' : `❌ Sisa ${formatRupiah(sisa)}`;
+    return `${s.nama}: ${status}`;
+  }).join('\n');
+  const lunas = kelasSiswa.filter(s => {
+    const txSiswa = DB.transaksi.filter(t => t.siswaId === s.id);
+    const totalBayar = txSiswa.reduce((acc, t) => acc + t.nominal, 0);
+    const totalTagihan = DB.jenisBayar.reduce((acc, jb) => acc + jb.nominal, 0);
+    return totalTagihan - totalBayar <= 0;
+  }).length;
+  const belumLunas = totalSiswa - lunas;
+  return `Assalamu'alaikum Wr. Wb.\n\nYth. Bapak/Ibu Wali Murid ${getKelasText(kelas)},\n\nBerikut rekap pembayaran ${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}:\n\n━━━━━━━━━━━━━━━━━━━━\n📚 ${getKelasText(kelas)} (${totalSiswa} siswa)\n━━━━━━━━━━━━━━━━━━━━\n\n${listTagihan}\n\n📊 Ringkasan:\n✅ Lunas: ${lunas} siswa\n❌ Belum lunas: ${belumLunas} siswa\n\n${belumLunas > 0 ? 'Mohon yang belum lunas untuk segera menyelesaikan pembayaran.' : 'Alhamdulillah, semua tagihan sudah lunas.'}\n\nWassalamu'alaikum Wr. Wb.\n\n_${adminName}_`;
+}
+
+function kirimWaGrupKelas(kelas) {
+  const adminName = DB.profil.bendahara || DB.profil.kepsek || 'Admin';
+  const template = document.getElementById('waTemplate').value;
+  const msg = buildGrupMessage(kelas, template, adminName);
+  openWaChat('', msg);
+  logWaRiwayat(`Grup Kelas ${kelas}`, '', 'Grup Kelas', msg);
+  alert(`Pesan untuk Grup Kelas ${kelas} siap dikirim.\nPilih grup WhatsApp yang sesuai di aplikasi WhatsApp.`);
+}
+
+function kirimWaSemuaGrup() {
+  const selected = getSelectedWaSiswa();
+  if (!selected.length) return alert('Pilih minimal satu siswa!');
+  const kelasSet = [...new Set(selected.map(s => s.kelas).filter(Boolean))].sort();
+  if (!kelasSet.length) return alert('Tidak ada siswa dengan data kelas!');
+  const adminName = DB.profil.bendahara || DB.profil.kepsek || 'Admin';
+  let count = 0;
+  kelasSet.forEach((k, idx) => {
+    const msg = buildGrupMessage(k, 'tagihan', adminName);
+    setTimeout(() => {
+      openWaChat('', msg);
+      logWaRiwayat(`Grup Kelas ${k}`, '', 'Grup Kelas', msg);
+    }, idx * 500);
+    count++;
+  });
+  alert(`Membuka ${count} pesan untuk Grup Kelas.\nPilih grup WhatsApp yang sesuai di aplikasi WhatsApp.`);
+}
+
 function kirimWaGrup() {
   const adminName = DB.profil.bendahara || DB.profil.kepsek || 'Admin';
   const msg = `Assalamu'alaikum Wr. Wb.\n\nYth. Bapak/Ibu Wali Kelas,\n\nMohon informasikan tagihan LKS, Aktivitas & Iuran.\n\n${DB.profil.namaSekolah||'SDN 1 Selopuro'}\n_${adminName}_`;
-  const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
-  const a = document.createElement('a');
-  a.href = url;
-  a.target = '_blank';
-  a.rel = 'noopener noreferrer';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  openWaChat('', msg);
   logWaRiwayat('Grup Wali Kelas', '', 'Grup', msg);
 }
 
