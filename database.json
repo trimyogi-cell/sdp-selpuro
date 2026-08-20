@@ -151,7 +151,17 @@
       "alamat": ""
     }
   ],
-  "riwayatWa": [],
+  "riwayatWa": [
+    {
+      "id": 1,
+      "tanggal": "20/8/2026 13.50.20",
+      "penerima": "Grup Wali Kelas",
+      "noHp": "",
+      "jenis": "Grup",
+      "status": "Terkirim",
+      "pesan": "Assalamu'alaikum Wr. Wb.\n\nYth. Bapak/Ibu Wali Kelas,\n\nMohon informasikan tagihan LKS, Aktivitas & Iuran.\n\nSD Negeri 1 Selopuro\n_Pujiarti., S.pd. SD_"
+    }
+  ],
   "profil": {
     "alamat": "Jl. Narasoma No. 1, Lingkungan Pendem, Kelurahan Selopuro",
     "bendahara": "Pujiarti., S.pd. SD",
