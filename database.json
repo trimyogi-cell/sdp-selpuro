@@ -9,16 +9,6 @@
       "orangTua": "WALI AALIYA SAYYIDAH NAFISAH",
       "noHp": "+62 895-3119-9322",
       "alamat": ""
-    },
-    {
-      "id": 2,
-      "nis": "1549",
-      "nama": "ADINDA AULIA AZZAHRA",
-      "kelas": "3",
-      "angkatan": "2026-2027",
-      "orangTua": "WALI ADINDA AULIA AZZAHRA",
-      "noHp": "+62 821-3328-8310",
-      "alamat": ""
     }
   ],
   "riwayatWa": [],
@@ -35,18 +25,18 @@
   "users": [
     {
       "id": 1,
-      "password": "165fe6c394d869e682ede00a67f3b353:3d5bab62c009d2abd3ba2e4fb5df2446efb230af806361c279bf54e020ed6cec3956e9edea95fe0d4dc52db13d88f0a6fe548b25c71d1ed043a652aaa2bf2c19",
       "username": "admin",
-      "role": "admin",
+      "password": "458392a1f3e508fe95664cf81857ebb8:4c6499317fb5ff4e7be2a03c957f6dc72047426e8f2c319f47901ca392cc4a4a6c3b5619d234e4e35253f4e8d310f9f20edc7e736cbb4566da5b67e7891fb9a9",
       "nama": "Administrator",
+      "role": "admin",
       "status": "aktif"
     },
     {
       "id": 2,
-      "password": "bafa806fba23fea2af148a85b3f045d7:1c845fc47c14ab802c8fe7ecd496528e36da3c37c68379a0582bbd22159bafa1fe9d5fb5c1a44a1ebde3616947cc8dc65c069faad85fa531ec2466c4a6d5c9e6",
       "username": "operator",
-      "role": "operator",
+      "password": "9e54b09ef064c1009deba638a7d3e8b5:e97717dba624c42eed49d9aeec4cf27c785fd0acac34d29cc1a8e3f522bc8f857f71ee1004240a2fd8fd921acd4ab6cc6bdb9408c873ef17bfd3fcb947c1e928",
       "nama": "Operator",
+      "role": "operator",
       "status": "aktif"
     }
   ],
