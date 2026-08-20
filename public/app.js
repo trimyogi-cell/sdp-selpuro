@@ -1155,18 +1155,76 @@ function printLaporan(type) {
 // ===== WHATSAPP =====
 function populateWaSiswa() {
   const container = document.getElementById('waSiswaList');
-  container.innerHTML = DB.siswa.map(s =>
-    `<label style="display:flex;align-items:center;gap:8px;padding:5px 8px;cursor:pointer;border-radius:4px;transition:background 0.15s;" onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background='transparent'">
-      <input type="checkbox" class="wa-siswa-check" value="${s.id}" onchange="updateWaSelectedCount();previewWaMessage()">
-      <span><strong>${esc(s.nama)}</strong> <small style="color:var(--text-light);">(${esc(s.kelas)}) - ${esc(s.orangTua)||''} ${esc(s.noHp)||''}</small></span>
-    </label>`
-  ).join('');
+  const siswa = DB.siswa || [];
+  const kelasMap = {};
+  siswa.forEach(s => {
+    const k = s.kelas || 'Lainnya';
+    if (!kelasMap[k]) kelasMap[k] = [];
+    kelasMap[k].push(s);
+  });
+  const kelasKeys = Object.keys(kelasMap).sort((a, b) => {
+    const na = parseInt(a), nb = parseInt(b);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    return a.localeCompare(b);
+  });
+  container.innerHTML = kelasKeys.map(k => {
+    const list = kelasMap[k];
+    const withPhone = list.filter(s => s.noHp && s.noHp.trim()).length;
+    return `<div class="wa-kelas-group" data-kelas="${esc(k)}">
+      <div class="wa-kelas-header" onclick="toggleWaKelasGroup(this)">
+        <input type="checkbox" class="wa-kelas-check" data-kelas="${esc(k)}" onclick="event.stopPropagation();toggleWaKelasAll('${esc(k)}',this.checked)">
+        <span class="wa-kelas-label">
+          <i class="fas fa-chalkboard"></i> ${esc(k)}
+          <span class="wa-kelas-badge">${list.length} siswa</span>
+        </span>
+        <span class="wa-kelas-info" style="font-size:11px;color:var(--text-light);font-weight:400;">${withPhone}/${list.length} punya HP</span>
+        <span class="wa-kelas-toggle"><i class="fas fa-chevron-down"></i></span>
+      </div>
+      <div class="wa-kelas-body">${list.map(s => {
+        const hasPhone = s.noHp && s.noHp.trim();
+        return `<label class="wa-siswa-item" data-nama="${esc((s.nama||'').toLowerCase())}" data-kelas="${esc((s.kelas||'').toLowerCase())}" data-ortu="${esc((s.orangTua||'').toLowerCase())}">
+          <input type="checkbox" class="wa-siswa-check" value="${s.id}" onchange="updateWaSelectedCount();previewWaMessage()">
+          <span class="wa-siswa-info">
+            <div class="wa-siswa-nama">${esc(s.nama)}</div>
+            <div class="wa-siswa-detail">${esc(s.orangTua||'')} ${s.noHp ? '&bull; ' + esc(s.noHp) : ''}</div>
+          </span>
+          <span class="wa-siswa-phone ${hasPhone ? 'has-phone' : 'no-phone'}">${hasPhone ? '<i class=\"fas fa-phone\"></i> ' + esc(s.noHp) : '<i class=\"fas fa-phone-slash\"></i> No HP'}</span>
+        </label>`;
+      }).join('')}</div>
+    </div>`;
+  }).join('');
+  updateWaSelectedCount();
+  previewWaMessage();
+}
+
+function filterWaSiswa() {
+  const q = (document.getElementById('waSearchSiswa').value || '').toLowerCase().trim();
+  document.querySelectorAll('.wa-siswa-item').forEach(el => {
+    const nama = el.getAttribute('data-nama') || '';
+    const kelas = el.getAttribute('data-kelas') || '';
+    const ortu = el.getAttribute('data-ortu') || '';
+    el.style.display = (!q || nama.includes(q) || kelas.includes(q) || ortu.includes(q)) ? '' : 'none';
+  });
+}
+
+function toggleWaKelasGroup(header) {
+  const body = header.nextElementSibling;
+  const icon = header.querySelector('.wa-kelas-toggle');
+  body.classList.toggle('collapsed');
+  icon.classList.toggle('collapsed');
+}
+
+function toggleWaKelasAll(kelas, checked) {
+  const group = document.querySelector(`.wa-kelas-group[data-kelas="${CSS.escape(kelas)}"]`);
+  if (!group) return;
+  group.querySelectorAll('.wa-siswa-check').forEach(cb => cb.checked = checked);
   updateWaSelectedCount();
   previewWaMessage();
 }
 
 function toggleAllWaSiswa(checked) {
   document.querySelectorAll('.wa-siswa-check').forEach(cb => { cb.checked = checked; });
+  document.querySelectorAll('.wa-kelas-check').forEach(cb => { cb.checked = checked; });
   updateWaSelectedCount();
   previewWaMessage();
 }
@@ -1178,8 +1236,16 @@ function getSelectedWaSiswa() {
 
 function updateWaSelectedCount() {
   const count = document.querySelectorAll('.wa-siswa-check:checked').length;
+  const total = document.querySelectorAll('.wa-siswa-check').length;
   const el = document.getElementById('waSelectedCount');
-  el.textContent = count ? `(${count} dipilih)` : '';
+  el.textContent = count ? `(${count}/${total} dipilih)` : '';
+  document.querySelectorAll('.wa-kelas-group').forEach(group => {
+    const all = group.querySelectorAll('.wa-siswa-check').length;
+    const checked = group.querySelectorAll('.wa-siswa-check:checked').length;
+    const cb = group.querySelector('.wa-kelas-check');
+    if (cb) cb.checked = all > 0 && checked === all;
+    cb && (cb.indeterminate = checked > 0 && checked < all);
+  });
 }
 
 function previewWaMessage() {

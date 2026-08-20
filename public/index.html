@@ -595,12 +595,16 @@
                 <div class="card-body">
                     <div class="whatsapp-form">
                         <div class="form-group">
-                            <label>Pilih Siswa <small id="waSelectedCount" style="color:var(--accent);"></small></label>
-                            <div style="display:flex;gap:6px;margin-bottom:6px;">
-                                <button type="button" class="btn btn-sm btn-info" onclick="toggleAllWaSiswa(true)"><i class="fas fa-check-double"></i> Pilih Semua</button>
-                                <button type="button" class="btn btn-sm btn-secondary" onclick="toggleAllWaSiswa(false)"><i class="fas fa-times"></i> Hapus Pilihan</button>
+                            <label>Pilih Siswa <small id="waSelectedCount" style="color:var(--accent);font-weight:400;"></small></label>
+                            <div class="wa-siswa-toolbar">
+                                <div class="wa-search-wrap">
+                                    <i class="fas fa-search" style="color:var(--text-light);"></i>
+                                    <input type="text" id="waSearchSiswa" placeholder="Cari nama / kelas / orang tua..." oninput="filterWaSiswa()">
+                                </div>
+                                <button type="button" class="btn btn-sm btn-info" onclick="toggleAllWaSiswa(true)"><i class="fas fa-check-double"></i> Semua</button>
+                                <button type="button" class="btn btn-sm btn-secondary" onclick="toggleAllWaSiswa(false)"><i class="fas fa-times"></i> Hapus</button>
                             </div>
-                            <div id="waSiswaList" style="border:1px solid var(--border);border-radius:var(--radius);max-height:180px;overflow-y:auto;padding:6px;"></div>
+                            <div id="waSiswaList" class="wa-siswa-list"></div>
                         </div>
                         <div class="form-group">
                             <label>Template Pesan</label>
