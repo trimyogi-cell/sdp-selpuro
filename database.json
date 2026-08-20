@@ -29,6 +29,16 @@
       "orangTua": "WALI ARSYAD KHOIRUL AZZAM",
       "noHp": "+62 851-2486-3530",
       "alamat": ""
+    },
+    {
+      "id": 4,
+      "nis": "1549",
+      "nama": "ADINDA AULIA AZZAHRA",
+      "kelas": "3",
+      "angkatan": "2026-2027",
+      "orangTua": "WALI ADINDA AULIA AZZAHRA",
+      "noHp": "+62 821-3328-8310",
+      "alamat": ""
     }
   ],
   "riwayatWa": [],
@@ -46,7 +56,7 @@
     {
       "id": 1,
       "username": "admin",
-      "password": "f892e04941778072f2106cccd2f7b90e:0d8c6d6d2842ae186b37240762a3c70d80b6b3388fd87bc002ca2e7dba2df2fce0343d92a4d63fdfbc5c197387bf964ac33ed1a7e5a5b5076467788ddf87066d",
+      "password": "458392a1f3e508fe95664cf81857ebb8:4c6499317fb5ff4e7be2a03c957f6dc72047426e8f2c319f47901ca392cc4a4a6c3b5619d234e4e35253f4e8d310f9f20edc7e736cbb4566da5b67e7891fb9a9",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -54,7 +64,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "91d47ad0c3ebaeb56e5e5d7008210991:160d64e4c7ee3d6492a203daf6df3c50a29e1be34958e3a2c8a5cf57b6e1d4f4bcab2c1ef791f5d440c2b69186eeee9e40f0e9f056e72f811cb25e15362bf1eb",
+      "password": "9e54b09ef064c1009deba638a7d3e8b5:e97717dba624c42eed49d9aeec4cf27c785fd0acac34d29cc1a8e3f522bc8f857f71ee1004240a2fd8fd921acd4ab6cc6bdb9408c873ef17bfd3fcb947c1e928",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
