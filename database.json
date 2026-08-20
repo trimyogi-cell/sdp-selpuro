@@ -209,6 +209,15 @@
       "nominal": 12000,
       "tahun": "2026",
       "kelas": "3"
+    },
+    {
+      "id": 4,
+      "kode": "LKS",
+      "nama": "SENI RUPA",
+      "kategori": "Aktivitas",
+      "nominal": 12000,
+      "tahun": "2026",
+      "kelas": "3"
     }
   ],
   "transaksi": []
