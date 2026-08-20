@@ -1194,6 +1194,7 @@ function populateWaSiswa() {
     </div>`;
   }).join('');
   updateWaSelectedCount();
+  updateWaGroupButtons();
   previewWaMessage();
 }
 
@@ -1431,15 +1432,13 @@ function kirimWaSemua() {
 }
 
 function updateWaGroupButtons() {
-  const selected = getSelectedWaSiswa();
   const section = document.getElementById('waGroupSection');
   const container = document.getElementById('waGroupButtons');
-  if (!selected.length) { section.style.display = 'none'; return; }
-  const kelasSet = [...new Set(selected.map(s => s.kelas).filter(Boolean))].sort();
-  if (!kelasSet.length) { section.style.display = 'none'; return; }
+  const allKelas = [...new Set(DB.siswa.map(s => s.kelas).filter(Boolean))].sort((a,b) => parseInt(a) - parseInt(b));
+  if (!allKelas.length) { section.style.display = 'none'; return; }
   section.style.display = '';
-  container.innerHTML = kelasSet.map(k => {
-    const count = selected.filter(s => s.kelas === k).length;
+  container.innerHTML = allKelas.map(k => {
+    const count = DB.siswa.filter(s => s.kelas === k).length;
     return `<button class="btn btn-primary btn-sm" onclick="kirimWaGrupKelas('${esc(k)}')">
       <i class="fas fa-users"></i> Kelas ${esc(k)} (${count} siswa)
     </button>`;
@@ -1477,13 +1476,11 @@ function kirimWaGrupKelas(kelas) {
 }
 
 function kirimWaSemuaGrup() {
-  const selected = getSelectedWaSiswa();
-  if (!selected.length) return alert('Pilih minimal satu siswa!');
-  const kelasSet = [...new Set(selected.map(s => s.kelas).filter(Boolean))].sort();
-  if (!kelasSet.length) return alert('Tidak ada siswa dengan data kelas!');
+  const allKelas = [...new Set(DB.siswa.map(s => s.kelas).filter(Boolean))].sort((a,b) => parseInt(a) - parseInt(b));
+  if (!allKelas.length) return alert('Tidak ada data siswa dengan kelas!');
   const adminName = DB.profil.bendahara || DB.profil.kepsek || 'Admin';
   let count = 0;
-  kelasSet.forEach((k, idx) => {
+  allKelas.forEach((k, idx) => {
     const msg = buildGrupMessage(k, 'tagihan', adminName);
     setTimeout(() => {
       openWaChat('', msg);
