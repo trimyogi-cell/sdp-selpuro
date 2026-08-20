@@ -109,6 +109,16 @@
       "orangTua": "WALI NOVA VIRGINNISA",
       "noHp": "+62 858-7032-7501",
       "alamat": ""
+    },
+    {
+      "id": 12,
+      "nis": "1559",
+      "nama": "RADITYA RIZKI APRILIANSYAH",
+      "kelas": "3",
+      "angkatan": "2026-2027",
+      "orangTua": "WALI RADITYA RIZKI APRILIANSYAH",
+      "noHp": "+62 851-2279-1124",
+      "alamat": ""
     }
   ],
   "riwayatWa": [],
@@ -126,7 +136,7 @@
     {
       "id": 1,
       "username": "admin",
-      "password": "ea374846af397f33e42abf73a762b01e:0042a9aabb4d168a9d5abba2dbc36d95780050d1d453ee6d4efdf5caac98ea82ec15ba6957f1f829a47f90ac57049766e12ff0fced084d6d8dbd97c7c9aeb4f1",
+      "password": "a89a7ec38775116dba96b7f77770d095:a61195d8b858aceb358d33b788d5479b866bbf3a9ca66b7608333419d57a3d11c04ffccd5be3d30bfa87375178c3d760cf75ac89322bfba4d641992356f8a6be",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -134,7 +144,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "41be0e6f4ea8e144997e18f215a0abc6:9791450042eaa464de6f856aa783e93b383cd1bf51eff65382033138b77b467f5b198eb7159a4a9307667af3fbeb48efaebfe70f83ea8414a7785f2a34d0b122",
+      "password": "9006122ed694c9fbb2fecfbac096b364:c67262b9dd94a8f9d035c519aa9f178a449cb4a9022e61727a1b598be231fd911c796e560a0016fdc0017afde11f464ce230321a1cf050c44140a9c563331095",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
