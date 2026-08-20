@@ -200,6 +200,15 @@
       "nominal": 12000,
       "tahun": "2026",
       "kelas": "3"
+    },
+    {
+      "id": 3,
+      "kode": "LKS",
+      "nama": "BAHASA INGGRIS",
+      "kategori": "LKS",
+      "nominal": 12000,
+      "tahun": "2026",
+      "kelas": "3"
     }
   ],
   "transaksi": []
