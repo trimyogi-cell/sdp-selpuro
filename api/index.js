@@ -235,7 +235,12 @@ async function migratePasswords() {
         changed = true;
       }
     }
-    if (changed) await saveTable('users', users);
+    if (changed) {
+      const db = await loadDatabase();
+      db.users = structuredClone(users);
+      saveQueue = db;
+      flushSave().catch(e => console.error('Migration save failed:', e.message));
+    }
   } catch (e) { console.error('Password migration error:', e.message); }
 }
 migratePasswords();

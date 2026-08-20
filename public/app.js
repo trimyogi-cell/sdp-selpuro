@@ -11,18 +11,23 @@ async function api(url, opts = {}) {
   const headers = { 'Content-Type': 'application/json' };
   if (authToken) headers['x-auth-token'] = authToken;
   const isWrite = opts.method && opts.method !== 'GET';
+  const noRetry = url.includes('/login') || url.includes('/change-password');
   let lastErr;
-  for (let attempt = 0; attempt < (isWrite ? 2 : 1); attempt++) {
+  for (let attempt = 0; attempt < (isWrite && !noRetry ? 2 : 1); attempt++) {
     try {
       const res = await fetch(API + url, { ...opts, headers, body: opts.body ? JSON.stringify(opts.body) : undefined });
       if (res.status === 401) {
-        authToken = null;
-        localStorage.removeItem('sdp_token');
-        localStorage.removeItem('sdp_user');
-        currentUser = null;
-        document.getElementById('loginPage').classList.remove('hidden');
-        document.getElementById('mainApp').classList.add('hidden');
-        throw new Error('Sesi berakhir');
+        const err = await res.json().catch(() => ({ error: 'Username atau password salah' }));
+        const msg = err.error || 'Username atau password salah';
+        if (url !== '/login') {
+          authToken = null;
+          localStorage.removeItem('sdp_token');
+          localStorage.removeItem('sdp_user');
+          currentUser = null;
+          document.getElementById('loginPage').classList.remove('hidden');
+          document.getElementById('mainApp').classList.add('hidden');
+        }
+        throw new Error(msg);
       }
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: 'Error' }));
@@ -31,7 +36,7 @@ async function api(url, opts = {}) {
       return res.json();
     } catch (e) {
       lastErr = e;
-      if (!isWrite || attempt === 0) throw e;
+      if (!isWrite || noRetry || attempt === 0) throw e;
       await new Promise(r => setTimeout(r, 1500));
     }
   }
