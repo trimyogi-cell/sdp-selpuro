@@ -99,16 +99,6 @@
       "orangTua": "WALI QHAIRA NAILA PUTRI",
       "noHp": "+62 857-0244-2792",
       "alamat": ""
-    },
-    {
-      "id": 11,
-      "nis": "1559",
-      "nama": "RADITYA RIZKI APRILIANSYAH",
-      "kelas": "3",
-      "angkatan": "2026-2027",
-      "orangTua": "WALI RADITYA RIZKI APRILIANSYAH",
-      "noHp": "+62 851-2279-1124",
-      "alamat": ""
     }
   ],
   "riwayatWa": [],
@@ -126,7 +116,7 @@
     {
       "id": 1,
       "username": "admin",
-      "password": "f2eb23d73d96772bc9da0bfbbbb57664:644fc74b88b84eaf915df6d8b5e05088c49ca0cde5f9194ba314ba0f870b742eecb9bc9619639315014a9dc7d057a06c82926d1a59c7e8a20f6079dbcd6ec1a0",
+      "password": "ed90965e564a3e220c2a6affdfd33a71:f66a9620884d44ae03df1a13b54646da62d364dc8eff316292a5f0e0b7eb90092c48fd2a14cea409dd41eced67c4af3477df25060debbac530382de1ee98e87b",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -134,7 +124,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "c7b419361a289ac7154e8ee2b6249c9c:487cbf4ba885f30d6a00a28e42025c40ade4df72a83a5dea6e3e76e3ebf24e3a64043dc0b11e08f765c973c4c519cae3d046a5dc6774b3336737879e3b1e56a8",
+      "password": "b743a57e709a55f9f452b6db46643339:0d547c228126cefd107d3396421a421d82a2d71b4653a8d34cb959e5e400457bea747251a8abac139badcb8e7cb2420dbc51bcac3441866967663785668b8113",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
