@@ -153,7 +153,7 @@
   ],
   "riwayatWa": [],
   "profil": {
-    "alamat": "Jl. Narasoma No. 1, Link. Pendem. Kel Selopuro",
+    "alamat": "Jl. Merdeka No. 1, Desa Selopuro",
     "bendahara": "Admin 1",
     "npsn": "20310868",
     "namaSekolah": "SD Negeri 1 Selopuro",
@@ -161,14 +161,14 @@
     "email": "sdnselopuro@gmail.com",
     "telp": "(0354) 123456",
     "noHpAdmin": "",
-    "namaAdmin": "Admin 2"
+    "namaAdmin": "Admin 1"
   },
   "stor": [],
   "users": [
     {
       "id": 1,
       "username": "admin",
-      "password": "b822d12c8449d132e67c860de1851eb1:bcbf94dd88adef0805461b0d29f8e5647e78c826e6194823d0935e32f4835e4c63abe53bac4b0d24f5fe2a8b747d9a33b9b8fafc225ac14f7ae26e3c5f2d1dbe",
+      "password": "de58e4015cf1d638d922c46b7cf0cba9:02f9224ce69898bb7c226eaf73e0d0bc707fc24087d8961f9220df06f2d552dd89e13a8d1a095c2d6f340714e2e0a8988a3d6d6d321c900270885183c9786107",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -176,7 +176,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "f8862d601d2ee6ec123336b0666c577d:43a7b801270c3fc3c2907a86c562c52aff98dcf7bfb6d3c22156ea97c5274cd61184d93fefbd5014fd10ac09aed929d10226e08eb45e2d6c79f69cd2f91f29e5",
+      "password": "0e1d12067a4273bd87b4435967951288:9bc5908c9f6ca9c8a59b19739ec79dca91bc939bbf457b5d64759bba609cdbdebb4e1e38366beaec2187d69fa056b5b68ee31da34f8553d76d013caec5f63a01",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
