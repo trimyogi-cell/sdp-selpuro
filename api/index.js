@@ -389,12 +389,15 @@ app.get('/api/siswa', async (req, res) => {
 app.post('/api/siswa', async (req, res) => {
   try {
     const siswa = await loadTable('siswa');
-    const s = { id: nextId(siswa), nis: String(req.body.nis || '').slice(0, 20), nama: String(req.body.nama || '').slice(0, 100), kelas: String(req.body.kelas || '').slice(0, 10), angkatan: String(req.body.angkatan || '').slice(0, 10), orangTua: String(req.body.orangTua || '').slice(0, 100), noHp: String(req.body.noHp || '').replace(/[^0-9+\-\s]/g, '').slice(0, 20), alamat: String(req.body.alamat || '').slice(0, 200) };
-    if (!s.nama) return res.status(400).json({ error: 'Nama siswa wajib diisi' });
-    siswa.push(s);
+    const items = Array.isArray(req.body) ? req.body : [req.body];
+    const ids = [];
+    for (const item of items) {
+      const s = { id: nextId(siswa), nis: String(item.nis || '').slice(0, 20), nama: String(item.nama || '').slice(0, 100), kelas: String(item.kelas || '').slice(0, 10), angkatan: String(item.angkatan || '').slice(0, 10), orangTua: String(item.orangTua || '').slice(0, 100), noHp: String(item.noHp || '').replace(/[^0-9+\-\s]/g, '').slice(0, 20), alamat: String(item.alamat || '').slice(0, 200) };
+      if (s.nama) { siswa.push(s); ids.push(s.id); }
+    }
     await saveTable('siswa', siswa);
-    broadcast('siswa', { action: 'add', id: s.id });
-    res.json({ id: s.id });
+    broadcast('siswa', { action: 'add', ids });
+    res.json({ ids });
   } catch (e) { res.status(500).json({ error: 'Error' }); }
 });
 
@@ -422,10 +425,13 @@ app.delete('/api/siswa/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: 'ID tidak valid' });
-    const [siswa, transaksi] = await Promise.all([loadTable('siswa'), loadTable('transaksi')]);
-    const newSiswa = siswa.filter(s => s.id !== id);
-    const newTransaksi = transaksi.filter(t => t.siswaId !== id);
-    await Promise.all([saveTable('siswa', newSiswa), saveTable('transaksi', newTransaksi)]);
+    const db = await loadDatabase();
+    const siswa = structuredClone(db.siswa || []);
+    const transaksi = structuredClone(db.transaksi || []);
+    db.siswa = siswa.filter(s => s.id !== id);
+    db.transaksi = transaksi.filter(t => t.siswaId !== id);
+    saveQueue = db;
+    await flushSave();
     broadcast('siswa', { action: 'delete', id });
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: 'Error' }); }
@@ -433,7 +439,18 @@ app.delete('/api/siswa/:id', async (req, res) => {
 
 app.delete('/api/siswa', requireAdmin, async (req, res) => {
   try {
-    await Promise.all([saveTable('siswa', []), saveTable('transaksi', [])]);
+    const db = await loadDatabase();
+    const ids = req.body.ids || null;
+    if (Array.isArray(ids) && ids.length > 0) {
+      const idSet = new Set(ids.map(Number));
+      db.siswa = (db.siswa || []).filter(s => !idSet.has(s.id));
+      db.transaksi = (db.transaksi || []).filter(t => !idSet.has(t.siswaId));
+    } else {
+      db.siswa = [];
+      db.transaksi = [];
+    }
+    saveQueue = db;
+    await flushSave();
     broadcast('siswa', { action: 'deleteAll' });
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: 'Error' }); }
@@ -491,7 +508,16 @@ app.delete('/api/jenisbayar/:id', async (req, res) => {
 
 app.delete('/api/jenisbayar', requireAdmin, async (req, res) => {
   try {
-    await saveTable('jenisBayar', []);
+    const db = await loadDatabase();
+    const ids = req.body.ids || null;
+    if (Array.isArray(ids) && ids.length > 0) {
+      const idSet = new Set(ids.map(Number));
+      db.jenisBayar = (db.jenisBayar || []).filter(j => !idSet.has(j.id));
+    } else {
+      db.jenisBayar = [];
+    }
+    saveQueue = db;
+    await flushSave();
     broadcast('jenisbayar', { action: 'deleteAll' });
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: 'Error' }); }
@@ -508,11 +534,16 @@ app.get('/api/transaksi', async (req, res) => {
 app.post('/api/transaksi', async (req, res) => {
   try {
     const t = await loadTable('transaksi');
-    const tx = { id: nextId(t), noBayar: String(req.body.noBayar || '').slice(0, 30), tanggal: String(req.body.tanggal || '').slice(0, 30), siswaId: parseInt(req.body.siswaId) || 0, siswaNama: String(req.body.siswaNama || '').slice(0, 100), siswaKelas: String(req.body.siswaKelas || '').slice(0, 10), jenisId: parseInt(req.body.jenisId) || 0, jenisNama: String(req.body.jenisNama || '').slice(0, 100), kategori: String(req.body.kategori || '').slice(0, 30), nominal: Math.max(0, parseInt(req.body.nominal) || 0), metode: String(req.body.metode || 'Tunai').slice(0, 20), keterangan: String(req.body.keterangan || '').slice(0, 200), status: String(req.body.status || 'Lunas').slice(0, 20), waktu: String(req.body.waktu || '').slice(0, 30) };
-    t.push(tx);
+    const items = Array.isArray(req.body) ? req.body : [req.body];
+    const ids = [];
+    for (const item of items) {
+      const tx = { id: nextId(t), noBayar: String(item.noBayar || '').slice(0, 30), tanggal: String(item.tanggal || '').slice(0, 30), siswaId: parseInt(item.siswaId) || 0, siswaNama: String(item.siswaNama || '').slice(0, 100), siswaKelas: String(item.siswaKelas || '').slice(0, 10), jenisId: parseInt(item.jenisId) || 0, jenisNama: String(item.jenisNama || '').slice(0, 100), kategori: String(item.kategori || '').slice(0, 30), nominal: Math.max(0, parseInt(item.nominal) || 0), metode: String(item.metode || 'Tunai').slice(0, 20), keterangan: String(item.keterangan || '').slice(0, 200), status: String(item.status || 'Lunas').slice(0, 20), waktu: String(item.waktu || '').slice(0, 30) };
+      t.push(tx);
+      ids.push(tx.id);
+    }
     await saveTable('transaksi', t);
-    broadcast('transaksi', { action: 'add', id: tx.id });
-    res.json({ id: tx.id });
+    broadcast('transaksi', { action: 'add', ids });
+    res.json({ ids });
   } catch (e) { res.status(500).json({ error: 'Error' }); }
 });
 
@@ -529,7 +560,16 @@ app.delete('/api/transaksi/:id', async (req, res) => {
 
 app.delete('/api/transaksi', requireAdmin, async (req, res) => {
   try {
-    await saveTable('transaksi', []);
+    const db = await loadDatabase();
+    const ids = req.body.ids || null;
+    if (Array.isArray(ids) && ids.length > 0) {
+      const idSet = new Set(ids.map(Number));
+      db.transaksi = (db.transaksi || []).filter(t => !idSet.has(t.id));
+    } else {
+      db.transaksi = [];
+    }
+    saveQueue = db;
+    await flushSave();
     broadcast('transaksi', { action: 'deleteAll' });
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: 'Error' }); }
@@ -567,7 +607,16 @@ app.delete('/api/stor/:id', async (req, res) => {
 
 app.delete('/api/stor', requireAdmin, async (req, res) => {
   try {
-    await saveTable('stor', []);
+    const db = await loadDatabase();
+    const ids = req.body.ids || null;
+    if (Array.isArray(ids) && ids.length > 0) {
+      const idSet = new Set(ids.map(Number));
+      db.stor = (db.stor || []).filter(s => !idSet.has(s.id));
+    } else {
+      db.stor = [];
+    }
+    saveQueue = db;
+    await flushSave();
     broadcast('stor', { action: 'deleteAll' });
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: 'Error' }); }

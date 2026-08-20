@@ -296,7 +296,7 @@ async function bulkDeleteSiswa() {
   const ids = [...document.querySelectorAll('.siswa-check:checked')].map(cb => parseInt(cb.value));
   if (!ids.length) return;
   if (!confirm(`Hapus ${ids.length} siswa yang ditandai?`)) return;
-  for (const id of ids) { await api(`/siswa/${id}`, { method: 'DELETE' }); }
+  await api('/siswa', { method: 'DELETE', body: { ids } });
   DB.siswa = await api('/siswa');
   DB.transaksi = await api('/transaksi');
   renderSiswaTable();
@@ -386,7 +386,7 @@ async function bulkDeleteJenisBayar() {
   const ids = [...document.querySelectorAll('.jenisbayar-check:checked')].map(cb => parseInt(cb.value));
   if (!ids.length) return;
   if (!confirm(`Hapus ${ids.length} jenis pembayaran?`)) return;
-  for (const id of ids) { await api(`/jenisbayar/${id}`, { method: 'DELETE' }); }
+  await api('/jenisbayar', { method: 'DELETE', body: { ids } });
   DB.jenisBayar = await api('/jenisbayar');
   renderJenisBayarTable();
 }
@@ -474,9 +474,7 @@ async function handleTransaksiForm(e) {
     return { noBayar, tanggal, siswaId: siswa.id, siswaNama: siswa.nama, siswaKelas: siswa.kelas, jenisId: jenis.id, jenisNama: jenis.nama, kategori: jenis.kategori, nominal: jenis.nominal, metode, keterangan, status: 'Lunas', waktu };
   });
 
-  for (const tx of items) {
-    await api('/transaksi', { method: 'POST', body: tx });
-  }
+  await api('/transaksi', { method: 'POST', body: items });
 
   DB.transaksi = await api('/transaksi');
   closeModal('transaksiModal');
@@ -756,7 +754,8 @@ async function bulkDeleteTransaksiGroup(noBayar) {
   const items = DB.transaksi.filter(t => t.noBayar === noBayar);
   if (!items.length) return;
   if (!confirm(`Hapus ${items.length} item transaksi (${noBayar})?`)) return;
-  for (const t of items) { await api(`/transaksi/${t.id}`, { method: 'DELETE' }); }
+  const ids = items.map(t => t.id);
+  await api('/transaksi', { method: 'DELETE', body: { ids } });
   DB.transaksi = await api('/transaksi');
   renderTransaksiTable();
 }
@@ -767,10 +766,8 @@ async function bulkDeleteTransaksi() {
   if (!uniqueNos.length) return;
   const count = uniqueNos.reduce((acc, nb) => acc + DB.transaksi.filter(t => t.noBayar === nb).length, 0);
   if (!confirm(`Hapus ${count} transaksi (${uniqueNos.length} grup)?`)) return;
-  for (const nb of uniqueNos) {
-    const items = DB.transaksi.filter(t => t.noBayar === nb);
-    for (const t of items) { await api(`/transaksi/${t.id}`, { method: 'DELETE' }); }
-  }
+  const ids = DB.transaksi.filter(t => uniqueNos.includes(t.noBayar)).map(t => t.id);
+  await api('/transaksi', { method: 'DELETE', body: { ids } });
   DB.transaksi = await api('/transaksi');
   renderTransaksiTable();
 }
@@ -834,7 +831,7 @@ async function bulkDeleteStor() {
   const ids = [...document.querySelectorAll('.stor-check:checked')].map(cb => parseInt(cb.value));
   if (!ids.length) return;
   if (!confirm(`Hapus ${ids.length} data stor?`)) return;
-  for (const id of ids) { await api(`/stor/${id}`, { method: 'DELETE' }); }
+  await api('/stor', { method: 'DELETE', body: { ids } });
   DB.stor = await api('/stor');
   renderStorTable();
 }
