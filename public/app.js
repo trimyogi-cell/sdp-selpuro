@@ -1538,7 +1538,6 @@ async function handleProfilForm(e) {
   } catch (e) { alert('Gagal menyimpan profil: ' + e.message); }
   finally { setBtnLoading(btn, false); }
 }
-}
 
 // ===== START =====
 init();
