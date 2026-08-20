@@ -1298,6 +1298,8 @@ function previewWaMessage() {
   } else if (template === 'stapor' && siswa) {
     msg = `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nMohon kesediaan menandatangani STAPOR untuk ${siswa.nama}.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
     if (selected.length > 1) msg += `\n\n⚠️ Preview ini untuk "${siswa.nama}". Pesan akan otomatis disesuaikan untuk ${selected.length - 1} siswa lainnya.`;
+  } else if (template === 'pengumuman') {
+    msg = buildPengumumanPembayaran(adminName);
   } else {
     msg = selected.length ? 'Pilih template pesan.' : 'Pilih minimal satu siswa.';
   }
@@ -1372,8 +1374,38 @@ function buildWaMessage(template, siswa, adminName) {
     return `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nAssalamu'alaikum Wr. Wb.\n\nBerikut rincian biaya ${siswa.nama} (${getKelasText(siswa.kelas)}):\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n${itemList}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n💰 Total tagihan: ${formatRupiah(totalTagihan)}\n✅ Total dibayar: ${formatRupiah(totalBayar)}\n📋 Sisa: ${formatRupiah(sisa>0?sisa:0)}\n\n${sisa>0?'Mohon segera melakukan pembayaran.':'Alhamdulillah, tagihan lunas.'}\n\nWassalamu'alaikum Wr. Wb.\n\n_${adminName}_`;
   } else if (template === 'stapor') {
     return `Yth. Bapak/Ibu ${esc(siswa.orangTua||'')},\n\nMohon kesediaan menandatangani STAPOR untuk ${siswa.nama}.\n\nTerima kasih.\n${DB.profil.namaSekolah||'SD Negeri 1 Selopuro'}\n_${adminName}_`;
+  } else if (template === 'pengumuman') {
+    return buildPengumumanPembayaran(adminName);
   }
   return '';
+}
+
+function buildPengumumanPembayaran(adminName) {
+  const jb = DB.jenisBayar || [];
+  if (!jb.length) return 'Belum ada data jenis pembayaran.';
+  const catMap = {};
+  jb.forEach(j => {
+    const cat = j.kategori || 'Lainnya';
+    if (!catMap[cat]) catMap[cat] = [];
+    catMap[cat].push(j);
+  });
+  const catIcons = { 'LKS': '📚', 'Aktivitas': '🎯', 'Iuran': '💰', 'Lainnya': '📋' };
+  const catOrder = ['LKS', 'Aktivitas', 'Iuran', 'Lainnya'];
+  const sortedCats = catOrder.filter(c => catMap[c]);
+  let itemList = '';
+  let grandTotal = 0;
+  sortedCats.forEach(cat => {
+    const items = catMap[cat];
+    const icon = catIcons[cat] || '📋';
+    itemList += `\n${icon} *${cat}*\n`;
+    items.forEach(j => {
+      itemList += `• ${j.nama}: *${formatRupiah(j.nominal)}*\n`;
+      grandTotal += j.nominal;
+    });
+  });
+  const tahun = jb[0]?.tahunAjaran || '';
+  const sekolah = DB.profil.namaSekolah || 'SD Negeri 1 Selopuro';
+  return `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏫 *PENGUMUMAN PEMBAYARAN*\n${sekolah}${ tahun ? '\nTahun Ajaran ' + tahun : ''}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nKepada Yth.\nBapak/Ibu Wali Murid\n\nAssalamu'alaikum Wr. Wb.\n\nDengan hormat, kami informasikan daftar jenis pembayaran yang harus diselesaikan:\n\n${itemList}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n💰 *Total Pembayaran: ${formatRupiah(grandTotal)}*\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nMohon perhatian dan kerjasamanya untuk melakukan pembayaran sesuai jadwal.\n\nAtas perhatiannya, kami ucapkan terima kasih.\n\nWassalamu'alaikum Wr. Wb.\n\n_${adminName}_`;
 }
 
 function kirimWaSemua() {
