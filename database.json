@@ -154,7 +154,7 @@
   "riwayatWa": [],
   "profil": {
     "alamat": "Jl. Narasoma No. 1, Lingkungan Pendem, Kelurahan Selopuro",
-    "bendahara": "Admin 1",
+    "bendahara": "Pujiarti., S.pd. SD",
     "npsn": "20310868",
     "namaSekolah": "SD Negeri 1 Selopuro",
     "kepsek": "Sri Rejeki., S.pd",
@@ -169,7 +169,7 @@
     {
       "id": 1,
       "username": "admin",
-      "password": "739c00893e179f274679f4993ed1ef11:d6d4a5c679c963cdecdd578e027a19e5f4cba35d9dec43476ab9564cb2be09eed6f6fb6288ab11a33adb1ce5f9f1985ee8c7c94d7e3fa3a02683a0248cce7c57",
+      "password": "659cedcfbafc2416223deeed727d5c57:9462d2dac0f85b45ed942bb426e021b4e24648935472c4662d14f8749898515da59e80e81cebe8737cb407defdb1fb1b88c7ed1d01ed16a8e70e8b933510080c",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -177,7 +177,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "988a1916eb65135cb27b928400812397:cd93003a0567b41a48581edc98773cd12b4e21fc7595a27854bf4c982f72845a4f978b8dd798675b3b9c5b078f0922f0674e4898684f188876bb783cc16cece7",
+      "password": "3e3571e3c326d5e51bdefdb634863b0e:6fdfb91d4d661f1f840d9f9b20562b02489f8abd9894ea0fdc35eaffdb223b0e5ff4c934399bea894ad971d7429404f5555c35444f0103ab296c8a63bbb72d16",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
