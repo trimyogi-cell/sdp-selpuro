@@ -254,6 +254,15 @@
       "nominal": 10000,
       "tahun": "2026",
       "kelas": "3"
+    },
+    {
+      "id": 9,
+      "kode": "AK",
+      "nama": "PAI",
+      "kategori": "Aktivitas",
+      "nominal": 10000,
+      "tahun": "2026",
+      "kelas": "3"
     }
   ],
   "transaksi": []
