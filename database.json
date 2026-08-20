@@ -119,16 +119,6 @@
       "orangTua": "WALI RADITYA RIZKI APRILIANSYAH",
       "noHp": "+62 851-2279-1124",
       "alamat": ""
-    },
-    {
-      "id": 13,
-      "nis": "1560",
-      "nama": "RETHA FARADINA YULDHA",
-      "kelas": "3",
-      "angkatan": "2026-2027",
-      "orangTua": "WALI RETHA FARADINA YULDHA",
-      "noHp": "+62 815-4815-7576",
-      "alamat": ""
     }
   ],
   "riwayatWa": [],
@@ -146,7 +136,7 @@
     {
       "id": 1,
       "username": "admin",
-      "password": "a89a7ec38775116dba96b7f77770d095:a61195d8b858aceb358d33b788d5479b866bbf3a9ca66b7608333419d57a3d11c04ffccd5be3d30bfa87375178c3d760cf75ac89322bfba4d641992356f8a6be",
+      "password": "68ce1767f780a41e3aaf432791e0caf0:90b7d8535f7cf3e9d8f9d53011ac9b4f7c944b4df09c9461c7dfa1e136223dd2802902a9d1b1575fa3dcfffdf47873ab7fb9522d77b6249526397dee6223c18f",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -154,7 +144,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "9006122ed694c9fbb2fecfbac096b364:c67262b9dd94a8f9d035c519aa9f178a449cb4a9022e61727a1b598be231fd911c796e560a0016fdc0017afde11f464ce230321a1cf050c44140a9c563331095",
+      "password": "3874d870e75084d96ca5c080d527a95a:d0e8fc19b2a5c7a9f83b57b91e80131bfaaabc48d3f6bd2cea4b701e60a66cb2ac3008500dc52d4394a26c187bfea3ae2848c4e34efeaba5cd0b9c7c60a2d71d",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
