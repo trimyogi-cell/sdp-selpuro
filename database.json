@@ -191,6 +191,15 @@
       "nominal": 35000,
       "tahun": "2026",
       "kelas": "3"
+    },
+    {
+      "id": 2,
+      "kode": "LKS",
+      "nama": "BAHASA JAWA",
+      "kategori": "LKS",
+      "nominal": 12000,
+      "tahun": "2026",
+      "kelas": "3"
     }
   ],
   "transaksi": []
