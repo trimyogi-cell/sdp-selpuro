@@ -323,6 +323,9 @@
                 <button class="btn btn-success" onclick="printStor()">
                     <i class="fas fa-print"></i> Cetak Stor
                 </button>
+                <button class="btn btn-whatsapp" onclick="kirimStorWaAll()">
+                    <i class="fab fa-whatsapp"></i> Kirim Struk WA
+                </button>
                 <button class="btn btn-warning" onclick="manualSync()">
                     <i class="fas fa-sync-alt"></i> Sync
                 </button>
@@ -762,9 +765,15 @@
                                     <input type="text" id="profilBendahara">
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label>No. HP Admin (untuk Kirim WA)</label>
-                                <input type="text" id="profilNoHpAdmin" placeholder="08xxxxxxxxxx">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>No. HP Admin (untuk Kirim WA)</label>
+                                    <input type="text" id="profilNoHpAdmin" placeholder="08xxxxxxxxxx">
+                                </div>
+                                <div class="form-group">
+                                    <label>No. HP Bendahara (untuk Kirim WA Stor)</label>
+                                    <input type="text" id="profilNoHpBendahara" placeholder="08xxxxxxxxxx">
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label>Nama Guru/Admin (untuk Cetak Bukti)</label>

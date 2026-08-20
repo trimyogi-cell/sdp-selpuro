@@ -93,7 +93,7 @@ async function saveTable(key, value) {
 }
 
 const DEFAULTS = {
-  profil: { namaSekolah: 'SD Negeri 1 Selopuro', npsn: '20310868', alamat: 'Jl. Merdeka No. 1, Desa Selopuro', telp: '(0354) 123456', email: 'sdnselopuro@gmail.com', kepsek: 'Drs. H. Ahmad Fauzi, M.Pd.', bendahara: 'Siti Aminah, S.Pd.' },
+  profil: { namaSekolah: 'SD Negeri 1 Selopuro', npsn: '20310868', alamat: 'Jl. Merdeka No. 1, Desa Selopuro', telp: '(0354) 123456', email: 'sdnselopuro@gmail.com', kepsek: 'Drs. H. Ahmad Fauzi, M.Pd.', bendahara: 'Siti Aminah, S.Pd.', noHpBendahara: '', noHpAdmin: '', namaAdmin: '' },
   users: [
     { id: 1, username: 'admin', password: 'esloji', nama: 'Administrator', role: 'admin', status: 'aktif' },
     { id: 2, username: 'operator', password: 'operator123', nama: 'Operator', role: 'operator', status: 'aktif' }
@@ -282,7 +282,7 @@ app.get('/api/profil', async (req, res) => {
 app.put('/api/profil', requireAdmin, async (req, res) => {
   try {
     const profil = await loadTable('profil');
-    const allowed = ['namaSekolah', 'npsn', 'alamat', 'telp', 'email', 'kepsek', 'bendahara', 'noHpAdmin', 'namaAdmin'];
+    const allowed = ['namaSekolah', 'npsn', 'alamat', 'telp', 'email', 'kepsek', 'bendahara', 'noHpBendahara', 'noHpAdmin', 'namaAdmin'];
     for (const key of allowed) {
       if (req.body[key] !== undefined) profil[key] = String(req.body[key]).slice(0, 200);
     }

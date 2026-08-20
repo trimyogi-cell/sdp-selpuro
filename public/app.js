@@ -808,6 +808,7 @@ function renderStorTable() {
       <td>${formatRupiah(s.jumlah)}</td>
       <td>${esc(s.catatan) || '-'}</td>
       <td class="table-actions">
+        <button class="btn btn-icon btn-success" onclick="kirimStorWa(${s.id})" title="Kirim Struk WA"><i class="fab fa-whatsapp"></i></button>
         <button class="btn btn-icon btn-info" onclick="printStorById(${s.id})" title="Cetak"><i class="fas fa-print"></i></button>
         <button class="btn btn-icon btn-danger" onclick="deleteStor(${s.id})" title="Hapus"><i class="fas fa-trash"></i></button>
       </td>
@@ -855,16 +856,66 @@ function printStor() {
 }
 
 function printStorData(data) {
-  let html = `<h2>SURAT SETOR / STOR KE BENDAHARA</h2><p>${esc(DB.profil.namaSekolah) || 'SD Negeri 1 Selopuro'}</p><hr>
+  const p = DB.profil || {};
+  let html = `<h2>SURAT SETOR / STOR KE BENDAHARA</h2><p>${esc(p.namaSekolah) || 'SD Negeri 1 Selopuro'}</p><p>${esc(p.alamat) || ''}</p><hr>
     <table><thead><tr><th>No</th><th>No. Stor</th><th>Tanggal</th><th>Disetor Oleh</th><th>Jumlah</th><th>Catatan</th></tr></thead><tbody>`;
   let total = 0;
   data.forEach((s, i) => { total += s.jumlah; html += `<tr><td>${i+1}</td><td>${esc(s.noStor)}</td><td>${formatDateShort(s.tanggal)}</td><td>${esc(s.oleh)||''}</td><td>${formatRupiah(s.jumlah)}</td><td>${esc(s.catatan)||''}</td></tr>`; });
   html += `</tbody><tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;">TOTAL</td><td style="font-weight:bold;">${formatRupiah(total)}</td><td></td></tr></tfoot></table>
     <br><br><div style="display:flex;justify-content:space-between;margin-top:40px;">
     <div style="text-align:center;width:200px;"><p><strong>Yang Menyetor</strong></p><br><br><br><p>_________________</p></div>
-    <div style="text-align:center;width:200px;"><p><strong>Bendahara</strong></p><br><br><br><p>_________________</p></div></div>`;
+    <div style="text-align:center;width:200px;"><p><strong>${esc(p.bendahara) || 'Bendahara'}</strong></p><p>${esc(p.namaSekolah) || ''}</p><br><br><p>_________________</p></div></div>`;
   document.getElementById('printArea').innerHTML = html;
   window.print();
+}
+
+function kirimStorWa(id) {
+  const s = DB.stor.find(x => x.id === id);
+  if (!s) return;
+  const p = DB.profil || {};
+  const noHpBendahara = p.noHpBendahara;
+  if (!noHpBendahara) return alert('No HP Bendahara belum diisi!\nSilakan isi di Profil Sekolah.');
+  const namaAdmin = p.namaAdmin || p.bendahara || 'Admin';
+  const msg = `*SURAT SETOR / STOR KE BENDAHARA*\n` +
+    `${p.namaSekolah || 'SD Negeri 1 Selopuro'}\n` +
+    `${p.alamat || ''}\n\n` +
+    `No. Stor : ${s.noStor}\n` +
+    `Tanggal  : ${formatDateShort(s.tanggal)}\n` +
+    `Disetor  : ${s.oleh || '-'}\n` +
+    `Jumlah   : ${formatRupiah(s.jumlah)}\n` +
+    `Catatan  : ${s.catatan || '-'}\n\n` +
+    `Mengetahui,\n` +
+    `_Bendahara_\n` +
+    `${esc(p.bendahara) || ''}\n\n` +
+    `Dikirim oleh:\n` +
+    `${namaAdmin}`;
+  openWaChat(noHpBendahara, msg);
+  logWaRiwayat(p.bendahara || 'Bendahara', noHpBendahara, 'Stor', msg);
+}
+
+function kirimStorWaAll() {
+  const checked = [...document.querySelectorAll('.stor-check:checked')].map(cb => parseInt(cb.value));
+  const items = checked.length ? DB.stor.filter(s => checked.includes(s.id)) : DB.stor;
+  if (!items.length) return alert('Tidak ada data stor!');
+  const p = DB.profil || {};
+  const noHpBendahara = p.noHpBendahara;
+  if (!noHpBendahara) return alert('No HP Bendahara belum diisi!\nSilakan isi di Profil Sekolah.');
+  const namaAdmin = p.namaAdmin || p.bendahara || 'Admin';
+  let total = 0;
+  const rows = items.map((s, i) => { total += s.jumlah; return `${i+1}. ${s.noStor} | ${formatDateShort(s.tanggal)} | ${s.oleh || '-'} | ${formatRupiah(s.jumlah)}`; }).join('\n');
+  const msg = `*SURAT SETOR / STOR KE BENDAHARA*\n` +
+    `${p.namaSekolah || 'SD Negeri 1 Selopuro'}\n` +
+    `${p.alamat || ''}\n\n` +
+    `Total : ${items.length} transaksi\n` +
+    `Rincian:\n${rows}\n\n` +
+    `*TOTAL : ${formatRupiah(total)}*\n\n` +
+    `Mengetahui,\n` +
+    `_Bendahara_\n` +
+    `${esc(p.bendahara) || ''}\n\n` +
+    `Dikirim oleh:\n` +
+    `${namaAdmin}`;
+  openWaChat(noHpBendahara, msg);
+  logWaRiwayat(p.bendahara || 'Bendahara', noHpBendahara, 'Stor', msg);
 }
 
 // ===== DASHBOARD =====
@@ -1346,6 +1397,7 @@ function loadProfil() {
   document.getElementById('profilKepsek').value = p.kepsek || '';
   document.getElementById('profilBendahara').value = p.bendahara || '';
   document.getElementById('profilNoHpAdmin').value = p.noHpAdmin || '';
+  document.getElementById('profilNoHpBendahara').value = p.noHpBendahara || '';
   document.getElementById('profilNamaAdmin').value = p.namaAdmin || '';
 }
 
@@ -1360,6 +1412,7 @@ async function handleProfilForm(e) {
     kepsek: document.getElementById('profilKepsek').value,
     bendahara: document.getElementById('profilBendahara').value,
     noHpAdmin: document.getElementById('profilNoHpAdmin').value,
+    noHpBendahara: document.getElementById('profilNoHpBendahara').value,
     namaAdmin: document.getElementById('profilNamaAdmin').value
   };
   await api('/profil', { method: 'PUT', body: data });
