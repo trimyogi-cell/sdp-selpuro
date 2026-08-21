@@ -486,6 +486,22 @@
       "keterangan": "TRANSFER BRI",
       "status": "Lunas",
       "waktu": "09.36.02"
+    },
+    {
+      "id": 16,
+      "noBayar": "BYR-260821-093602",
+      "tanggal": "2026-08-21",
+      "siswaId": 12,
+      "siswaNama": "RADITYA RIZKI APRILIANSYAH",
+      "siswaKelas": "3",
+      "jenisId": 3,
+      "jenisNama": "BAHASA INGGRIS",
+      "kategori": "LKS",
+      "nominal": 12000,
+      "metode": "Transfer",
+      "keterangan": "TRANSFER BRI",
+      "status": "Lunas",
+      "waktu": "09.36.02"
     }
   ]
 }
