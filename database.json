@@ -399,22 +399,6 @@
       "waktu": "08.19.45"
     },
     {
-      "id": 8,
-      "noBayar": "BYR-260821-081952",
-      "tanggal": "2026-08-21",
-      "siswaId": 1,
-      "siswaNama": "AALIYA SAYYIDAH NAFISAH",
-      "siswaKelas": "3",
-      "jenisId": 6,
-      "jenisNama": "JURNAL 7 K",
-      "kategori": "Aktivitas",
-      "nominal": 18000,
-      "metode": "Transfer",
-      "keterangan": "TRANSFER BRI",
-      "status": "Lunas",
-      "waktu": "08.19.52"
-    },
-    {
       "id": 9,
       "noBayar": "BYR-260821-081945",
       "tanggal": "2026-08-21",
