@@ -477,22 +477,6 @@
       "keterangan": "TRANSFER BRI",
       "status": "Lunas",
       "waktu": "08.19.45"
-    },
-    {
-      "id": 13,
-      "noBayar": "BYR-260821-081952",
-      "tanggal": "2026-08-21",
-      "siswaId": 1,
-      "siswaNama": "AALIYA SAYYIDAH NAFISAH",
-      "siswaKelas": "3",
-      "jenisId": 3,
-      "jenisNama": "BAHASA INGGRIS",
-      "kategori": "LKS",
-      "nominal": 12000,
-      "metode": "Transfer",
-      "keterangan": "TRANSFER BRI",
-      "status": "Lunas",
-      "waktu": "08.19.52"
     }
   ]
 }
