@@ -188,7 +188,7 @@
     {
       "id": 1,
       "username": "admin",
-      "password": "a903353f66f8700e1ab0eaf71146530e:4836f875e911b1bb0612fd14358121dc1306d54e8b8a498c54b883146fb2f398646331ffa6afb1be624fce1c4ede71421bec4ab11545cd44630e9830a32c4465",
+      "password": "99bbb98ebd9ccd6092416f65bc287891:ce0db1b050892b99efe2d604b3a62ce987f33bb32ec426e8fbfc79d97f77ee99eab149d42145bbd0dc68b3baf9b2b840bbc40ea7d3def6ca42f61512b5d573d2",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -196,7 +196,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "2e07caab52d837765a9c5c90951654be:ec914537ef4b4350f813589169ea483dc80c26257c196b245e21f2e807f8a4685bcd6d6f4882bce0f7f2b259bfd15910ef5188b52f1b9d2629b61751102d8418",
+      "password": "2afd313de6dc6943c4da4bc04ed147e7:0167e453975c4e1d6a2d4325d227e02c62118ae38a22fae08888503b926491d82acd1a4eb1d914c33bb9e4ed19a4415e6a25462de6ca56601164f7a2387b7af4",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
@@ -285,5 +285,54 @@
       "kelas": "3"
     }
   ],
-  "transaksi": []
+  "transaksi": [
+    {
+      "id": 1,
+      "noBayar": "BYR-260821-081945",
+      "tanggal": "2026-08-21",
+      "siswaId": 1,
+      "siswaNama": "AALIYA SAYYIDAH NAFISAH",
+      "siswaKelas": "3",
+      "jenisId": 1,
+      "jenisNama": "AKTIVITAS SISWA",
+      "kategori": "Aktivitas",
+      "nominal": 35000,
+      "metode": "Transfer",
+      "keterangan": "TRANSFER BRI",
+      "status": "Lunas",
+      "waktu": "08.19.45"
+    },
+    {
+      "id": 2,
+      "noBayar": "BYR-260821-081945",
+      "tanggal": "2026-08-21",
+      "siswaId": 1,
+      "siswaNama": "AALIYA SAYYIDAH NAFISAH",
+      "siswaKelas": "3",
+      "jenisId": 6,
+      "jenisNama": "JURNAL 7 K",
+      "kategori": "Aktivitas",
+      "nominal": 18000,
+      "metode": "Transfer",
+      "keterangan": "TRANSFER BRI",
+      "status": "Lunas",
+      "waktu": "08.19.45"
+    },
+    {
+      "id": 3,
+      "noBayar": "BYR-260821-081945",
+      "tanggal": "2026-08-21",
+      "siswaId": 1,
+      "siswaNama": "AALIYA SAYYIDAH NAFISAH",
+      "siswaKelas": "3",
+      "jenisId": 2,
+      "jenisNama": "BAHASA JAWA",
+      "kategori": "LKS",
+      "nominal": 12000,
+      "metode": "Transfer",
+      "keterangan": "TRANSFER BRI",
+      "status": "Lunas",
+      "waktu": "08.19.45"
+    }
+  ]
 }
