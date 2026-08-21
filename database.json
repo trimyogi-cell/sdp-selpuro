@@ -188,7 +188,7 @@
     {
       "id": 1,
       "username": "admin",
-      "password": "c46152404efad686733e02afcc03a6af:1f2996be77bdb094b039c655a7d8c15fc273e50671b022579c6a3d3b291d6a7a4f38fc0fa8b20b6341a7f399ead4fe89ac219ed738fa9c66c3df1c5ffca849a5",
+      "password": "c41ecdb765d8a08df9feab9371ad6b5d:5f61ca775a63255929afdea66eb5ddcec95b622c7d2b53d9647045b70f2d904629bd588fbe580416d9744baad6b3d51576c7c32f2c406b77361f7557aec38339",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -196,7 +196,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "6304227cf1637d998014c5d142d304fb:77100fb85309ef0d8cb35cf6b571e8dd2eee02e4683e58be7de879e34a9cae1addeb18c1d4eb73156c177d1168537ff3a1ed82a53d52071f1cf02c0fef6412d4",
+      "password": "23543d38f4df19b54e41db92238c1bff:097eb0cc2c7f666c9939418b97680646d18390b97026673b3956309b531baae296bfb5a3f4ab3516d042d81d2364aa944561a888b0449f978929f4710cac3b08",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
@@ -280,7 +280,7 @@
       "kode": "LKS",
       "nama": "AL HIKMAH",
       "kategori": "LKS",
-      "nominal": 10000,
+      "nominal": 11000,
       "tahun": "2026",
       "kelas": "3"
     }
