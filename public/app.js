@@ -1000,10 +1000,19 @@ function kirimStorWaAll() {
 // ===== DASHBOARD =====
 function refreshDashboard() {
   document.getElementById('totalSiswa').textContent = DB.siswa.length;
-  document.getElementById('totalLunas').textContent = DB.transaksi.length;
-  const siswaBayar = new Set(DB.transaksi.map(t => t.siswaId));
-  document.getElementById('totalBelumBayar').textContent = DB.siswa.length - siswaBayar.size;
+
+  const totalTagihan = DB.jenisBayar.reduce((s, jb) => s + jb.nominal, 0);
+  let lunasCount = 0;
+  DB.siswa.forEach(s => {
+    const txSiswa = DB.transaksi.filter(t => t.siswaId === s.id);
+    const totalBayar = txSiswa.reduce((a, t) => a + t.nominal, 0);
+    if (totalTagihan > 0 && totalBayar >= totalTagihan) lunasCount++;
+  });
+  document.getElementById('totalLunas').textContent = lunasCount;
+  document.getElementById('totalBelumBayar').textContent = DB.siswa.length - lunasCount;
+
   document.getElementById('totalPemasukan').textContent = formatRupiah(DB.transaksi.reduce((s, t) => s + t.nominal, 0));
+  document.getElementById('totalPengeluaran').textContent = formatRupiah((DB.stor || []).reduce((s, t) => s + t.nominal, 0));
 
   const recent = [...DB.transaksi].slice(0, 5);
   document.getElementById('recentTransactionsBody').innerHTML = recent.map(t => `

@@ -460,6 +460,7 @@ body {
 .stat-card.green .stat-icon { background: #dcfce7; color: var(--success); }
 .stat-card.orange .stat-icon { background: #ffedd5; color: var(--warning); }
 .stat-card.red .stat-icon { background: #fee2e2; color: var(--danger); }
+.stat-card.purple .stat-icon { background: #f3e8ff; color: #9333ea; }
 
 .stat-info h3 {
     font-size: 22px;
@@ -1272,7 +1273,8 @@ body {
     }
 
     .stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
     }
 
     .form-row {
