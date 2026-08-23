@@ -191,6 +191,7 @@ function handleLogout() {
 
 // ===== NAVIGATION =====
 async function showPage(page) {
+  closeSidebar();
   currentActivePage = page;
   localStorage.setItem('sdp_currentPage', page);
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -215,8 +216,39 @@ async function showPage(page) {
 }
 
 function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('show');
-  document.getElementById('sidebar').classList.toggle('collapsed');
+  const sidebar = document.getElementById('sidebar');
+  const isOpen = sidebar.classList.contains('show');
+  if (isOpen) {
+    sidebar.classList.remove('show');
+    sidebar.classList.remove('collapsed');
+    removeSidebarOverlay();
+  } else {
+    sidebar.classList.add('show');
+    sidebar.classList.add('collapsed');
+    addSidebarOverlay();
+  }
+}
+
+function closeSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  sidebar.classList.remove('show');
+  sidebar.classList.remove('collapsed');
+  removeSidebarOverlay();
+}
+
+function addSidebarOverlay() {
+  if (window.innerWidth > 768) return;
+  removeSidebarOverlay();
+  const overlay = document.createElement('div');
+  overlay.id = 'sidebarOverlay';
+  overlay.className = 'sidebar-overlay';
+  overlay.onclick = closeSidebar;
+  document.body.appendChild(overlay);
+}
+
+function removeSidebarOverlay() {
+  const overlay = document.getElementById('sidebarOverlay');
+  if (overlay) overlay.remove();
 }
 
 // ===== MODAL =====
