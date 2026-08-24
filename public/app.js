@@ -341,7 +341,7 @@ function renderSiswaTable() {
       <td>${esc(s.nis)}</td>
       <td>${esc(s.nama)}</td>
       <td><span class="badge badge-primary">${esc(getKelasText(s.kelas))}</span></td>
-      <td>${esc(s.orangTua) || '-'}</td>
+      <td class="hide-mobile">${esc(s.orangTua) || '-'}</td>
       <td>${esc(s.noHp) || '-'}</td>
       <td class="table-actions">
         <button class="btn btn-icon btn-info" onclick="editSiswa(${s.id})" title="Edit"><i class="fas fa-edit"></i></button>

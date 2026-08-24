@@ -1224,6 +1224,7 @@ body {
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
+    .hide-mobile { display: none !important; }
     .sidebar {
         transform: translateX(-100%);
         width: 280px;
