@@ -1183,8 +1183,20 @@
 <script src="/app.js"></script>
 <script>
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(function(e) {
+    navigator.serviceWorker.register('/sw.js').then(function(reg) {
+        reg.addEventListener('updatefound', function() {
+            var newWorker = reg.installing;
+            newWorker.addEventListener('statechange', function() {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                }
+            });
+        });
+    }).catch(function(e) {
         console.log('SW registration failed:', e);
+    });
+    navigator.serviceWorker.addEventListener('controllerchange', function() {
+        location.reload();
     });
 }
 

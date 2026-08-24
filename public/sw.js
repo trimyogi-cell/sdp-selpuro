@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sdsp-v4';
+const CACHE_NAME = 'sdsp-v6';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -20,6 +20,12 @@ self.addEventListener('activate', (e) => {
     )
   );
   self.clients.claim();
+});
+
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', (e) => {
