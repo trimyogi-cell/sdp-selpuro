@@ -1,12 +1,10 @@
-const CACHE_NAME = 'sdsp-v6';
+const CACHE_NAME = 'sdsp-v7';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/style.css',
   '/app.js',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  '/manifest.json'
 ];
 
 self.addEventListener('install', (e) => {
@@ -16,10 +14,9 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.map(k => caches.delete(k)))
-    )
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener('message', (e) => {
@@ -31,7 +28,7 @@ self.addEventListener('message', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
 
-  if (url.pathname.startsWith('/api/')) {
+  if (url.pathname.startsWith('/api/') || url.pathname.includes('/events')) {
     e.respondWith(fetch(e.request));
     return;
   }
@@ -43,6 +40,6 @@ self.addEventListener('fetch', (e) => {
         caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
       }
       return res;
-    }).catch(() => caches.match(e.request).then(c => c || caches.match('/index.html')))
+    }).catch(() => caches.match(e.request).then(c => c || new Response('', {status: 503})))
   );
 });

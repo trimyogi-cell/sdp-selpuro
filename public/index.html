@@ -1198,6 +1198,11 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('controllerchange', function() {
         location.reload();
     });
+    setInterval(function() {
+        navigator.serviceWorker.getRegistration().then(function(reg) {
+            if (reg) reg.update();
+        });
+    }, 60000);
 }
 
 var deferredPrompt = null;
