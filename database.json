@@ -196,6 +196,15 @@
       "jenis": "Individu",
       "status": "Terkirim",
       "pesan": "Yth. Bapak/Ibu WALI VANIA OKTA EVARISTA,\n\nAssalamu'alaikum Wr. Wb.\n\nBerikut rincian biaya VANIA OKTA EVARISTA (Kelas 3):\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n• AKTIVITAS SISWA\n  Harga: Rp 35.000\n  Status: ✅ Sudah bayar\n\n• JURNAL 7 K\n  Harga: Rp 18.000\n  Status: ✅ Sudah bayar\n\n• BAHASA JAWA\n  Harga: Rp 12.000\n  Status: ✅ Sudah bayar\n\n• BAHASA INGGRIS\n  Harga: Rp 12.000\n  Status: ✅ Sudah bayar\n\n• SENI RUPA\n  Harga: Rp 12.000\n  Status: ✅ Sudah bayar\n\n• PJOK\n  Harga: Rp 12.000\n  Status: ✅ Sudah bayar\n\n• PRAMUKA\n  Harga: Rp 23.000\n  Status: ✅ Sudah bayar\n\n• BTA\n  Harga: Rp 11.000\n  Status: ✅ Sudah bayar\n\n• AL HIKMAH\n  Harga: Rp 11.000\n  Status: ✅ Sudah bayar\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n💰 Total tagihan: Rp 146.000\n✅ Total dibayar: Rp 146.000\n📋 Sisa: Rp 0\n\nAlhamdulillah, tagihan lunas.\n\nWassalamu'alaikum Wr. Wb.\n\n_Admin_"
+    },
+    {
+      "id": 6,
+      "tanggal": "26/8/2026 07.14.41",
+      "penerima": "QHAIRA NAILA PUTRI",
+      "noHp": "+62 857-0244-2792",
+      "jenis": "Struk",
+      "status": "Terkirim",
+      "pesan": "SD Negeri 1 Selopuro\nJl. Narasoma No. 1, Lingkungan Pendem, Kelurahan Selopuro\nTelp: 081325145048\n\n━━━ BUKTI PEMBAYARAN ━━━\n\nNo. Bayar: BYR-260826-071333\nTanggal: 26 Agustus 2026 07.13.33\nSiswa: QHAIRA NAILA PUTRI (Kelas 3)\nOrang Tua: WALI QHAIRA NAILA PUTRI\n\nItem dibayar:\n1. AL HIKMAH (LKS): Rp 11.000\n2. BTA (LKS): Rp 11.000\n3. PRAMUKA (LKS): Rp 23.000\n4. PJOK (LKS): Rp 12.000\n5. SENI RUPA (LKS): Rp 12.000\n6. BAHASA INGGRIS (LKS): Rp 12.000\n7. BAHASA JAWA (LKS): Rp 12.000\n8. JURNAL 7 K (Aktivitas): Rp 18.000\n9. AKTIVITAS SISWA (Aktivitas): Rp 35.000\n\nTotal: Rp 146.000\nMetode: Tunai\nStatus: LUNAS\n\nDiterima oleh:\n_Admin 1_\n\nTerima kasih 🙏"
     }
   ],
   "profil": {
@@ -215,7 +224,7 @@
     {
       "id": 1,
       "username": "admin",
-      "password": "7e8b32009ae3fbcf2c2b8a9603e2e340:89e2083dcbb3a2a76ba111f368c535fad86831e1ce3d2c6f5726d329672943b3eae9c31ad50f6ba73d216a323f31b8e386578a3c3a1869a7149b23d67a8375fa",
+      "password": "3f42bebab1001b3c1812cc0296c20357:72044e19b069d7d486d169f22d15d9b9e35f381371c0312a22c9484452e1a89b388fda603a0c7b9f45d340cf3b72d7f3a67922c9cf81acf6ee38bb33a68ffa2f",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -223,7 +232,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "8fcfa72f31b58c576ffb197075031f58:68cc1d8970e0906ad60b9712f877559f21474881e76d0a37b876b4864b0fe8e4413a6cd005c426cb428d230f8503b7f9ea03ec7067d2e73088e35165a614e751",
+      "password": "a717b6b64a45c0ee706c2e601f3780a9:f90a57d4036b71e20ff9af2bdae080766906e4d5a02aa109147e323b1e5246db27f852e35671af4d8ebd1032f21f23999daa64bc1b96f67504afc3a459057b51",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
