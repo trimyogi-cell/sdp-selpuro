@@ -214,15 +214,6 @@
       "jenis": "Individu",
       "status": "Terkirim",
       "pesan": "Yth. Bapak/Ibu WALI QHAIRA NAILA PUTRI,\n\nAlhamdulillah, pembayaran QHAIRA NAILA PUTRI telah LUNAS:\n\n✅ AL HIKMAH: Rp 11.000\n✅ BTA: Rp 11.000\n✅ PRAMUKA: Rp 23.000\n✅ PJOK: Rp 12.000\n✅ SENI RUPA: Rp 12.000\n✅ BAHASA INGGRIS: Rp 12.000\n✅ BAHASA JAWA: Rp 12.000\n✅ JURNAL 7 K: Rp 18.000\n✅ AKTIVITAS SISWA: Rp 35.000\n\nTotal dibayar: Rp 146.000\n\nTerima kasih.\nSD Negeri 1 Selopuro\n_Admin_"
-    },
-    {
-      "id": 8,
-      "tanggal": "26/8/2026 07.16.54",
-      "penerima": "QHAIRA NAILA PUTRI",
-      "noHp": "+62 857-0244-2792",
-      "jenis": "Individu",
-      "status": "Terkirim",
-      "pesan": "Yth. Bapak/Ibu WALI QHAIRA NAILA PUTRI,\n\nAlhamdulillah, pembayaran QHAIRA NAILA PUTRI telah LUNAS:\n\n✅ AL HIKMAH: Rp 11.000\n✅ BTA: Rp 11.000\n✅ PRAMUKA: Rp 23.000\n✅ PJOK: Rp 12.000\n✅ SENI RUPA: Rp 12.000\n✅ BAHASA INGGRIS: Rp 12.000\n✅ BAHASA JAWA: Rp 12.000\n✅ JURNAL 7 K: Rp 18.000\n✅ AKTIVITAS SISWA: Rp 35.000\n\nTotal dibayar: Rp 146.000\n\nTerima kasih.\nSD Negeri 1 Selopuro\n_Admin_"
     }
   ],
   "profil": {
@@ -242,7 +233,7 @@
     {
       "id": 1,
       "username": "admin",
-      "password": "e53d9e66409566cae87544a81b350637:1abbd36eaa80f1fd463461937139e5c6e30e0b69d4ebe50c19d1b41a89f618c75b629c6ece481960a9c1d3b1afa462953e0fc1c2f7527ff2061f2ec73c48f6a1",
+      "password": "023a7a070fa614ef1ecbc92d3cf76fce:90b20e727ddc8d4292c9c3ac87c6c49830e77a980472c5422da45b9d9fdc6608a0c011d1f947af32f6a4afe7ab842146979243827a09bd86168e10c8c7265ab0",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -250,7 +241,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "54b941eae9a9729b19481d0c54bfd4f5:fa2ad43b7302496b23933a0926722f63ddf7f381551c6adb2f376c9df457f78347910ddae8edb8b55dc974b8f03180a3d998a6bb6989941b98cfd2fb5dd12e65",
+      "password": "c20d8476608ca4ab1624a5928545cb19:995f3f71c8924882a8e03cc2238797aad2d83279ccaa34dca6f295b4acbe273286601237f1e847b18fcd0facb040a75b6776ffcdc505c3a3023e3f4c893edbba",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
