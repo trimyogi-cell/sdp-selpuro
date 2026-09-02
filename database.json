@@ -260,7 +260,7 @@
     {
       "id": 1,
       "username": "admin",
-      "password": "0228f2e0944d11df0bc0184622f0139a:8f2952b250da6c1551599db89c44b071504ad2cdde31947649b7802b391d8067239f72f6bbe73bb29d2c83a7fd055d24e2b06d9ad917bc906334358bbf3101e2",
+      "password": "5a57db5355e38b08eba3b067a26ac124:0235c2e7e6eb403b070f9a573b5b58e2151f59f8ae80b31ad4289f81627a6f66e77d347e39405bd56da218f1d8a894bfbf8525cc13766e6eb93c9ed64ce836de",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -268,7 +268,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "2d9fbdc7803737a381b5c749ff025dbd:7ddbd81638e11459bc64f40fb12ef2c7349c9f93009c87a28108016850125164027837a44500631c9c4f43ed4bb963353925eb54e69749c2060dc5aaca4e7490",
+      "password": "6f7c5f0e2432bc1cca9c7817d982a89e:ce4889ae5bc69780a21f9af5ab602414b0daa1a96e50becf9a963ff72e68ae06c2cebdeba505e79510661c69ecd25b20fba189bc92499e8c40df52482f17b8cb",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
