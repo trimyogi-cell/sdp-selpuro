@@ -1029,7 +1029,7 @@ function refreshDashboard() {
   document.getElementById('totalBelumBayar').textContent = DB.siswa.length - lunasCount;
 
   document.getElementById('totalPemasukan').textContent = formatRupiah(DB.transaksi.reduce((s, t) => s + t.nominal, 0));
-  document.getElementById('totalPengeluaran').textContent = formatRupiah((DB.stor || []).reduce((s, t) => s + t.nominal, 0));
+  document.getElementById('totalPengeluaran').textContent = formatRupiah((DB.stor || []).reduce((s, t) => s + (t.jumlah||t.nominal||0), 0));
 
   const recent = [...DB.transaksi].slice(0, 5);
   document.getElementById('recentTransactionsBody').innerHTML = recent.map(t => `
@@ -1046,6 +1046,82 @@ function refreshDashboard() {
     summaryHtml += `<div class="summary-item"><div class="summary-label"><div class="summary-dot" style="background:${colors[jb.kategori]||'#06b6d4'}"></div><span>${esc(jb.nama)}</span></div><div><span class="badge badge-info">${txs.length}</span> <span style="margin-left:8px;font-weight:600;">${formatRupiah(total)}</span></div></div>`;
   });
   document.getElementById('summaryList').innerHTML = summaryHtml || '<p style="text-align:center;color:#94a3b8;">Belum ada data</p>';
+}
+
+function getSiswaTotalTagihan(s) {
+  return DB.jenisBayar.reduce((sum, jb) => {
+    if (jb.kelas === 'all') return sum + jb.nominal;
+    if (jb.kelas.includes('-')) { const parts = jb.kelas.split('-').map(Number); return (parseInt(s.kelas) >= parts[0] && parseInt(s.kelas) <= parts[1]) ? sum + jb.nominal : sum; }
+    return jb.kelas === s.kelas ? sum + jb.nominal : sum;
+  }, 0);
+}
+
+function getSiswaStatus(s) {
+  const txSiswa = DB.transaksi.filter(t => t.siswaId === s.id);
+  const totalBayar = txSiswa.reduce((a, t) => a + t.nominal, 0);
+  const tagihan = getSiswaTotalTagihan(s);
+  return { tagihan, terbayar: totalBayar, sisa: Math.max(0, tagihan - totalBayar), lunas: tagihan > 0 && totalBayar >= tagihan };
+}
+
+function showRincian(type) {
+  const body = document.getElementById('rincianModalBody');
+  const title = document.getElementById('rincianModalTitle');
+  let html = '';
+  if (type === 'lunas') {
+    title.textContent = 'Siswa Lunas';
+    const siswa = DB.siswa.filter(s => getSiswaStatus(s).lunas);
+    html = `<p style="margin-bottom:10px;color:var(--text-light);">Total: <strong>${siswa.length}</strong> siswa lunas</p>`;
+    if (!siswa.length) html += '<p style="text-align:center;color:#94a3b8;">Belum ada siswa lunas</p>';
+    else {
+      html += '<table class="data-table"><thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>Total</th></tr></thead><tbody>';
+      siswa.forEach((s, i) => { const st = getSiswaStatus(s); html += `<tr><td>${i+1}</td><td>${esc(s.nama)}</td><td>${esc(getKelasText(s.kelas))}</td><td>${formatRupiah(st.terbayar)}</td></tr>`; });
+      html += '</tbody></table>';
+    }
+  } else if (type === 'belum') {
+    title.textContent = 'Siswa Belum Lunas';
+    const siswa = DB.siswa.filter(s => !getSiswaStatus(s).lunas);
+    html = `<p style="margin-bottom:10px;color:var(--text-light);">Total: <strong>${siswa.length}</strong> siswa belum lunas</p>`;
+    if (!siswa.length) html += '<p style="text-align:center;color:#94a3b8;">Semua siswa sudah lunas</p>';
+    else {
+      html += '<table class="data-table"><thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>Tagihan</th><th>Terbayar</th><th>Sisa</th></tr></thead><tbody>';
+      siswa.forEach((s, i) => { const st = getSiswaStatus(s); html += `<tr><td>${i+1}</td><td>${esc(s.nama)}</td><td>${esc(getKelasText(s.kelas))}</td><td>${formatRupiah(st.tagihan)}</td><td>${formatRupiah(st.terbayar)}</td><td style="color:var(--danger);">${formatRupiah(st.sisa)}</td></tr>`; });
+      html += '</tbody></table>';
+    }
+  } else if (type === 'pemasukan') {
+    title.textContent = 'Rincian Pemasukan';
+    const txs = [...DB.transaksi];
+    const total = txs.reduce((s, t) => s + t.nominal, 0);
+    if (!txs.length) html = '<p style="text-align:center;color:#94a3b8;">Belum ada pemasukan</p>';
+    else {
+      html = `<p style="margin-bottom:10px;color:var(--text-light);">Total: <strong>${formatRupiah(total)}</strong> (${txs.length} transaksi)</p>`;
+      html += '<table class="data-table"><thead><tr><th>No</th><th>Tanggal</th><th>Siswa</th><th>Jenis</th><th>Jumlah</th></tr></thead><tbody>';
+      txs.forEach((t, i) => html += `<tr><td>${i+1}</td><td>${formatDateShort(t.tanggal)}</td><td>${esc(t.siswaNama)}</td><td>${esc(t.jenisNama)}</td><td>${formatRupiah(t.nominal)}</td></tr>`);
+      html += '</tbody></table>';
+    }
+  } else if (type === 'stor') {
+    title.textContent = 'Disetor ke Bendahara';
+    let stor = (DB.stor || []).slice();
+    stor.sort((a, b) => (b.tanggal||'').localeCompare(a.tanggal||''));
+    const total = stor.reduce((s, t) => s + (t.jumlah||t.nominal||0), 0);
+    if (!stor.length) html = '<p style="text-align:center;color:#94a3b8;">Belum ada penyetoran</p>';
+    else {
+      html = `<p style="margin-bottom:10px;color:var(--text-light);">Total: <strong>${formatRupiah(total)}</strong> (${stor.length} penyetoran)</p>`;
+      html += '<table class="data-table"><thead><tr><th>No</th><th>Tanggal</th><th>Oleh</th><th>Catatan</th><th>Jumlah</th></tr></thead><tbody>';
+      stor.forEach((t, i) => html += `<tr><td>${i+1}</td><td>${formatDateShort(t.tanggal)}</td><td>${esc(t.oleh)||'-'}</td><td>${esc(t.catatan)||'-'}</td><td>${formatRupiah(t.jumlah||t.nominal||0)}</td></tr>`);
+      html += '</tbody></table>';
+    }
+  }
+  body.innerHTML = html;
+  openModal('rincianModal');
+}
+
+function printRincian() {
+  const content = document.getElementById('rincianModalBody').innerHTML;
+  const title = document.getElementById('rincianModalTitle').textContent;
+  const w = window.open('', '_blank', 'width=800,height=600');
+  w.document.write(`<html><head><title>${title}</title><style>body{font-family:Arial,sans-serif;padding:20px;}h2{text-align:center;}table{width:100%;border-collapse:collapse;margin-top:15px;}th,td{border:1px solid #333;padding:8px;font-size:12px;text-align:left;}th{background:#f0f0f0;}</style></head><body><h2>${title}</h2>${content}</body></html>`);
+  w.document.close();
+  w.print();
 }
 
 // ===== LAPORAN =====

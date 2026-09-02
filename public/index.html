@@ -90,7 +90,7 @@
             </li>
         </ul>
         <div class="sidebar-footer">
-            <div class="app-version">v1.0.2</div>
+            <div class="app-version">v1.1.0</div>
             <button class="btn-logout" onclick="handleLogout()">
                 <i class="fas fa-sign-out-alt"></i><span>Keluar</span>
             </button>
@@ -133,28 +133,28 @@
                         <p>Total Siswa</p>
                     </div>
                 </div>
-                <div class="stat-card green">
+                <div class="stat-card green" onclick="showRincian('lunas')" style="cursor:pointer;">
                     <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
                     <div class="stat-info">
                         <h3 id="totalLunas">0</h3>
                         <p>Lunas</p>
                     </div>
                 </div>
-                <div class="stat-card orange">
+                <div class="stat-card orange" onclick="showRincian('belum')" style="cursor:pointer;">
                     <div class="stat-icon"><i class="fas fa-exclamation-circle"></i></div>
                     <div class="stat-info">
                         <h3 id="totalBelumBayar">0</h3>
                         <p>Belum Lunas</p>
                     </div>
                 </div>
-                <div class="stat-card red">
+                <div class="stat-card red" onclick="showRincian('pemasukan')" style="cursor:pointer;">
                     <div class="stat-icon"><i class="fas fa-coins"></i></div>
                     <div class="stat-info">
                         <h3 id="totalPemasukan">Rp 0</h3>
                         <p>Total Pemasukan</p>
                     </div>
                 </div>
-                <div class="stat-card purple">
+                <div class="stat-card purple" onclick="showRincian('stor')" style="cursor:pointer;">
                     <div class="stat-icon"><i class="fas fa-university"></i></div>
                     <div class="stat-info">
                         <h3 id="totalPengeluaran">Rp 0</h3>
@@ -1083,6 +1083,21 @@
             <button class="btn btn-whatsapp" onclick="kirimWaStruk()">
                 <i class="fab fa-whatsapp"></i> Kirim Struk WA
             </button>
+        </div>
+    </div>
+</div>
+
+<div id="rincianModal" class="modal hidden">
+    <div class="modal-overlay" onclick="closeModal('rincianModal')"></div>
+    <div class="modal-content" style="max-width:560px;">
+        <div class="modal-header">
+            <h3 id="rincianModalTitle">Rincian</h3>
+            <button class="modal-close" onclick="closeModal('rincianModal')">&times;</button>
+        </div>
+        <div id="rincianModalBody" style="padding:15px;max-height:65vh;overflow-y:auto;"></div>
+        <div class="form-actions">
+            <button class="btn btn-primary" onclick="printRincian()"><i class="fas fa-print"></i> Cetak</button>
+            <button class="btn btn-secondary" onclick="closeModal('rincianModal')">Tutup</button>
         </div>
     </div>
 </div>
