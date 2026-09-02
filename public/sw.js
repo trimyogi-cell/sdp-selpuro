@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sdsp-v9';
+const CACHE_NAME = 'sdsp-v10';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
