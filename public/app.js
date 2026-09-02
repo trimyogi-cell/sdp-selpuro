@@ -496,7 +496,16 @@ function loadJenisBayarForSiswa() {
     totalDiv.style.display = 'none';
     return;
   }
-  container.innerHTML = available.map(jb => `
+  container.innerHTML = `
+    <label class="jenis-checkbox-item" style="background:#e0f2fe;border:1px solid #bae6fd;">
+      <input type="checkbox" id="txSelectAll" onchange="toggleAllJenisBayar(this)">
+      <div class="item-info">
+        <div class="item-nama" style="color:#0369a1;font-weight:700;">Pilih Semua Jenis Pembayaran</div>
+        <div class="item-meta">Tandai semua ${available.length} item</div>
+      </div>
+      <div class="item-nominal" style="color:#0369a1;">${formatRupiah(available.reduce((s,jb)=>s+jb.nominal,0))}</div>
+    </label>
+    ${available.map(jb => `
     <label class="jenis-checkbox-item">
       <input type="checkbox" class="tx-jenis-check" value="${jb.id}" onchange="updateTxTotal()">
       <div class="item-info">
@@ -505,12 +514,20 @@ function loadJenisBayarForSiswa() {
       </div>
       <div class="item-nominal">${formatRupiah(jb.nominal)}</div>
     </label>
-  `).join('');
+    `).join('')}`;
   totalDiv.style.display = 'none';
 }
 
+function toggleAllJenisBayar(el) {
+  document.querySelectorAll('.tx-jenis-check').forEach(cb => cb.checked = el.checked);
+  updateTxTotal();
+}
+
 function updateTxTotal() {
-  const checked = [...document.querySelectorAll('.tx-jenis-check:checked')];
+  const allChecks = [...document.querySelectorAll('.tx-jenis-check')];
+  const checked = allChecks.filter(cb => cb.checked);
+  const selectAll = document.getElementById('txSelectAll');
+  if (selectAll) selectAll.checked = checked.length === allChecks.length && allChecks.length > 0;
   let total = 0;
   checked.forEach(cb => {
     const jb = DB.jenisBayar.find(j => j.id === parseInt(cb.value));
