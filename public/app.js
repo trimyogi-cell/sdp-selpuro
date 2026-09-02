@@ -694,8 +694,12 @@ function cetakBuktiTransaksi() {
 
 function printBuktiPreview() {
   const content = document.getElementById('buktiPreviewContent').innerHTML;
-  document.getElementById('printArea').innerHTML = content;
-  window.print();
+  const w = window.open('', '_blank', 'width=450,height=700');
+  if (!w) { alert('Ijinkan popup untuk mencetak'); return; }
+  w.document.write(`<html><head><title>Bukti Pembayaran</title><style>body{font-family:Arial,sans-serif;padding:20px;margin:0;}@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact;-webkit-print-color-adjust:exact;}}</style></head><body>${content}</body></html>`);
+  w.document.close();
+  w.focus();
+  w.print();
 }
 
 function generateBuktiPDF(id) {
@@ -961,8 +965,10 @@ function printStorData(data) {
     <br><br><div style="display:flex;justify-content:space-between;margin-top:40px;">
     <div style="text-align:center;width:200px;"><p><strong>Yang Menyetor</strong></p><br><br><br><p>_________________</p></div>
     <div style="text-align:center;width:200px;"><p><strong>${esc(p.bendahara) || 'Bendahara'}</strong></p><p>${esc(p.namaSekolah) || ''}</p><br><br><p>_________________</p></div></div>`;
-  document.getElementById('printArea').innerHTML = html;
-  window.print();
+  const w = window.open('', '_blank', 'width=900,height=650');
+  if (!w) { alert('Ijinkan popup untuk mencetak'); return; }
+  w.document.write(`<html><head><title>SURAT SETOR</title><style>body{font-family:Arial,sans-serif;padding:30px;margin:0;color:#000;}h2{text-align:center;}p{text-align:center;}table{width:100%;border-collapse:collapse;margin-top:15px;}th,td{border:1px solid #333;padding:8px;font-size:12px;text-align:left;}th{background:#f0f0f0;}tfoot td{font-weight:bold;}@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}</style></head><body>${html}</body><script>window.onload=function(){setTimeout(function(){window.print();},300);};<\/script></html>`);
+  w.document.close();
 }
 
 function kirimStorWa(id) {
@@ -1282,8 +1288,36 @@ function printLaporan(type) {
       break;
     }
   }
-  document.getElementById('printArea').innerHTML=`<h2>${title}</h2><p>${esc(DB.profil.namaSekolah)||'SD Negeri 1 Selopuro'}</p><hr>${content}`;
-  window.print();
+  const namaSekolah = (DB.profil && DB.profil.namaSekolah) || 'SD Negeri 1 Selopuro';
+  const alamat = (DB.profil && DB.profil.alamat) || '';
+  const telp = (DB.profil && DB.profil.telp) || '';
+  const w = window.open('', '_blank', 'width=900,height=650');
+  if (!w) { alert('Ijinkan popup untuk mencetak laporan'); return; }
+  w.document.write(`<!DOCTYPE html><html><head><title>${title}</title>
+<style>
+  body{font-family:Arial,sans-serif;padding:30px;margin:0;color:#000;}
+  h2{text-align:center;margin:0 0 4px 0;}
+  .sec-info{text-align:center;font-size:13px;margin-bottom:3px;color:#333;}
+  .sec-telp{text-align:center;font-size:12px;color:#333;margin-bottom:12px;}
+  hr{border:none;border-top:2px solid #333;margin:10px 0;}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px;}
+  table th,table td{border:1px solid #333;padding:7px;text-align:left;}
+  table th{background:#f0f0f0;font-weight:bold;}
+  table tfoot td{font-weight:bold;background:#f8f8f8;}
+  .tanggal-print{text-align:right;font-size:12px;margin-top:15px;}
+  @media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}
+</style></head>
+<body>
+  <h2>${esc(namaSekolah)}</h2>
+  <div class="sec-info">${esc(alamat)}</div>
+  ${telp ? `<div class="sec-telp">Telp: ${esc(telp)}</div>` : ''}
+  <hr>
+  <h2 style="font-size:16px;">${title}</h2>
+  ${content}
+  <div class="tanggal-print">Dicetak: ${new Date().toLocaleString('id-ID')}</div>
+  <script>window.onload=function(){setTimeout(function(){window.print();},300);};<\/script>
+</body></html>`);
+  w.document.close();
 }
 
 // ===== WHATSAPP =====
