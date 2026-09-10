@@ -391,6 +391,15 @@
       "nominal": 75000,
       "tahun": "2026",
       "kelas": "3"
+    },
+    {
+      "id": 11,
+      "kode": "KURBAN",
+      "nama": "KURBAN",
+      "kategori": "Lainnya",
+      "nominal": 50000,
+      "tahun": "2026",
+      "kelas": "3"
     }
   ],
   "transaksi": [
