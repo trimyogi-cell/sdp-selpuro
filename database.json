@@ -382,6 +382,15 @@
       "nominal": 11000,
       "tahun": "2026",
       "kelas": "3"
+    },
+    {
+      "id": 10,
+      "kode": "SRG",
+      "nama": "SERAGAM OLAH RAGA",
+      "kategori": "Lainnya",
+      "nominal": 75000,
+      "tahun": "2026",
+      "kelas": "3"
     }
   ],
   "transaksi": [
