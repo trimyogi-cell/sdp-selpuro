@@ -1034,8 +1034,14 @@ function refreshDashboard() {
   document.getElementById('totalLunas').textContent = lunasCount;
   document.getElementById('totalBelumBayar').textContent = DB.siswa.length - lunasCount;
 
-  document.getElementById('totalPemasukan').textContent = formatRupiah(DB.transaksi.reduce((s, t) => s + t.nominal, 0));
-  document.getElementById('totalPengeluaran').textContent = formatRupiah((DB.stor || []).reduce((s, t) => s + (t.jumlah||t.nominal||0), 0));
+  const totalMasuk = DB.transaksi.reduce((s, t) => s + t.nominal, 0);
+  const totalStor = (DB.stor || []).reduce((s, t) => s + (t.jumlah||t.nominal||0), 0);
+  const saldoKas = totalMasuk - totalStor;
+  document.getElementById('totalPemasukan').textContent = formatRupiah(totalMasuk);
+  document.getElementById('totalPengeluaran').textContent = formatRupiah(totalStor);
+  const elSaldo = document.getElementById('totalSaldo');
+  elSaldo.textContent = formatRupiah(saldoKas);
+  elSaldo.style.color = saldoKas < 0 ? 'var(--danger)' : 'var(--success)';
 
   const recent = [...DB.transaksi].slice(0, 5);
   document.getElementById('recentTransactionsBody').innerHTML = recent.map(t => `
@@ -1116,6 +1122,20 @@ function showRincian(type) {
       stor.forEach((t, i) => html += `<tr><td>${i+1}</td><td>${formatDateShort(t.tanggal)}</td><td>${esc(t.oleh)||'-'}</td><td>${esc(t.catatan)||'-'}</td><td>${formatRupiah(t.jumlah||t.nominal||0)}</td></tr>`);
       html += '</tbody></table>';
     }
+  } else if (type === 'saldo') {
+    title.textContent = 'Rincian Saldo Kas';
+    const masuk = DB.transaksi.reduce((s, t) => s + t.nominal, 0);
+    const setor = (DB.stor || []).reduce((s, t) => s + (t.jumlah||t.nominal||0), 0);
+    const saldo = masuk - setor;
+    html = `
+      <table class="data-table" style="margin-bottom:12px;">
+        <tbody>
+          <tr><td>Total Pemasukan</td><td style="text-align:right;font-weight:600;color:var(--success);">${formatRupiah(masuk)}</td></tr>
+          <tr><td>Disetor ke Bendahara</td><td style="text-align:right;font-weight:600;color:var(--warning);">${formatRupiah(setor)}</td></tr>
+          <tr style="background:#f0fdf4;border-top:2px solid #16a34a;"><td style="font-weight:700;">Saldo Kas</td><td style="text-align:right;font-weight:700;font-size:16px;color:${saldo < 0 ? 'var(--danger)' : 'var(--success)'};">${formatRupiah(saldo)}</td></tr>
+        </tbody>
+      </table>
+      <p style="color:var(--text-light);font-size:12px;">Saldo Kas = Total Pemasukan - Disetor ke Bendahara</p>`;
   }
   body.innerHTML = html;
   openModal('rincianModal');

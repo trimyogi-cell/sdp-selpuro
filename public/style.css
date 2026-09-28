@@ -470,6 +470,7 @@ body {
 .stat-card.orange .stat-icon { background: #ffedd5; color: var(--warning); }
 .stat-card.red .stat-icon { background: #fee2e2; color: var(--danger); }
 .stat-card.purple .stat-icon { background: #f3e8ff; color: #9333ea; }
+.stat-card.teal .stat-icon { background: #ccfbf1; color: #0d9488; }
 
 .stat-info h3 {
     font-size: 22px;
