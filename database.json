@@ -286,15 +286,6 @@
       "jenis": "Struk",
       "status": "Terkirim",
       "pesan": "SD Negeri 1 Selopuro\nJl. Narasoma No. 1, Lingkungan Pendem, Kelurahan Selopuro\nTelp: 081325145048\n\n━━━ BUKTI PEMBAYARAN ━━━\n\nNo. Bayar: BYR-260919-094540\nTanggal: 19 September 2026 09.45.40\nSiswa: LAISYA NUR AINI (Kelas 3)\nOrang Tua: WALI LAISYA NUR AINI\n\nItem dibayar:\n1. AL HIKMAH (LKS): Rp 11.000\n2. BTA (LKS): Rp 11.000\n3. PRAMUKA (LKS): Rp 23.000\n4. PJOK (LKS): Rp 12.000\n5. SENI RUPA (LKS): Rp 12.000\n6. BAHASA INGGRIS (LKS): Rp 12.000\n7. BAHASA JAWA (LKS): Rp 12.000\n8. SERAGAM OLAH RAGA (Lainnya): Rp 75.000\n9. KURBAN (Lainnya): Rp 50.000\n10. JURNAL 7 K (Aktivitas): Rp 18.000\n11. AKTIVITAS SISWA (Aktivitas): Rp 35.000\n\nTotal: Rp 271.000\nMetode: Transfer\nStatus: LUNAS\n\nDiterima oleh:\n_Admin 1_\n\nTerima kasih 🙏"
-    },
-    {
-      "id": 16,
-      "tanggal": "28/9/2026 08.22.13",
-      "penerima": "Admin",
-      "noHp": "+62 822-2150-0344",
-      "jenis": "Stor",
-      "status": "Terkirim",
-      "pesan": "*SURAT SETOR / STOR KE BENDAHARA*\nSD Negeri 1 Selopuro\nJl. Narasoma No. 1, Lingkungan Pendem, Kelurahan Selopuro\n\nNo. Stor : STR-260928-0001\nTanggal  : 28/9/2026\nDisetor  : Admin kelas 3\nJumlah   : Rp 75.000\nCatatan  : Kaos olah raga 1 orang\n\nMengetahui,\n_Bendahara_\nAdmin\n\nDikirim oleh:\nAdmin 1"
     }
   ],
   "profil": {
@@ -323,7 +314,7 @@
     {
       "id": 1,
       "username": "admin",
-      "password": "eab0537642271372a39a6db8e1ebb91a:9f96bcf8c7ea02e699db17546b9ac71d9517167cce58c5b4e561acb12085f14463f85b5e8e085c5edcf60d01057020b9f8ef70831ce9ca70c6168dcc2eab8dad",
+      "password": "d6fc55cb12695a8f23145b5804ebba3c:195917091cb905b2cb91f5dade84f7dbe96b724f8c4b7b1cd6708a825965c3233613b1c75f91d019d6b2aa1f58487cffce3d47857a9c856b50367a85616224d0",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -331,7 +322,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "e5bfd303dbf2aa21218360f1c52f0fa9:03b45b86224219d3bd70880897acf80b2f05bbc8b8acef6764dc5865595a49d4ece71ea2f8d6bea2cdcf2f746e577553b890f2fb1b981bea54f521bab8e371d5",
+      "password": "0e69f885120ce8918b860d391db8112b:fe615ca11145faad35e772f10ebd33e77f98a6af75ef1e2ea735823d78c481efa617e7a4289a64bab65d4d44f3ea0d52baa2f13ff7b44dbf8730c5d3540f6779",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
