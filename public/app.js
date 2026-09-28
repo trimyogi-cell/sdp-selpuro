@@ -1222,10 +1222,15 @@ function generateRingkasan() {
     });
     const totalTagihan = detailItems.reduce((sum, jb) => sum + jb.nominal, 0);
     const detailHtml = detailItems.map(jb => {
-      const paid = txSiswa.filter(t => t.jenisId === jb.id).reduce((sum, t) => sum + t.nominal, 0);
-      const color = paid >= jb.nominal ? '#16a34a' : (paid > 0 ? '#f97316' : '#dc2626');
-      const icon = paid >= jb.nominal ? 'fa-check-circle' : (paid > 0 ? 'fa-clock' : 'fa-times-circle');
-      return `<span class="item-tag" style="background:${color}15;color:${color};border:1px solid ${color}40;"><i class="fas ${icon}"></i> ${esc(jb.nama)}: ${formatRupiah(paid)}/${formatRupiah(jb.nominal)}</span>`;
+      const txs = txSiswa.filter(t => t.jenisId === jb.id);
+      const paid = txs.reduce((sum, t) => sum + t.nominal, 0);
+      const done = jb.nominal > 0 && paid >= jb.nominal;
+      const partial = paid > 0 && !done;
+      const color = done ? '#16a34a' : partial ? '#f97316' : '#dc2626';
+      const icon = done ? 'fa-check-circle' : partial ? 'fa-clock' : 'fa-times-circle';
+      const lastDate = txs.length ? txs.map(t => t.tanggal).filter(Boolean).sort().pop() : null;
+      const nominalTxt = done ? formatRupiah(paid) : formatRupiah(paid) + '/' + formatRupiah(jb.nominal);
+      return `<span class="item-tag" style="background:${color}15;color:${color};border:1px solid ${color}40;"><i class="fas ${icon}"></i> ${esc(jb.nama)}: ${nominalTxt}${lastDate ? ' (' + formatDateShort(lastDate) + ')' : ''}</span>`;
     }).join(' ');
     const sisa = totalTagihan - totalBayar;
     let status, badgeClass;
@@ -1235,10 +1240,10 @@ function generateRingkasan() {
     if (statusFilter==='lunas' && status!=='Lunas') return null;
     if (statusFilter==='belum' && status!=='Belum Bayar') return null;
     if (statusFilter==='sebagian' && status!=='Sebagian') return null;
-    return `<tr><td>${i+1}</td><td><strong>${esc(s.nama)}</strong></td><td><span class="badge badge-primary">${esc(getKelasText(s.kelas))}</span></td><td>${esc(s.orangTua)||''}</td><td>${esc(s.noHp)||''}</td><td>${formatRupiah(totalTagihan)}</td><td style="color:var(--success);font-weight:600;">${formatRupiah(totalBayar)}</td><td style="color:${sisa>0?'var(--danger)':'var(--success)'};font-weight:600;">${formatRupiah(sisa>0?sisa:0)}</td><td><div class="item-tags-container">${detailHtml}</div></td><td><span class="badge ${badgeClass}">${status}</span></td></tr>`;
+    return `<tr><td>${i+1}</td><td><strong>${esc(s.nama)}</strong></td><td><span class="badge badge-primary">${esc(getKelasText(s.kelas))}</span></td><td>${formatRupiah(totalTagihan)}</td><td style="color:var(--success);font-weight:600;">${formatRupiah(totalBayar)}</td><td style="color:${sisa>0?'var(--danger)':'var(--success)'};font-weight:600;">${formatRupiah(sisa>0?sisa:0)}</td><td><div class="item-tags-container">${detailHtml}</div></td><td><span class="badge ${badgeClass}">${status}</span></td></tr>`;
   }).filter(Boolean);
 
-  document.getElementById('laporanRingkasanBody').innerHTML = rows.join('') || '<tr><td colspan="10" style="text-align:center;">Tidak ada data</td></tr>';
+  document.getElementById('laporanRingkasanBody').innerHTML = rows.join('') || '<tr><td colspan="8" style="text-align:center;">Tidak ada data</td></tr>';
   document.getElementById('ringkasanStats').innerHTML = `
     <div class="ringkasan-stat-grid">
       <div class="ringkasan-stat blue"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-info"><h3>${siswaList.length}</h3><p>Total Siswa</p></div></div>
@@ -1262,7 +1267,143 @@ function generateLpihak() {
   }).join('');
 }
 
+function printRingkasanSiswa() {
+  const kelas = (document.getElementById('filterRingkasanKelas') || {}).value || '';
+  const statusFilter = (document.getElementById('filterRingkasanStatus') || {}).value || '';
+  const siswaList = kelas ? DB.siswa.filter(s => s.kelas === kelas) : DB.siswa;
+  if (!siswaList.length) { alert('Tidak ada data siswa'); return; }
+
+  let totTagihan = 0, totBayar = 0, totSisa = 0, nLunas = 0, nSebagian = 0, nBelum = 0;
+  let no = 0;
+
+  const rows = siswaList.map(s => {
+    const txSiswa = DB.transaksi.filter(t => t.siswaId === s.id);
+    const totalBayar = txSiswa.reduce((sum, t) => sum + t.nominal, 0);
+    const detailItems = DB.jenisBayar.filter(jb => {
+      if (jb.kelas === 'all') return true;
+      if (jb.kelas.includes('-')) { const p = jb.kelas.split('-').map(Number); return parseInt(s.kelas) >= p[0] && parseInt(s.kelas) <= p[1]; }
+      return jb.kelas === s.kelas;
+    });
+    const totalTagihan = detailItems.reduce((sum, jb) => sum + jb.nominal, 0);
+    const sisa = totalTagihan - totalBayar;
+    const status = sisa <= 0 ? 'Lunas' : (totalBayar > 0 ? 'Sebagian' : 'Belum Bayar');
+    if (statusFilter === 'lunas' && status !== 'Lunas') return null;
+    if (statusFilter === 'belum' && status !== 'Belum Bayar') return null;
+    if (statusFilter === 'sebagian' && status !== 'Sebagian') return null;
+    no++;
+
+    if (status === 'Lunas') nLunas++; else if (status === 'Sebagian') nSebagian++; else nBelum++;
+    totTagihan += totalTagihan; totBayar += totalBayar; totSisa += Math.max(0, sisa);
+
+    const itemLines = detailItems.map(jb => {
+      const txs = txSiswa.filter(t => t.jenisId === jb.id);
+      const paid = txs.reduce((sum, t) => sum + t.nominal, 0);
+      const done = jb.nominal > 0 && paid >= jb.nominal;
+      const partial = paid > 0 && !done;
+      const lastDate = txs.length ? txs.map(t => t.tanggal).filter(Boolean).sort().pop() : null;
+      const cls = done ? 'ok' : partial ? 'part' : 'no';
+      const mark = done ? '&#10003;' : partial ? '&#9679;' : '&#10007;';
+      const amt = done ? formatRupiah(paid) : formatRupiah(paid) + ' / ' + formatRupiah(jb.nominal);
+      return '<div class="it ' + cls + '">'
+        + '<span class="mk">' + mark + '</span>'
+        + '<span class="nm">' + esc(jb.nama) + '</span>'
+        + '<span class="am">' + amt + '</span>'
+        + '<span class="dt">' + (lastDate ? formatDateShort(lastDate) : '-') + '</span>'
+        + '</div>';
+    }).join('');
+
+    return '<tr>'
+      + '<td class="c">' + no + '</td>'
+      + '<td class="nm">' + esc(s.nama) + '</td>'
+      + '<td class="c">' + esc(getKelasText(s.kelas)) + '</td>'
+      + '<td class="r">' + formatRupiah(totalTagihan) + '</td>'
+      + '<td class="r">' + formatRupiah(totalBayar) + '</td>'
+      + '<td class="r">' + formatRupiah(Math.max(0, sisa)) + '</td>'
+      + '<td class="c"><span class="st ' + (done2cls(status)) + '">' + status + '</span></td>'
+      + '<td class="dc">' + (itemLines || '<i>Tidak ada item</i>') + '</td>'
+      + '</tr>';
+  }).filter(Boolean);
+
+  if (!rows.length) { alert('Tidak ada data sesuai filter yang dipilih'); return; }
+
+  const p = DB.profil || {};
+  const judul = 'Ringkasan Pembayaran Per Siswa'
+    + (kelas ? ' - Kelas ' + getKelasText(kelas) : ' - Semua Kelas')
+    + (statusFilter ? ' - ' + ({ lunas: 'Lunas', belum: 'Belum Bayar', sebagian: 'Bayar Sebagian' }[statusFilter] || '') : '');
+
+  const w = window.open('', '_blank', 'width=1100,height=750');
+  if (!w) { alert('Ijinkan popup untuk mencetak laporan'); return; }
+
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ringkasan Pembayaran Per Siswa</title>'
+  + '<style>'
+  + '*{box-sizing:border-box;}'
+  + 'body{font-family:Arial,Helvetica,sans-serif;padding:18px;margin:0;color:#000;font-size:11px;}'
+  + 'h1{text-align:center;font-size:16px;margin:0 0 2px 0;}'
+  + '.sk{text-align:center;font-size:11px;color:#333;}'
+  + 'hr{border:none;border-top:2px solid #000;margin:6px 0 10px 0;}'
+  + '.judul{text-align:center;font-size:13px;font-weight:bold;margin:0 0 8px 0;}'
+  + '.info{display:flex;justify-content:space-between;font-size:10px;color:#444;margin-bottom:6px;}'
+  + 'table{width:100%;border-collapse:collapse;table-layout:fixed;}'
+  + 'th,td{border:1px solid #555;padding:4px 5px;vertical-align:top;}'
+  + 'th{background:#e2e2e2;font-weight:bold;text-align:center;font-size:10px;}'
+  + 'td.c,th.c{text-align:center;}'
+  + 'td.r,th.r{text-align:right;white-space:nowrap;}'
+  + 'td.nm{font-weight:bold;}'
+  + 'tfoot td{background:#eee;font-weight:bold;}'
+  + '.st{display:inline-block;padding:1px 5px;border:1px solid #666;border-radius:8px;font-size:9px;font-weight:bold;white-space:nowrap;}'
+  + '.st.lunas{background:#dcfce7;color:#166534;}'
+  + '.st.sebagian{background:#ffedd5;color:#9a3412;}'
+  + '.st.belum{background:#fee2e2;color:#991b1b;}'
+  + 'td.dc{padding:3px 4px;}'
+  + '.it{display:flex;align-items:center;gap:4px;padding:1px 0;font-size:10px;line-height:1.35;}'
+  + '.it .mk{width:11px;text-align:center;font-weight:bold;flex:0 0 11px;}'
+  + '.it .nm{flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}'
+  + '.it .am{flex:0 0 auto;text-align:right;white-space:nowrap;min-width:96px;}'
+  + '.it .dt{flex:0 0 auto;text-align:center;white-space:nowrap;width:44px;color:#555;}'
+  + '.it.ok .mk{color:#16a34a;}'
+  + '.it.part .mk{color:#ea580c;}'
+  + '.it.no .mk{color:#dc2626;}'
+  + '.it.no .nm,.it.no .am{color:#991b1b;}'
+  + '.it.part .am{color:#9a3412;}'
+  + 'tr{page-break-inside:avoid;}'
+  + 'thead{display:table-header-group;}'
+  + '@page{size:A4 landscape;margin:9mm;}'
+  + '@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}'
+  + '</style></head><body>'
+  + '<h1>' + esc(p.namaSekolah || 'SD Negeri 1 Selopuro') + '</h1>'
+  + '<div class="sk">' + esc(p.alamat || '') + (p.telp ? ' &nbsp;|&nbsp; Telp: ' + esc(p.telp) : '') + '</div>'
+  + '<hr>'
+  + '<div class="judul">' + esc(judul) + '</div>'
+  + '<div class="info"><span>Jumlah Siswa: ' + rows.length + ' orang</span>'
+  + '<span>Lunas: ' + nLunas + ' &nbsp;|&nbsp; Sebagian: ' + nSebagian + ' &nbsp;|&nbsp; Belum: ' + nBelum + '</span></div>'
+  + '<table><colgroup><col style="width:3%"><col style="width:15%"><col style="width:5%"><col style="width:10%"><col style="width:10%"><col style="width:10%"><col style="width:9%"><col style="width:38%"></colgroup>'
+  + '<thead><tr><th class="c">No</th><th>Nama Siswa</th><th class="c">Kls</th>'
+  + '<th class="r">Tagihan</th><th class="r">Sudah Bayar</th><th class="r">Sisa</th>'
+  + '<th class="c">Status</th><th>Rincian Item (&#10003; lunas &nbsp;&#9679; sebagian &nbsp;&#10007; belum)</th></tr></thead>'
+  + '<tbody>' + rows.join('') + '</tbody>'
+  + '<tfoot><tr><td colspan="3" class="c">TOTAL</td>'
+  + '<td class="r">' + formatRupiah(totTagihan) + '</td>'
+  + '<td class="r">' + formatRupiah(totBayar) + '</td>'
+  + '<td class="r">' + formatRupiah(totSisa) + '</td>'
+  + '<td colspan="2"></td></tr></tfoot></table>'
+  + '<div style="margin-top:18px;display:flex;justify-content:space-between;font-size:11px;">'
+  + '<div style="width:150px;text-align:center;">Orang Tua / Wali</div>'
+  + '<div style="width:170px;text-align:center;">Mengetahui,<br>Bendahara</div></div>'
+  + '<div style="margin-top:2px;display:flex;justify-content:space-between;font-size:11px;">'
+  + '<div style="width:150px;text-align:center;padding-top:34px;border-top:1px solid #000;">&nbsp;</div>'
+  + '<div style="width:170px;text-align:center;padding-top:34px;border-top:1px solid #000;">' + esc(p.bendahara || '') + '</div></div>'
+  + '</body></html>');
+  w.document.close();
+  w.focus();
+  setTimeout(function () { try { w.print(); } catch (e) {} }, 400);
+}
+
+function done2cls(status) {
+  return status === 'Lunas' ? 'lunas' : status === 'Sebagian' ? 'sebagian' : 'belum';
+}
+
 function printLaporan(type) {
+  if (type === 'ringkasan') { printRingkasanSiswa(); return; }
   const tabs = {
     harian: 'laporanHarian', bulanan: 'laporanBulanan', kelas: 'laporanKelas',
     ringkasan: 'laporanRingkasan', piutang: 'laporanLpihak'
