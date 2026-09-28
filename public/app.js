@@ -1263,81 +1263,75 @@ function generateLpihak() {
 }
 
 function printLaporan(type) {
-  let title='', content='';
-  switch(type) {
-    case 'harian': {
-      const tanggal = document.getElementById('filterTanggal').value;
-      title='Laporan Harian';
-      const filtered = DB.transaksi.filter(t => t.tanggal===tanggal);
-      content=`<p>Tanggal: ${formatDate(tanggal)}</p><table><thead><tr><th>No</th><th>No. Bayar</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Nominal</th><th>Jam</th></tr></thead><tbody>`;
-      let total=0; filtered.forEach((t,i)=>{total+=t.nominal; content+=`<tr><td>${i+1}</td><td>${esc(t.noBayar)}</td><td>${esc(t.siswaNama)}</td><td>${esc(getKelasText(t.siswaKelas))}</td><td>${esc(t.jenisNama)}</td><td>${formatRupiah(t.nominal)}</td><td>${esc(t.waktu)||''}</td></tr>`;});
-      content+=`</tbody><tfoot><tr><td colspan="5" style="text-align:right;font-weight:bold;">TOTAL</td><td style="font-weight:bold;">${formatRupiah(total)}</td><td></td></tr></tfoot></table>`;
-      break;
-    }
-    case 'bulanan': {
-      const bulan=document.getElementById('filterBulan').value, tahun=document.getElementById('filterTahun').value;
-      const nb=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-      title=`Laporan Bulanan - ${nb[bulan-1]} ${tahun}`;
-      const filtered=DB.transaksi.filter(t=>{const d=new Date(t.tanggal);return(d.getMonth()+1)===parseInt(bulan)&&d.getFullYear()===parseInt(tahun);});
-      content=`<table><thead><tr><th>No</th><th>No. Bayar</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Tanggal</th><th>Nominal</th></tr></thead><tbody>`;
-      let total=0;filtered.forEach((t,i)=>{total+=t.nominal;content+=`<tr><td>${i+1}</td><td>${esc(t.noBayar)}</td><td>${esc(t.siswaNama)}</td><td>${esc(getKelasText(t.siswaKelas))}</td><td>${esc(t.jenisNama)}</td><td>${formatDateShort(t.tanggal)}</td><td>${formatRupiah(t.nominal)}</td></tr>`;});
-      content+=`</tbody><tfoot><tr><td colspan="6" style="text-align:right;font-weight:bold;">TOTAL</td><td style="font-weight:bold;">${formatRupiah(total)}</td></tr></tfoot></table>`;
-      break;
-    }
-    case 'ringkasan': {
-      title='Ringkasan Pembayaran Per Siswa';
-      content=`<table><thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>Tagihan</th><th>Bayar</th><th>Sisa</th><th>Status</th></tr></thead><tbody>`;
-      DB.siswa.forEach((s,i)=>{
-        const totalBayar=DB.transaksi.filter(t=>t.siswaId===s.id).reduce((sum,t)=>sum+t.nominal,0);
-        const totalTagihan=DB.jenisBayar.reduce((sum,jb)=>{if(jb.kelas==='all')return sum+jb.nominal;if(jb.kelas.includes('-')){const parts=jb.kelas.split('-').map(Number);return(parseInt(s.kelas)>=parts[0]&&parseInt(s.kelas)<=parts[1])?sum+jb.nominal:sum;}return jb.kelas===s.kelas?sum+jb.nominal:sum;},0);
-        const sisa=totalTagihan-totalBayar;const status=sisa<=0?'Lunas':totalBayar>0?'Sebagian':'Belum';
-        content+=`<tr><td>${i+1}</td><td>${esc(s.nama)}</td><td>${esc(getKelasText(s.kelas))}</td><td>${formatRupiah(totalTagihan)}</td><td>${formatRupiah(totalBayar)}</td><td>${formatRupiah(sisa>0?sisa:0)}</td><td>${status}</td></tr>`;
-      });
-      content+=`</tbody></table>`;
-      break;
-    }
-    case 'piutang': {
-      title='Lampiran Piutang';
-      content=`<table><thead><tr><th>No</th><th>Siswa</th><th>Kelas</th><th>Orang Tua</th><th>No HP</th><th>Tagihan</th><th>Terbayar</th><th>Sisa</th></tr></thead><tbody>`;
-      DB.siswa.forEach((s,i)=>{
-        const totalBayar=DB.transaksi.filter(t=>t.siswaId===s.id).reduce((sum,t)=>sum+t.nominal,0);
-        const totalTagihan=DB.jenisBayar.reduce((sum,jb)=>{if(jb.kelas==='all')return sum+jb.nominal;if(jb.kelas.includes('-')){const parts=jb.kelas.split('-').map(Number);return(parseInt(s.kelas)>=parts[0]&&parseInt(s.kelas)<=parts[1])?sum+jb.nominal:sum;}return jb.kelas===s.kelas?sum+jb.nominal:sum;},0);
-        content+=`<tr><td>${i+1}</td><td>${esc(s.nama)}</td><td>${esc(getKelasText(s.kelas))}</td><td>${esc(s.orangTua)||''}</td><td>${esc(s.noHp)||''}</td><td>${formatRupiah(totalTagihan)}</td><td>${formatRupiah(totalBayar)}</td><td>${formatRupiah(totalTagihan-totalBayar)}</td></tr>`;
-      });
-      content+=`</tbody></table>`;
-      break;
-    }
-  }
-  const namaSekolah = (DB.profil && DB.profil.namaSekolah) || 'SD Negeri 1 Selopuro';
-  const alamat = (DB.profil && DB.profil.alamat) || '';
-  const telp = (DB.profil && DB.profil.telp) || '';
-  const w = window.open('', '_blank', 'width=900,height=650');
+  const tabs = {
+    harian: 'laporanHarian', bulanan: 'laporanBulanan', kelas: 'laporanKelas',
+    ringkasan: 'laporanRingkasan', piutang: 'laporanLpihak'
+  };
+  const wrap = document.getElementById(tabs[type] || '');
+  if (!wrap) { alert('Laporan tidak ditemukan'); return; }
+
+  const h4 = wrap.querySelector('.card-header h4');
+  const title = h4 ? h4.textContent.trim() : 'Laporan';
+  const table = wrap.querySelector('table');
+  if (!table) { alert('Tabel laporan tidak ditemukan'); return; }
+
+  let totalHtml = '';
+  const totalEl = wrap.querySelector('.laporan-total, .ringkasan-stats');
+  if (totalEl) totalHtml = '<div class="total-box">' + totalEl.innerHTML + '</div>';
+
+  const clone = table.cloneNode(true);
+  clone.querySelectorAll('i').forEach(el => el.remove());
+  clone.querySelectorAll('.item-tag').forEach(el => {
+    const t = document.createElement('span');
+    t.textContent = el.textContent.trim();
+    el.replaceWith(t);
+  });
+  const tableHtml = clone.outerHTML;
+
+  const p = DB.profil || {};
+  const namaSekolah = p.namaSekolah || 'SD Negeri 1 Selopuro';
+  const alamat = p.alamat || '';
+  const telp = p.telp || '';
+
+  const w = window.open('', '_blank', 'width=950,height=700');
   if (!w) { alert('Ijinkan popup untuk mencetak laporan'); return; }
-  w.document.write(`<!DOCTYPE html><html><head><title>${title}</title>
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(title)}</title>
 <style>
-  body{font-family:Arial,sans-serif;padding:30px;margin:0;color:#000;}
-  h2{text-align:center;margin:0 0 4px 0;}
-  .sec-info{text-align:center;font-size:13px;margin-bottom:3px;color:#333;}
-  .sec-telp{text-align:center;font-size:12px;color:#333;margin-bottom:12px;}
-  hr{border:none;border-top:2px solid #333;margin:10px 0;}
-  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px;}
-  table th,table td{border:1px solid #333;padding:7px;text-align:left;}
-  table th{background:#f0f0f0;font-weight:bold;}
-  table tfoot td{font-weight:bold;background:#f8f8f8;}
-  .tanggal-print{text-align:right;font-size:12px;margin-top:15px;}
+  body{font-family:Arial,sans-serif;padding:25px;margin:0;color:#000;font-size:12px;
+    --success:#16a34a;--danger:#dc2626;--warning:#ea580c;--primary:#2563eb;--text-light:#64748b;--border:#e2e8f0;--bg:#f1f5f9;}
+  h2{text-align:center;margin:0 0 3px 0;font-size:17px;}
+  .sec-info{text-align:center;font-size:12px;color:#333;}
+  hr{border:none;border-top:2px solid #333;margin:8px 0;}
+  .judul{text-align:center;font-size:14px;font-weight:bold;margin:10px 0 8px 0;text-transform:uppercase;}
+  table{width:100%;border-collapse:collapse;}
+  table th,table td{border:1px solid #333;padding:5px;font-size:11px;text-align:left;vertical-align:top;}
+  table th{background:#e8e8e8;font-weight:bold;}
+  .badge{display:inline-block;padding:1px 6px;border-radius:9px;font-size:10px;font-weight:bold;border:1px solid #999;}
+  .item-tags-container span{margin-right:4px;font-size:10px;}
+  .total-box{margin-top:10px;font-weight:bold;font-size:12px;}
+  .total-box .ringkasan-stat-grid{display:flex;gap:10px;flex-wrap:wrap;}
+  .total-box .ringkasan-stat{border:1px solid #999;padding:6px 10px;min-width:120px;text-align:center;}
+  .total-box .ringkasan-stat h3{font-size:15px;margin:0;}
+  .total-box .ringkasan-stat p{margin:0;font-size:11px;}
+  .total-box .stat-icon{display:none;}
+  .meta{text-align:right;font-size:11px;margin-top:12px;}
+  thead{display:table-header-group;}
+  tr{page-break-inside:avoid;}
+  @page{size:landscape;margin:10mm;}
   @media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}
 </style></head>
 <body>
   <h2>${esc(namaSekolah)}</h2>
-  <div class="sec-info">${esc(alamat)}</div>
-  ${telp ? `<div class="sec-telp">Telp: ${esc(telp)}</div>` : ''}
+  <div class="sec-info">${esc(alamat)}${telp ? ' &nbsp;|&nbsp; Telp: ' + esc(telp) : ''}</div>
   <hr>
-  <h2 style="font-size:16px;">${title}</h2>
-  ${content}
-  <div class="tanggal-print">Dicetak: ${new Date().toLocaleString('id-ID')}</div>
-  <script>window.onload=function(){setTimeout(function(){window.print();},300);};<\/script>
+  <div class="judul">${esc(title)}</div>
+  ${tableHtml}
+  ${totalHtml}
+  <div class="meta">Selopuro, ${formatDate(new Date().toISOString().split('T')[0])} &nbsp;&nbsp; Mengetahui,<br><br><br>Bendahara</div>
 </body></html>`);
   w.document.close();
+  w.focus();
+  setTimeout(() => { try { w.print(); } catch (e) {} }, 400);
 }
 
 // ===== WHATSAPP =====
