@@ -300,7 +300,16 @@
     "namaAdmin": "Admin 1",
     "noHpBendahara": "+62 822-2150-0344"
   },
-  "stor": [],
+  "stor": [
+    {
+      "id": 1,
+      "noStor": "STR-260928-0001",
+      "tanggal": "2026-09-28",
+      "oleh": "Admin kelas 3",
+      "jumlah": 75000,
+      "catatan": "Kaos olah raga 1 orang"
+    }
+  ],
   "users": [
     {
       "id": 1,
