@@ -1613,6 +1613,22 @@
       "keterangan": "Tf BRI",
       "status": "Lunas",
       "waktu": "09.45.40"
+    },
+    {
+      "id": 78,
+      "noBayar": "BYR-260928-121108",
+      "tanggal": "2026-09-28",
+      "siswaId": 12,
+      "siswaNama": "RADITYA RIZKI APRILIANSYAH",
+      "siswaKelas": "3",
+      "jenisId": 10,
+      "jenisNama": "SERAGAM OLAH RAGA",
+      "kategori": "Lainnya",
+      "nominal": 75000,
+      "metode": "Transfer",
+      "keterangan": "Tf BRI",
+      "status": "Lunas",
+      "waktu": "12.11.08"
     }
   ]
 }
