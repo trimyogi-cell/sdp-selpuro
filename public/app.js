@@ -1386,12 +1386,10 @@ function printRingkasanSiswa() {
   + '<td class="r">' + formatRupiah(totBayar) + '</td>'
   + '<td class="r">' + formatRupiah(totSisa) + '</td>'
   + '<td colspan="2"></td></tr></tfoot></table>'
-  + '<div style="margin-top:18px;display:flex;justify-content:space-between;font-size:11px;">'
-  + '<div style="width:150px;text-align:center;">Orang Tua / Wali</div>'
-  + '<div style="width:170px;text-align:center;">Mengetahui,<br>Bendahara</div></div>'
-  + '<div style="margin-top:2px;display:flex;justify-content:space-between;font-size:11px;">'
-  + '<div style="width:150px;text-align:center;padding-top:34px;border-top:1px solid #000;">&nbsp;</div>'
-  + '<div style="width:170px;text-align:center;padding-top:34px;border-top:1px solid #000;">' + esc(p.bendahara || '') + '</div></div>'
+  + '<div style="margin-top:20px;display:flex;justify-content:flex-end;font-size:11px;">'
+  + '<div style="width:180px;text-align:center;">Mengetahui,<br>Bendahara</div></div>'
+  + '<div style="margin-top:2px;display:flex;justify-content:flex-end;font-size:11px;">'
+  + '<div style="width:180px;text-align:center;padding-top:34px;border-top:1px solid #000;">' + esc(p.bendahara || '') + '</div></div>'
   + '</body></html>');
   w.document.close();
   w.focus();
