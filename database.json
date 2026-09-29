@@ -1629,6 +1629,22 @@
       "keterangan": "Tf BRI",
       "status": "Lunas",
       "waktu": "12.11.08"
+    },
+    {
+      "id": 79,
+      "noBayar": "BYR-260929-070412",
+      "tanggal": "2026-09-29",
+      "siswaId": 15,
+      "siswaNama": "VANIA OKTA EVARISTA",
+      "siswaKelas": "3",
+      "jenisId": 10,
+      "jenisNama": "SERAGAM OLAH RAGA",
+      "kategori": "Lainnya",
+      "nominal": 75000,
+      "metode": "Tunai",
+      "keterangan": "",
+      "status": "Lunas",
+      "waktu": "07.04.12"
     }
   ]
 }
