@@ -308,13 +308,21 @@
       "oleh": "Admin kelas 3",
       "jumlah": 75000,
       "catatan": "Kaos olah raga 1 orang"
+    },
+    {
+      "id": 2,
+      "noStor": "STR-261002-0003",
+      "tanggal": "2026-10-02",
+      "oleh": "Admin Kelas 3",
+      "jumlah": 75000,
+      "catatan": "1 KAOS OLAH RAGA"
     }
   ],
   "users": [
     {
       "id": 1,
       "username": "admin",
-      "password": "30f09de72281d3bfddf53d54e2e5c5bc:dcdd85d3885f408413b93f14e1bf553ec59409f8cf8211884008c557cc179ff55934da541e7b36a503453552c356badeaf2dfe985f52965dde898cd10046e36d",
+      "password": "8c17c343c267e95191a4953e1e103e1c:88cf45562bb4f8649eba5bb7ac499323f907a23c8860228879d3d0a5d336cae69e08d10d81d532bc187f439852b6754ba1dbb39a24fb483b542f94df5b4ef8fc",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -322,7 +330,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "39f30b14d4478e4b32dd560a0d53e9fa:014df038d90017c51c52a72a54eb72747fbde14f68908720857417a3a309d7835bdfbcc4f17be6036b5d406038900523911dbdcc4b369d0dda8e82d4cbb1b070",
+      "password": "0a5c433136685c0f8af36f465beb8a51:9c9dc55dd03f7d018842ac6319380cbfc695a4b2696df697842d3dfd2062e6d04dc9621a28b95dc51dc85eec576d2d09d977371bc10dec209dcf06cd2135c714",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
