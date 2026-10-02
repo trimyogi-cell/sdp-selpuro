@@ -1645,6 +1645,22 @@
       "keterangan": "",
       "status": "Lunas",
       "waktu": "07.04.12"
+    },
+    {
+      "id": 80,
+      "noBayar": "BYR-261002-071526",
+      "tanggal": "2026-10-02",
+      "siswaId": 10,
+      "siswaNama": "QHAIRA NAILA PUTRI",
+      "siswaKelas": "3",
+      "jenisId": 10,
+      "jenisNama": "SERAGAM OLAH RAGA",
+      "kategori": "Lainnya",
+      "nominal": 75000,
+      "metode": "Tunai",
+      "keterangan": "",
+      "status": "Lunas",
+      "waktu": "07.15.26"
     }
   ]
 }
