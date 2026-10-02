@@ -308,6 +308,14 @@
       "oleh": "Admin kelas 3",
       "jumlah": 75000,
       "catatan": "Kaos olah raga 1 orang"
+    },
+    {
+      "id": 2,
+      "noStor": "STR-261002-0002",
+      "tanggal": "2026-10-02",
+      "oleh": "Admin Kelas 3",
+      "jumlah": 225000,
+      "catatan": "3 SERAGAM OLAH RAGA"
     }
   ],
   "users": [
