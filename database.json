@@ -316,6 +316,14 @@
       "oleh": "Admin kelas 3",
       "jumlah": 225000,
       "catatan": "3 SERAGAM OLAH RAGA\n"
+    },
+    {
+      "id": 3,
+      "noStor": "STR-261003-0003",
+      "tanggal": "2026-10-03",
+      "oleh": "Admin kelas 3",
+      "jumlah": 75000,
+      "catatan": "Setor Seragam Olah Raga 1 orang"
     }
   ],
   "users": [
