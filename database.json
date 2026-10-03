@@ -316,13 +316,21 @@
       "oleh": "Admin kelas 3",
       "jumlah": 225000,
       "catatan": "3 SERAGAM OLAH RAGA\n"
+    },
+    {
+      "id": 3,
+      "noStor": "STR-261003-0003",
+      "tanggal": "2026-10-03",
+      "oleh": "Admin",
+      "jumlah": 75000,
+      "catatan": "1 seragan olah raga"
     }
   ],
   "users": [
     {
       "id": 1,
       "username": "admin",
-      "password": "91c51f7f3422c15ae295d442a3363a62:e04cd75013745fbc3eb9d78c8b97b15f0f944be4474f006a457168464edf4b147066cc269ca586d3b1736c73fd9f18b36525ffa9b5358516a1b73b6068fc7a67",
+      "password": "761d52c5df9822fab2627278227eaf6d:2a7c03d0195bc9b9f1a7fa1f7be53e81f538e75e2d7c50be78648e7773af877ae6e2ce5583826cfb750b7e1e31e392a1d057db2f670723a3016dd6ec612a9e19",
       "nama": "Administrator",
       "role": "admin",
       "status": "aktif"
@@ -330,7 +338,7 @@
     {
       "id": 2,
       "username": "operator",
-      "password": "3996b0b14f97bba22ecddfe86a3751b9:92e516f35d71e30d409e23ae28fc257f1b78d4a3ee5b63cd2da66b75b9b93c9570928f38d3fc8202c094c62f3f53bacb19bf937e67d239ee6f69d45bd5605ac1",
+      "password": "d44c491e4edafc6fc7287302767ca03f:1a66051232d7c6bcb591eb27bd5f5efb3ddea5f469f2ce8c1812c8efa40400ef4320dc96185da12d4c6b86f3a73b8cb530288fdb6dc6191de6b285d560613cd9",
       "nama": "Operator",
       "role": "operator",
       "status": "aktif"
