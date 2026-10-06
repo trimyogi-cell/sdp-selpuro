@@ -324,6 +324,14 @@
       "oleh": "Admin",
       "jumlah": 75000,
       "catatan": "1 seragan olah raga"
+    },
+    {
+      "id": 4,
+      "noStor": "STR-261006-0004",
+      "tanggal": "2026-10-06",
+      "oleh": "Admin kelas 3",
+      "jumlah": 620000,
+      "catatan": "SETOR 5 Orang. A. Siswa 175.000. Jurnal 90.000. Seni rupa 60.000. B. Inggris 60.000. B. Jawa 60.000. PJOK 60.000. Pramuka 115.000"
     }
   ],
   "users": [
