@@ -1845,6 +1845,22 @@
       "keterangan": "",
       "status": "Lunas",
       "waktu": "08.08.05"
+    },
+    {
+      "id": 91,
+      "noBayar": "BYR-261007-071426",
+      "tanggal": "2026-10-07",
+      "siswaId": 6,
+      "siswaNama": "DANU NUGROHO",
+      "siswaKelas": "3",
+      "jenisId": 10,
+      "jenisNama": "SERAGAM OLAH RAGA",
+      "kategori": "Lainnya",
+      "nominal": 75000,
+      "metode": "Tunai",
+      "keterangan": "",
+      "status": "Lunas",
+      "waktu": "07.14.26"
     }
   ]
 }
