@@ -1861,6 +1861,38 @@
       "keterangan": "",
       "status": "Lunas",
       "waktu": "07.14.26"
+    },
+    {
+      "id": 92,
+      "noBayar": "BYR-261009-071526",
+      "tanggal": "2026-10-09",
+      "siswaId": 14,
+      "siswaNama": "RETHA FARADINA YULDHA",
+      "siswaKelas": "3",
+      "jenisId": 11,
+      "jenisNama": "KURBAN",
+      "kategori": "Lainnya",
+      "nominal": 50000,
+      "metode": "Tunai",
+      "keterangan": "",
+      "status": "Lunas",
+      "waktu": "07.15.26"
+    },
+    {
+      "id": 93,
+      "noBayar": "BYR-261009-071526",
+      "tanggal": "2026-10-09",
+      "siswaId": 14,
+      "siswaNama": "RETHA FARADINA YULDHA",
+      "siswaKelas": "3",
+      "jenisId": 10,
+      "jenisNama": "SERAGAM OLAH RAGA",
+      "kategori": "Lainnya",
+      "nominal": 75000,
+      "metode": "Tunai",
+      "keterangan": "",
+      "status": "Lunas",
+      "waktu": "07.15.26"
     }
   ]
 }
