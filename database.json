@@ -1893,6 +1893,24 @@
       "keterangan": "",
       "status": "Lunas",
       "waktu": "07.15.26"
+    },
+    {
+      "id": 94,
+      "noBayar": "BYR-LIVETEST",
+      "tanggal": "2026-10-16",
+      "siswaId": 999,
+      "siswaNama": "TEST",
+      "siswaKelas": "1",
+      "jenisId": 1,
+      "jenisNama": "TEST",
+      "kategori": "LKS",
+      "nominal": 147000,
+      "metode": "Tunai",
+      "keterangan": "",
+      "status": "Lunas",
+      "waktu": "10:00",
+      "dibayar": 150000,
+      "kembalian": 3000
     }
   ]
 }
