@@ -14,13 +14,35 @@ let saveQueue = null;
 
 async function loadDatabase() {
   if (dbCache) return dbCache;
-  const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`, {
-    headers: {
-      'Authorization': 'token ' + GITHUB_TOKEN,
-      'Accept': 'application/vnd.github.v3+json',
-      'User-Agent': 'sdp-selpuro'
+  let res;
+  try {
+    res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`, {
+      headers: {
+        'Authorization': 'token ' + GITHUB_TOKEN,
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'sdp-selpuro'
+      },
+      signal: AbortSignal.timeout(15000)
+    });
+    if (res.status === 401 || res.status === 403) {
+      res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`, {
+        headers: { 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'sdp-selpuro' },
+        signal: AbortSignal.timeout(15000)
+      });
+      console.error('GITHUB_TOKEN tidak valid - baca database sebagai repo publik (read-only)');
     }
-  });
+  } catch (e) {
+    res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/${GITHUB_FILE}?_=${Date.now()}`, {
+      headers: { 'User-Agent': 'sdp-selpuro' },
+      signal: AbortSignal.timeout(15000)
+    });
+    if (res.ok) {
+      dbSha = null;
+      dbCache = JSON.parse((await res.text()) || '{}');
+      return dbCache;
+    }
+    throw new Error('GitHub load failed: ' + e.message);
+  }
   if (res.status === 404) {
     dbCache = {};
     dbSha = null;
@@ -35,7 +57,8 @@ async function loadDatabase() {
   const content = Buffer.from(data.content.replace(/\n/g, ''), 'base64').toString('utf8');
   dbCache = JSON.parse(content || '{}');
   return dbCache;
-}async function flushSave() {
+}
+async function flushSave() {
   if (!saveQueue) return;
   const payload = saveQueue;
   saveQueue = null;
@@ -119,9 +142,14 @@ function hashPassword(password) {
 function verifyPassword(password, stored) {
   if (!stored) return false;
   if (stored.includes(':')) {
-    const [salt, hash] = stored.split(':');
-    const verify = crypto.scryptSync(password, salt, 64).toString('hex');
-    return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(verify, 'hex'));
+    try {
+      const [salt, hash] = stored.split(':');
+      const verify = crypto.scryptSync(password, salt, 64).toString('hex');
+      const a = Buffer.from(hash, 'hex');
+      const b = Buffer.from(verify, 'hex');
+      if (a.length !== b.length) return false;
+      return crypto.timingSafeEqual(a, b);
+    } catch (e) { return false; }
   }
   return password === stored;
 }
@@ -258,7 +286,7 @@ app.post('/api/login', async (req, res) => {
     if (user.status === 'nonaktif') return res.status(403).json({ error: 'Akun dinonaktifkan' });
     if (!isPasswordHashed(user.password)) {
       user.password = hashPassword(password);
-      await saveTable('users', users);
+      try { await saveTable('users', users); } catch (e) { console.error('Migrasi password gagal disimpan:', e.message); }
     }
     const token = createToken(user.id, user.role);
     const { password: _, ...safe } = user;
