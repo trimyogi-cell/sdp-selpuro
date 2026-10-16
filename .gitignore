@@ -5,3 +5,6 @@ node-temp/
 database.json
 *.log
 START.bat
+
+.vercel
+.env*
