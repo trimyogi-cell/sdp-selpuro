@@ -332,6 +332,28 @@
       "oleh": "Admin kelas 3",
       "jumlah": 620000,
       "catatan": "SETOR 5 Orang. A. Siswa 175.000. Jurnal 90.000. Seni rupa 60.000. B. Inggris 60.000. B. Jawa 60.000. PJOK 60.000. Pramuka 115.000"
+    },
+    {
+      "id": 5,
+      "noStor": "STR-QTYLIVE",
+      "tanggal": "2026-10-17",
+      "oleh": "TEST",
+      "jumlah": 60000,
+      "catatan": "",
+      "items": [
+        {
+          "nama": "Kurban",
+          "qty": 10,
+          "harga": 5000,
+          "jumlah": 50000
+        },
+        {
+          "nama": "Seni Rupa",
+          "qty": 4,
+          "harga": 2500,
+          "jumlah": 10000
+        }
+      ]
     }
   ],
   "users": [
