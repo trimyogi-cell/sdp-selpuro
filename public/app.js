@@ -278,14 +278,21 @@ function openModal(id) {
 }
 
 // ===== STOR ITEMS =====
-function addStorItem(nama, jumlah) {
+function addStorItem(d) {
+  d = d || {};
   const box = document.getElementById('storItems');
   if (!box) return;
+  const qty = d.qty != null ? d.qty : 1;
+  const harga = d.harga != null ? d.harga : (d.jumlah || '');
   const row = document.createElement('div');
   row.className = 'stor-item-row';
   row.innerHTML = `
-    <input type="text" class="stor-item-nama" list="storItemSuggestions" placeholder="Nama item (mis: LKS)" value="${esc(nama || '')}">
-    <input type="number" class="stor-item-jumlah" placeholder="Jumlah (Rp)" oninput="updateStorTotal()" value="${jumlah ? jumlah : ''}">
+    <div class="stor-item-field">
+      <input type="text" class="stor-item-nama" list="storItemSuggestions" placeholder="Nama item (mis: Kurban)" oninput="onStorItemName(this)" value="${esc(d.nama || '')}">
+      <div class="stor-item-sub">Subtotal: Rp 0</div>
+    </div>
+    <input type="number" class="stor-item-qty" placeholder="Qty" min="1" oninput="updateStorTotal()" value="${qty}">
+    <input type="number" class="stor-item-harga" placeholder="Harga" oninput="updateStorTotal()" value="${harga}">
     <button type="button" class="btn btn-icon btn-danger" onclick="removeStorItem(this)" title="Hapus item"><i class="fas fa-times"></i></button>`;
   box.appendChild(row);
   updateStorTotal();
@@ -298,15 +305,38 @@ function removeStorItem(btn) {
   updateStorTotal();
 }
 
+function onStorItemName(el) {
+  const name = el.value.trim().toLowerCase();
+  if (!name) return;
+  const jb = (DB.jenisBayar || []).find(j => (j.nama || '').toLowerCase() === name)
+          || (DB.jenisBayar || []).find(j => (j.kategori || '').toLowerCase() === name);
+  if (jb) {
+    const row = el.closest('.stor-item-row');
+    const h = row.querySelector('.stor-item-harga');
+    if (h && (!h.value || parseInt(h.value) === 0)) h.value = jb.nominal || 0;
+    updateStorTotal();
+  }
+}
+
 function getStorItems() {
-  return [...document.querySelectorAll('#storItems .stor-item-row')].map(row => ({
-    nama: row.querySelector('.stor-item-nama').value.trim(),
-    jumlah: parseInt(row.querySelector('.stor-item-jumlah').value) || 0
-  })).filter(it => it.nama || it.jumlah);
+  return [...document.querySelectorAll('#storItems .stor-item-row')].map(row => {
+    const nama = row.querySelector('.stor-item-nama').value.trim();
+    const qty = parseInt(row.querySelector('.stor-item-qty').value) || 0;
+    const harga = parseInt(row.querySelector('.stor-item-harga').value) || 0;
+    return { nama, qty, harga, jumlah: qty * harga };
+  }).filter(it => (it.nama && (it.qty > 0 || it.jumlah > 0)) || it.jumlah > 0);
 }
 
 function updateStorTotal() {
-  const total = getStorItems().reduce((a, it) => a + it.jumlah, 0);
+  let total = 0;
+  document.querySelectorAll('#storItems .stor-item-row').forEach(row => {
+    const qty = parseInt(row.querySelector('.stor-item-qty').value) || 0;
+    const harga = parseInt(row.querySelector('.stor-item-harga').value) || 0;
+    const sub = qty * harga;
+    const subEl = row.querySelector('.stor-item-sub');
+    if (subEl) subEl.textContent = 'Subtotal: ' + formatRupiah(sub) + (qty > 1 ? ` (${qty} × ${formatRupiah(harga)})` : '');
+    total += sub;
+  });
   const box = document.getElementById('storTotalBox');
   if (box) box.textContent = 'Total: ' + formatRupiah(total);
 }
@@ -987,7 +1017,12 @@ function renderStorTable() {
   tbody.innerHTML = DB.stor.map((s, i) => {
     const items = Array.isArray(s.items) && s.items.length ? s.items : null;
     const rincian = items
-      ? items.map(it => `<div class="stor-rincian-line"><span>${esc(it.nama) || '(tanpa nama)'}</span><b>${formatRupiah(it.jumlah)}</b></div>`).join('')
+      ? items.map(it => {
+          const qty = parseInt(it.qty) || 0;
+          const harga = parseInt(it.harga) || 0;
+          const detail = (qty > 0 && harga > 0) ? ` <small style="color:var(--text-light);">(${qty} × ${formatRupiah(harga)})</small>` : '';
+          return `<div class="stor-rincian-line"><span>${esc(it.nama) || '(tanpa nama)'}${detail}</span><b>${formatRupiah(it.jumlah)}</b></div>`;
+        }).join('')
       : '<span style="color:var(--text-light);">-</span>';
     return `
     <tr>
@@ -1059,9 +1094,13 @@ function printStorData(data) {
       <table><thead><tr><th>No. Stor</th><th>Tanggal</th><th>Disetor Oleh</th><th>Catatan</th><th style="text-align:right;">Jumlah</th></tr></thead>
       <tbody><tr><td>${esc(s.noStor)}</td><td>${formatDateShort(s.tanggal)}</td><td>${esc(s.oleh)||''}</td><td>${esc(s.catatan)||''}</td><td style="text-align:right;font-weight:bold;">${formatRupiah(s.jumlah)}</td></tr></tbody></table>`;
     if (items) {
-      html += `<table style="margin-top:-1px;"><thead><tr><th style="width:40px;">No</th><th>Rincian Item yang Disetor</th><th style="width:160px;text-align:right;">Harga</th></tr></thead><tbody>`;
-      items.forEach((it, k) => { html += `<tr><td>${k+1}</td><td>${esc(it.nama) || '(tanpa nama)'}</td><td style="text-align:right;">${formatRupiah(it.jumlah)}</td></tr>`; });
-      html += `<tr><td colspan="2" style="text-align:right;font-weight:bold;">Subtotal</td><td style="text-align:right;font-weight:bold;">${formatRupiah(s.jumlah)}</td></tr></tbody></table>`;
+      html += `<table style="margin-top:-1px;"><thead><tr><th style="width:40px;">No</th><th>Item</th><th style="width:55px;text-align:center;">Qty</th><th style="width:120px;text-align:right;">Harga Satuan</th><th style="width:130px;text-align:right;">Subtotal</th></tr></thead><tbody>`;
+      items.forEach((it, k) => {
+        const qty = parseInt(it.qty) || 0;
+        const harga = parseInt(it.harga) || 0;
+        html += `<tr><td>${k+1}</td><td>${esc(it.nama) || '(tanpa nama)'}</td><td style="text-align:center;">${qty || 1}</td><td style="text-align:right;">${harga ? formatRupiah(harga) : '-'}</td><td style="text-align:right;">${formatRupiah(it.jumlah)}</td></tr>`;
+      });
+      html += `<tr><td colspan="4" style="text-align:right;font-weight:bold;">Subtotal</td><td style="text-align:right;font-weight:bold;">${formatRupiah(s.jumlah)}</td></tr></tbody></table>`;
     }
     html += `</div>`;
   });
@@ -1083,7 +1122,12 @@ function kirimStorWa(id) {
   if (!noHpBendahara) return alert('No HP Bendahara belum diisi!\nSilakan isi di Profil Sekolah.');
   const namaAdmin = p.namaAdmin || p.bendahara || 'Admin';
   const items = Array.isArray(s.items) && s.items.length ? s.items : null;
-  const rincian = items ? items.map(it => `  • ${it.nama || '(tanpa nama)'} : ${formatRupiah(it.jumlah)}`).join('\n') + '\n' : '';
+  const rincian = items ? items.map(it => {
+    const qty = parseInt(it.qty) || 0;
+    const harga = parseInt(it.harga) || 0;
+    const det = (qty > 1 && harga > 0) ? ` (${qty} × ${formatRupiah(harga)})` : '';
+    return `  • ${it.nama || '(tanpa nama)'}${det} : ${formatRupiah(it.jumlah)}`;
+  }).join('\n') + '\n' : '';
   const msg = `*SURAT SETOR / STOR KE BENDAHARA*\n` +
     `${p.namaSekolah || 'SD Negeri 1 Selopuro'}\n` +
     `${p.alamat || ''}\n\n` +
@@ -1114,7 +1158,12 @@ function kirimStorWaAll() {
   const rows = items.map((s, i) => {
     total += s.jumlah;
     const its = Array.isArray(s.items) && s.items.length ? s.items : null;
-    const det = its ? '\n' + its.map(it => `     - ${it.nama || '(tanpa nama)'} : ${formatRupiah(it.jumlah)}`).join('\n') : '';
+    const det = its ? '\n' + its.map(it => {
+      const qty = parseInt(it.qty) || 0;
+      const harga = parseInt(it.harga) || 0;
+      const dd = (qty > 1 && harga > 0) ? ` (${qty} × ${formatRupiah(harga)})` : '';
+      return `     - ${it.nama || '(tanpa nama)'}${dd} : ${formatRupiah(it.jumlah)}`;
+    }).join('\n') : '';
     return `${i+1}. ${s.noStor} | ${formatDateShort(s.tanggal)} | ${s.oleh || '-'} | ${formatRupiah(s.jumlah)}${det}`;
   }).join('\n');
   const msg = `*SURAT SETOR / STOR KE BENDAHARA*\n` +

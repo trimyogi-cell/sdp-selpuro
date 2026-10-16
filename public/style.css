@@ -1407,12 +1407,25 @@ body {
 .jenis-checkbox-item .item-nominal { font-weight: 700; color: var(--primary); white-space: nowrap; }
 
 /* ===== STOR ITEMS ===== */
+.stor-items-head {
+    display: grid;
+    grid-template-columns: 1fr 70px 130px 40px;
+    gap: 8px;
+    padding: 0 0 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: .3px;
+}
+.stor-items-head span:nth-child(2),
+.stor-items-head span:nth-child(3) { text-align: center; }
 .stor-item-row {
     display: grid;
-    grid-template-columns: 1fr 150px 40px;
+    grid-template-columns: 1fr 70px 130px 40px;
     gap: 8px;
     margin-bottom: 8px;
-    align-items: center;
+    align-items: start;
 }
 .stor-item-row input {
     padding: 8px 10px;
@@ -1423,6 +1436,16 @@ body {
 }
 .stor-item-row input:focus { outline: none; border-color: var(--primary); }
 .stor-item-row .btn-icon { width: 38px; height: 38px; }
+.stor-item-field { min-width: 0; }
+.stor-item-sub {
+    font-size: 11px;
+    color: var(--text-light);
+    padding: 3px 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.stor-item-qty { text-align: center; }
 .stor-rincian-line {
     display: flex;
     justify-content: space-between;
@@ -1434,8 +1457,10 @@ body {
 .stor-rincian-line b { color: var(--primary); }
 .btn-sm { padding: 6px 12px; font-size: 13px; }
 @media (max-width: 768px) {
-    .stor-item-row { grid-template-columns: 1fr 100px 34px; gap: 5px; }
+    .stor-items-head { grid-template-columns: 1fr 54px 96px 34px; }
+    .stor-item-row { grid-template-columns: 1fr 54px 96px 34px; gap: 5px; }
     .stor-item-row input { font-size: 13px; padding: 7px 8px; }
     .stor-item-row .btn-icon { width: 34px; height: 34px; }
+    .stor-item-sub { font-size: 10px; }
     .stor-rincian-line { font-size: 11px; }
 }

@@ -625,7 +625,14 @@ app.post('/api/stor', async (req, res) => {
     const s = await loadTable('stor');
     const rawItems = Array.isArray(req.body.items) ? req.body.items : [];
     const items = rawItems
-      .map(it => ({ nama: String(it.nama || '').slice(0, 100), jumlah: Math.max(0, parseInt(it.jumlah) || 0) }))
+      .map(it => {
+        const nama = String(it.nama || '').slice(0, 100);
+        const qty = Math.max(0, parseInt(it.qty) || 0);
+        const harga = Math.max(0, parseInt(it.harga) || 0);
+        let jumlah = Math.max(0, parseInt(it.jumlah) || 0);
+        if (qty > 0 && harga > 0) jumlah = qty * harga;
+        return { nama, qty, harga, jumlah };
+      })
       .filter(it => it.nama || it.jumlah);
     const jumlah = items.length ? items.reduce((a, it) => a + it.jumlah, 0) : Math.max(0, parseInt(req.body.jumlah) || 0);
     const item = { id: nextId(s), noStor: String(req.body.noStor || '').slice(0, 30), tanggal: String(req.body.tanggal || '').slice(0, 30), oleh: String(req.body.oleh || '').slice(0, 100), jumlah, catatan: String(req.body.catatan || '').slice(0, 200), items };
