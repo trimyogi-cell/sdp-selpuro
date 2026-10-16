@@ -332,24 +332,6 @@
       "oleh": "Admin kelas 3",
       "jumlah": 620000,
       "catatan": "SETOR 5 Orang. A. Siswa 175.000. Jurnal 90.000. Seni rupa 60.000. B. Inggris 60.000. B. Jawa 60.000. PJOK 60.000. Pramuka 115.000"
-    },
-    {
-      "id": 5,
-      "noStor": "STR-LIVETEST",
-      "tanggal": "2026-10-16",
-      "oleh": "TEST",
-      "jumlah": 50000,
-      "catatan": "",
-      "items": [
-        {
-          "nama": "TEST LKS",
-          "jumlah": 30000
-        },
-        {
-          "nama": "TEST Iuran",
-          "jumlah": 20000
-        }
-      ]
     }
   ],
   "users": [
