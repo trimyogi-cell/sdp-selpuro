@@ -574,7 +574,7 @@ app.post('/api/transaksi', async (req, res) => {
     const items = Array.isArray(req.body) ? req.body : [req.body];
     const ids = [];
     for (const item of items) {
-      const tx = { id: nextId(t), noBayar: String(item.noBayar || '').slice(0, 30), tanggal: String(item.tanggal || '').slice(0, 30), siswaId: parseInt(item.siswaId) || 0, siswaNama: String(item.siswaNama || '').slice(0, 100), siswaKelas: String(item.siswaKelas || '').slice(0, 10), jenisId: parseInt(item.jenisId) || 0, jenisNama: String(item.jenisNama || '').slice(0, 100), kategori: String(item.kategori || '').slice(0, 30), nominal: Math.max(0, parseInt(item.nominal) || 0), metode: String(item.metode || 'Tunai').slice(0, 20), keterangan: String(item.keterangan || '').slice(0, 200), status: String(item.status || 'Lunas').slice(0, 20), waktu: String(item.waktu || '').slice(0, 30) };
+      const tx = { id: nextId(t), noBayar: String(item.noBayar || '').slice(0, 30), tanggal: String(item.tanggal || '').slice(0, 30), siswaId: parseInt(item.siswaId) || 0, siswaNama: String(item.siswaNama || '').slice(0, 100), siswaKelas: String(item.siswaKelas || '').slice(0, 10), jenisId: parseInt(item.jenisId) || 0, jenisNama: String(item.jenisNama || '').slice(0, 100), kategori: String(item.kategori || '').slice(0, 30), nominal: Math.max(0, parseInt(item.nominal) || 0), metode: String(item.metode || 'Tunai').slice(0, 20), keterangan: String(item.keterangan || '').slice(0, 200), status: String(item.status || 'Lunas').slice(0, 20), waktu: String(item.waktu || '').slice(0, 30), dibayar: Math.max(0, parseInt(item.dibayar) || 0), kembalian: Math.max(0, parseInt(item.kembalian) || 0) };
       t.push(tx);
       ids.push(tx.id);
     }
@@ -623,7 +623,12 @@ app.get('/api/stor', async (req, res) => {
 app.post('/api/stor', async (req, res) => {
   try {
     const s = await loadTable('stor');
-    const item = { id: nextId(s), noStor: String(req.body.noStor || '').slice(0, 30), tanggal: String(req.body.tanggal || '').slice(0, 30), oleh: String(req.body.oleh || '').slice(0, 100), jumlah: Math.max(0, parseInt(req.body.jumlah) || 0), catatan: String(req.body.catatan || '').slice(0, 200) };
+    const rawItems = Array.isArray(req.body.items) ? req.body.items : [];
+    const items = rawItems
+      .map(it => ({ nama: String(it.nama || '').slice(0, 100), jumlah: Math.max(0, parseInt(it.jumlah) || 0) }))
+      .filter(it => it.nama || it.jumlah);
+    const jumlah = items.length ? items.reduce((a, it) => a + it.jumlah, 0) : Math.max(0, parseInt(req.body.jumlah) || 0);
+    const item = { id: nextId(s), noStor: String(req.body.noStor || '').slice(0, 30), tanggal: String(req.body.tanggal || '').slice(0, 30), oleh: String(req.body.oleh || '').slice(0, 100), jumlah, catatan: String(req.body.catatan || '').slice(0, 200), items };
     s.push(item);
     await saveTable('stor', s);
     broadcast('stor', { action: 'add', id: item.id });

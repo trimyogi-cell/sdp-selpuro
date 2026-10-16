@@ -259,8 +259,56 @@ function openModal(id) {
     document.getElementById('txTanggal').value = new Date().toISOString().split('T')[0];
     document.getElementById('txJenisCheckboxes').innerHTML = '<p style="color:var(--text-light);font-size:13px;">Pilih siswa terlebih dahulu</p>';
     document.getElementById('txTotalNominal').style.display = 'none';
+    const dibEl = document.getElementById('txDibayar'); if (dibEl) dibEl.value = '';
+    const kemEl = document.getElementById('txKembalian'); if (kemEl) kemEl.value = '';
+    window._txTotal = 0;
   }
-  if (id === 'storModal') document.getElementById('storTanggal').value = new Date().toISOString().split('T')[0];
+  if (id === 'storModal') {
+    document.getElementById('storTanggal').value = new Date().toISOString().split('T')[0];
+    const dl = document.getElementById('storItemSuggestions');
+    if (dl) {
+      const names = new Set();
+      (DB.jenisBayar || []).forEach(jb => { if (jb.kategori) names.add(jb.kategori); if (jb.nama) names.add(jb.nama); });
+      dl.innerHTML = [...names].map(n => `<option value="${esc(n)}"></option>`).join('');
+    }
+    const box = document.getElementById('storItems');
+    box.innerHTML = '';
+    addStorItem();
+  }
+}
+
+// ===== STOR ITEMS =====
+function addStorItem(nama, jumlah) {
+  const box = document.getElementById('storItems');
+  if (!box) return;
+  const row = document.createElement('div');
+  row.className = 'stor-item-row';
+  row.innerHTML = `
+    <input type="text" class="stor-item-nama" list="storItemSuggestions" placeholder="Nama item (mis: LKS)" value="${esc(nama || '')}">
+    <input type="number" class="stor-item-jumlah" placeholder="Jumlah (Rp)" oninput="updateStorTotal()" value="${jumlah ? jumlah : ''}">
+    <button type="button" class="btn btn-icon btn-danger" onclick="removeStorItem(this)" title="Hapus item"><i class="fas fa-times"></i></button>`;
+  box.appendChild(row);
+  updateStorTotal();
+}
+
+function removeStorItem(btn) {
+  const box = document.getElementById('storItems');
+  btn.closest('.stor-item-row').remove();
+  if (!box.querySelector('.stor-item-row')) addStorItem();
+  updateStorTotal();
+}
+
+function getStorItems() {
+  return [...document.querySelectorAll('#storItems .stor-item-row')].map(row => ({
+    nama: row.querySelector('.stor-item-nama').value.trim(),
+    jumlah: parseInt(row.querySelector('.stor-item-jumlah').value) || 0
+  })).filter(it => it.nama || it.jumlah);
+}
+
+function updateStorTotal() {
+  const total = getStorItems().reduce((a, it) => a + it.jumlah, 0);
+  const box = document.getElementById('storTotalBox');
+  if (box) box.textContent = 'Total: ' + formatRupiah(total);
 }
 
 function closeModal(id) {
@@ -540,6 +588,24 @@ function updateTxTotal() {
   } else {
     totalDiv.style.display = 'none';
   }
+  window._txTotal = total;
+  updateTxKembalian();
+}
+
+function updateTxKembalian() {
+  const total = window._txTotal || 0;
+  const dibayar = parseInt(document.getElementById('txDibayar')?.value) || 0;
+  const el = document.getElementById('txKembalian');
+  if (!el) return;
+  if (!dibayar) { el.value = ''; el.style.color = 'var(--success)'; return; }
+  const kembalian = dibayar - total;
+  if (kembalian < 0) {
+    el.value = 'Kurang ' + formatRupiah(-kembalian);
+    el.style.color = 'var(--danger)';
+  } else {
+    el.value = formatRupiah(kembalian);
+    el.style.color = 'var(--success)';
+  }
 }
 
 async function handleTransaksiForm(e) {
@@ -564,11 +630,22 @@ async function handleTransaksiForm(e) {
       return { noBayar, tanggal, siswaId: siswa.id, siswaNama: siswa.nama, siswaKelas: siswa.kelas, jenisId: jenis.id, jenisNama: jenis.nama, kategori: jenis.kategori, nominal: jenis.nominal, metode, keterangan, status: 'Lunas', waktu };
     });
 
+    const totalBayar = items.reduce((s, t) => s + t.nominal, 0);
+    const dibayarInput = parseInt(document.getElementById('txDibayar').value) || 0;
+    const dibayar = dibayarInput || totalBayar;
+    if (dibayarInput && dibayarInput < totalBayar) {
+      setBtnLoading(btn, false);
+      return alert('Uang diterima (' + formatRupiah(dibayarInput) + ') kurang dari total (' + formatRupiah(totalBayar) + ').');
+    }
+    const kembalian = Math.max(0, dibayar - totalBayar);
+    items.forEach(t => { t.dibayar = dibayar; t.kembalian = kembalian; });
+
     await api('/transaksi', { method: 'POST', body: items });
     DB.transaksi = await api('/transaksi');
     closeModal('transaksiModal');
     renderTransaksiTable();
-    alert(`Transaksi berhasil! ${items.length} item dibayar.\nNo: ${noBayar}\nTotal: ${formatRupiah(items.reduce((s, t) => s + t.nominal, 0))}`);
+    alert(`Transaksi berhasil! ${items.length} item dibayar.\nNo: ${noBayar}\nTotal: ${formatRupiah(totalBayar)}` +
+      (kembalian > 0 ? `\nDibayar: ${formatRupiah(dibayar)}\nKembalian: ${formatRupiah(kembalian)}` : ''));
   } catch (e) { alert('Gagal menyimpan transaksi: ' + e.message); }
   finally { setBtnLoading(btn, false); }
 }
@@ -628,6 +705,8 @@ function detailTransaksi(id) {
     ${itemsHtml}
     <hr style="margin:10px 0;border-color:var(--border);">
     <div class="detail-row" style="font-weight:700;"><span class="detail-label">Total</span><span class="detail-value" style="color:var(--primary);">${formatRupiah(total)}</span></div>
+    ${(t.dibayar ? `<div class="detail-row"><span class="detail-label">Uang Diterima</span><span class="detail-value">${formatRupiah(t.dibayar)}</span></div>` : '')}
+    ${(t.kembalian ? `<div class="detail-row"><span class="detail-label">Kembalian</span><span class="detail-value" style="color:var(--success);font-weight:700;">${formatRupiah(t.kembalian)}</span></div>` : '')}
     <div class="detail-row"><span class="detail-label">Metode</span><span class="detail-value">${esc(t.metode)}</span></div>
     <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span class="badge badge-success">${esc(t.status)}</span></span></div>
     ${t.keterangan ? `<div class="detail-row"><span class="detail-label">Keterangan</span><span class="detail-value">${esc(t.keterangan)}</span></div>` : ''}
@@ -674,6 +753,8 @@ function cetakBuktiTransaksi() {
       </table>
       <table style="width:100%;font-size:13px;margin-top:5px;">
         <tr><td>Metode Bayar</td><td>: ${esc(t.metode)}</td></tr>
+        ${(t.dibayar ? `<tr><td>Uang Diterima</td><td>: <strong>${formatRupiah(t.dibayar)}</strong></td></tr>` : '')}
+        ${(t.kembalian ? `<tr><td>Kembalian</td><td>: <strong style="color:green;">${formatRupiah(t.kembalian)}</strong></td></tr>` : '')}
         <tr><td>Status</td><td>: <strong style="color:green;">LUNAS</strong></td></tr>
       </table>
       <div style="display:flex;justify-content:space-between;margin-top:40px;font-size:13px;">
@@ -779,6 +860,8 @@ function generateBuktiPDF(id) {
   doc.setFontSize(7);
   doc.text('Metode: ' + (t.metode || 'Tunai'), 5, y);
   y += 4;
+  if (t.dibayar) { doc.text('Diterima: ' + formatRupiah(t.dibayar), 5, y); y += 4; }
+  if (t.kembalian) { doc.text('Kembali : ' + formatRupiah(t.kembalian), 5, y); y += 4; }
   doc.setFont('helvetica', 'bold');
   doc.text('Status: LUNAS', 5, y);
   y += 14;
@@ -881,31 +964,40 @@ async function handleStorForm(e) {
   const btn = e.target.querySelector('button[type="submit"]');
   setBtnLoading(btn, true);
   try {
+    const items = getStorItems();
+    if (!items.length) { setBtnLoading(btn, false); return alert('Isi minimal satu item yang disetor!'); }
     const stor = {
       noStor: generateNoStor(), tanggal: document.getElementById('storTanggal').value,
       oleh: document.getElementById('storOleh').value,
-      jumlah: parseInt(document.getElementById('storJumlah').value) || 0,
+      jumlah: items.reduce((a, it) => a + it.jumlah, 0),
+      items: items,
       catatan: document.getElementById('storCatatan').value
     };
     await api('/stor', { method: 'POST', body: stor });
     DB.stor = await api('/stor');
     closeModal('storModal');
     renderStorTable();
-    alert('Berhasil! No: ' + stor.noStor);
+    alert('Berhasil! No: ' + stor.noStor + '\nTotal: ' + formatRupiah(stor.jumlah));
   } catch (e) { alert('Gagal menyimpan stor: ' + e.message); }
   finally { setBtnLoading(btn, false); }
 }
 
 function renderStorTable() {
   const tbody = document.getElementById('storBody');
-  tbody.innerHTML = DB.stor.map((s, i) => `
+  tbody.innerHTML = DB.stor.map((s, i) => {
+    const items = Array.isArray(s.items) && s.items.length ? s.items : null;
+    const rincian = items
+      ? items.map(it => `<div class="stor-rincian-line"><span>${esc(it.nama) || '(tanpa nama)'}</span><b>${formatRupiah(it.jumlah)}</b></div>`).join('')
+      : '<span style="color:var(--text-light);">-</span>';
+    return `
     <tr>
       <td><input type="checkbox" class="stor-check" value="${s.id}" onchange="updateBulkStorBtn()"></td>
       <td>${i + 1}</td>
       <td><span class="badge badge-info">${esc(s.noStor)}</span></td>
       <td>${formatDateShort(s.tanggal)}</td>
       <td>${esc(s.oleh) || '-'}</td>
-      <td>${formatRupiah(s.jumlah)}</td>
+      <td><b>${formatRupiah(s.jumlah)}</b></td>
+      <td>${rincian}</td>
       <td>${esc(s.catatan) || '-'}</td>
       <td class="table-actions">
         <button class="btn btn-icon btn-success" onclick="kirimStorWa(${s.id})" title="Kirim Struk WA"><i class="fab fa-whatsapp"></i></button>
@@ -913,7 +1005,8 @@ function renderStorTable() {
         <button class="btn btn-icon btn-danger" onclick="deleteStor(${s.id})" title="Hapus"><i class="fas fa-trash"></i></button>
       </td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
   document.getElementById('checkAllStor').checked = false;
   updateBulkStorBtn();
 }
@@ -957,17 +1050,28 @@ function printStor() {
 
 function printStorData(data) {
   const p = DB.profil || {};
-  let html = `<h2>SURAT SETOR / STOR KE BENDAHARA</h2><p>${esc(p.namaSekolah) || 'SD Negeri 1 Selopuro'}</p><p>${esc(p.alamat) || ''}</p><hr>
-    <table><thead><tr><th>No</th><th>No. Stor</th><th>Tanggal</th><th>Disetor Oleh</th><th>Jumlah</th><th>Catatan</th></tr></thead><tbody>`;
+  let html = `<h2>SURAT SETOR / STOR KE BENDAHARA</h2><p>${esc(p.namaSekolah) || 'SD Negeri 1 Selopuro'}</p><p>${esc(p.alamat) || ''}</p><hr>`;
   let total = 0;
-  data.forEach((s, i) => { total += s.jumlah; html += `<tr><td>${i+1}</td><td>${esc(s.noStor)}</td><td>${formatDateShort(s.tanggal)}</td><td>${esc(s.oleh)||''}</td><td>${formatRupiah(s.jumlah)}</td><td>${esc(s.catatan)||''}</td></tr>`; });
-  html += `</tbody><tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;">TOTAL</td><td style="font-weight:bold;">${formatRupiah(total)}</td><td></td></tr></tfoot></table>
-    <br><br><div style="display:flex;justify-content:space-between;margin-top:40px;">
+  data.forEach((s, i) => {
+    total += s.jumlah;
+    const items = Array.isArray(s.items) && s.items.length ? s.items : null;
+    html += `<div class="stor-block">
+      <table><thead><tr><th>No. Stor</th><th>Tanggal</th><th>Disetor Oleh</th><th>Catatan</th><th style="text-align:right;">Jumlah</th></tr></thead>
+      <tbody><tr><td>${esc(s.noStor)}</td><td>${formatDateShort(s.tanggal)}</td><td>${esc(s.oleh)||''}</td><td>${esc(s.catatan)||''}</td><td style="text-align:right;font-weight:bold;">${formatRupiah(s.jumlah)}</td></tr></tbody></table>`;
+    if (items) {
+      html += `<table style="margin-top:-1px;"><thead><tr><th style="width:40px;">No</th><th>Rincian Item yang Disetor</th><th style="width:160px;text-align:right;">Harga</th></tr></thead><tbody>`;
+      items.forEach((it, k) => { html += `<tr><td>${k+1}</td><td>${esc(it.nama) || '(tanpa nama)'}</td><td style="text-align:right;">${formatRupiah(it.jumlah)}</td></tr>`; });
+      html += `<tr><td colspan="2" style="text-align:right;font-weight:bold;">Subtotal</td><td style="text-align:right;font-weight:bold;">${formatRupiah(s.jumlah)}</td></tr></tbody></table>`;
+    }
+    html += `</div>`;
+  });
+  html += `<div style="text-align:right;font-size:15px;font-weight:bold;margin-top:12px;">TOTAL KESELURUHAN: ${formatRupiah(total)}</div>`;
+  html += `<br><br><div style="display:flex;justify-content:space-between;margin-top:40px;">
     <div style="text-align:center;width:200px;"><p><strong>Yang Menyetor</strong></p><br><br><br><p>_________________</p></div>
     <div style="text-align:center;width:200px;"><p><strong>${esc(p.bendahara) || 'Bendahara'}</strong></p><p>${esc(p.namaSekolah) || ''}</p><br><br><p>_________________</p></div></div>`;
   const w = window.open('', '_blank', 'width=900,height=650');
   if (!w) { alert('Ijinkan popup untuk mencetak'); return; }
-  w.document.write(`<html><head><title>SURAT SETOR</title><style>body{font-family:Arial,sans-serif;padding:30px;margin:0;color:#000;}h2{text-align:center;}p{text-align:center;}table{width:100%;border-collapse:collapse;margin-top:15px;}th,td{border:1px solid #333;padding:8px;font-size:12px;text-align:left;}th{background:#f0f0f0;}tfoot td{font-weight:bold;}@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}</style></head><body>${html}</body><script>window.onload=function(){setTimeout(function(){window.print();},300);};<\/script></html>`);
+  w.document.write(`<html><head><title>SURAT SETOR</title><style>body{font-family:Arial,sans-serif;padding:30px;margin:0;color:#000;}h2{text-align:center;}p{text-align:center;}table{width:100%;border-collapse:collapse;margin-top:15px;}th,td{border:1px solid #333;padding:8px;font-size:12px;text-align:left;}th{background:#f0f0f0;}tfoot td{font-weight:bold;}.stor-block{margin-bottom:18px;page-break-inside:avoid;}@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}</style></head><body>${html}</body><script>window.onload=function(){setTimeout(function(){window.print();},300);};<\/script></html>`);
   w.document.close();
 }
 
@@ -978,14 +1082,17 @@ function kirimStorWa(id) {
   const noHpBendahara = p.noHpBendahara;
   if (!noHpBendahara) return alert('No HP Bendahara belum diisi!\nSilakan isi di Profil Sekolah.');
   const namaAdmin = p.namaAdmin || p.bendahara || 'Admin';
+  const items = Array.isArray(s.items) && s.items.length ? s.items : null;
+  const rincian = items ? items.map(it => `  • ${it.nama || '(tanpa nama)'} : ${formatRupiah(it.jumlah)}`).join('\n') + '\n' : '';
   const msg = `*SURAT SETOR / STOR KE BENDAHARA*\n` +
     `${p.namaSekolah || 'SD Negeri 1 Selopuro'}\n` +
     `${p.alamat || ''}\n\n` +
     `No. Stor : ${s.noStor}\n` +
     `Tanggal  : ${formatDateShort(s.tanggal)}\n` +
-    `Disetor  : ${s.oleh || '-'}\n` +
-    `Jumlah   : ${formatRupiah(s.jumlah)}\n` +
-    `Catatan  : ${s.catatan || '-'}\n\n` +
+    `Disetor  : ${s.oleh || '-'}\n\n` +
+    `*Rincian Item:*\n` + (rincian || '  • ' + (s.catatan || '-') + '\n') +
+    `\n*TOTAL    : ${formatRupiah(s.jumlah)}*\n` +
+    (s.catatan ? `Catatan  : ${s.catatan}\n` : '') + `\n` +
     `Mengetahui,\n` +
     `_Bendahara_\n` +
     `${esc(p.bendahara) || ''}\n\n` +
@@ -1004,7 +1111,12 @@ function kirimStorWaAll() {
   if (!noHpBendahara) return alert('No HP Bendahara belum diisi!\nSilakan isi di Profil Sekolah.');
   const namaAdmin = p.namaAdmin || p.bendahara || 'Admin';
   let total = 0;
-  const rows = items.map((s, i) => { total += s.jumlah; return `${i+1}. ${s.noStor} | ${formatDateShort(s.tanggal)} | ${s.oleh || '-'} | ${formatRupiah(s.jumlah)}`; }).join('\n');
+  const rows = items.map((s, i) => {
+    total += s.jumlah;
+    const its = Array.isArray(s.items) && s.items.length ? s.items : null;
+    const det = its ? '\n' + its.map(it => `     - ${it.nama || '(tanpa nama)'} : ${formatRupiah(it.jumlah)}`).join('\n') : '';
+    return `${i+1}. ${s.noStor} | ${formatDateShort(s.tanggal)} | ${s.oleh || '-'} | ${formatRupiah(s.jumlah)}${det}`;
+  }).join('\n');
   const msg = `*SURAT SETOR / STOR KE BENDAHARA*\n` +
     `${p.namaSekolah || 'SD Negeri 1 Selopuro'}\n` +
     `${p.alamat || ''}\n\n` +
@@ -1828,7 +1940,10 @@ function kirimWaStrukById(id) {
   const total = sameNo.reduce((s, tx) => s + tx.nominal, 0);
   const p = DB.profil || {};
   const namaAdmin = p.namaAdmin || p.bendahara || p.kepsek || 'Admin';
-  const msg = `${p.namaSekolah||'SD Negeri 1 Selopuro'}\n${p.alamat||''}\nTelp: ${p.telp||''}\n\n━━━ BUKTI PEMBAYARAN ━━━\n\nNo. Bayar: ${t.noBayar}\nTanggal: ${formatDate(t.tanggal)} ${t.waktu||''}\nSiswa: ${t.siswaNama} (${getKelasText(t.siswaKelas)})\nOrang Tua: ${siswa?.orangTua||'-'}\n\nItem dibayar:\n${itemList}\n\nTotal: ${formatRupiah(total)}\nMetode: ${t.metode}\nStatus: LUNAS\n\nDiterima oleh:\n_${namaAdmin}_\n\nTerima kasih 🙏`;
+  const msg = `${p.namaSekolah||'SD Negeri 1 Selopuro'}\n${p.alamat||''}\nTelp: ${p.telp||''}\n\n━━━ BUKTI PEMBAYARAN ━━━\n\nNo. Bayar: ${t.noBayar}\nTanggal: ${formatDate(t.tanggal)} ${t.waktu||''}\nSiswa: ${t.siswaNama} (${getKelasText(t.siswaKelas)})\nOrang Tua: ${siswa?.orangTua||'-'}\n\nItem dibayar:\n${itemList}\n\nTotal: ${formatRupiah(total)}\n` +
+    (t.dibayar ? `Diterima: ${formatRupiah(t.dibayar)}\n` : '') +
+    (t.kembalian ? `Kembalian: ${formatRupiah(t.kembalian)}\n` : '') +
+    `Metode: ${t.metode}\nStatus: LUNAS\n\nDiterima oleh:\n_${namaAdmin}_\n\nTerima kasih 🙏`;
   if (siswa && siswa.noHp) {
     openWaChat(siswa.noHp, msg);
     logWaRiwayat(t.siswaNama, siswa.noHp, 'Struk', msg);
