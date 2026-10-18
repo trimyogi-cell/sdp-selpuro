@@ -59,6 +59,7 @@ function setBtnLoading(btn, loading, originalText) {
 let evtSource = null;
 function connectSSE() {
   if (evtSource) evtSource.close();
+  if (!authToken) return;
   evtSource = new EventSource(API + '/events?token=' + encodeURIComponent(authToken || ''));
   evtSource.addEventListener('siswa', () => { if (currentActivePage === 'siswa') renderSiswaTable(); if (currentActivePage === 'dashboard') refreshDashboard(); });
   evtSource.addEventListener('jenisbayar', () => { if (currentActivePage === 'pembayaran') renderJenisBayarTable(); if (currentActivePage === 'transaksi') populateTransaksiForm(); });
@@ -181,8 +182,11 @@ function handleLogout() {
   api('/logout', { method: 'POST' }).catch(() => {});
   authToken = null;
   currentUser = null;
+  currentActivePage = 'dashboard';
+  if (evtSource) { try { evtSource.close(); } catch (e) {} evtSource = null; }
   localStorage.removeItem('sdp_token');
   localStorage.removeItem('sdp_user');
+  localStorage.removeItem('sdp_currentPage');
   document.getElementById('loginPage').classList.remove('hidden');
   document.getElementById('mainApp').classList.add('hidden');
   document.getElementById('username').value = '';
@@ -264,6 +268,8 @@ function openModal(id) {
     window._txTotal = 0;
   }
   if (id === 'storModal') {
+    document.getElementById('storModalTitle').textContent = 'Stor ke Bendahara';
+    document.getElementById('storEditId').value = '';
     document.getElementById('storTanggal').value = new Date().toISOString().split('T')[0];
     const dl = document.getElementById('storItemSuggestions');
     if (dl) {
@@ -353,6 +359,10 @@ function closeModal(id) {
   document.getElementById('jenisBayarModalTitle').textContent = 'Tambah Jenis Pembayaran';
   document.getElementById('userEditId').value = '';
   document.getElementById('userModalTitle').textContent = 'Tambah User';
+  const storEdit = document.getElementById('storEditId');
+  if (storEdit) storEdit.value = '';
+  const storTitle = document.getElementById('storModalTitle');
+  if (storTitle) storTitle.textContent = 'Stor ke Bendahara';
 }
 
 // ===== SISWA =====
@@ -564,11 +574,7 @@ function loadJenisBayarForSiswa() {
     totalDiv.style.display = 'none';
     return;
   }
-  const available = DB.jenisBayar.filter(jb => {
-    if (jb.kelas === 'all') return true;
-    if (jb.kelas.includes('-')) { const [min, max] = jb.kelas.split('-').map(Number); return parseInt(siswa.kelas) >= min && parseInt(siswa.kelas) <= max; }
-    return jb.kelas === siswa.kelas;
-  });
+  const available = getJenisForSiswa(siswa);
   if (!available.length) {
     container.innerHTML = '<p style="color:var(--text-light);font-size:13px;">Tidak ada jenis pembayaran untuk kelas ini</p>';
     totalDiv.style.display = 'none';
@@ -996,20 +1002,45 @@ async function handleStorForm(e) {
   try {
     const items = getStorItems();
     if (!items.length) { setBtnLoading(btn, false); return alert('Isi minimal satu item yang disetor!'); }
+    const editId = document.getElementById('storEditId').value;
+    const jumlah = items.reduce((a, it) => a + it.jumlah, 0);
+    if (jumlah <= 0) { setBtnLoading(btn, false); return alert('Total setoran masih Rp 0. Isi qty dan harga satuan!'); }
     const stor = {
       noStor: generateNoStor(), tanggal: document.getElementById('storTanggal').value,
       oleh: document.getElementById('storOleh').value,
-      jumlah: items.reduce((a, it) => a + it.jumlah, 0),
+      jumlah,
       items: items,
       catatan: document.getElementById('storCatatan').value
     };
-    await api('/stor', { method: 'POST', body: stor });
+    if (editId) {
+      const existing = DB.stor.find(x => x.id === parseInt(editId));
+      if (existing) stor.noStor = existing.noStor;
+      await api(`/stor/${editId}`, { method: 'PUT', body: stor });
+    } else {
+      await api('/stor', { method: 'POST', body: stor });
+    }
     DB.stor = await api('/stor');
     closeModal('storModal');
     renderStorTable();
-    alert('Berhasil! No: ' + stor.noStor + '\nTotal: ' + formatRupiah(stor.jumlah));
+    alert((editId ? 'Perubahan tersimpan! ' : 'Berhasil! ') + 'No: ' + stor.noStor + '\nTotal: ' + formatRupiah(stor.jumlah));
   } catch (e) { alert('Gagal menyimpan stor: ' + e.message); }
   finally { setBtnLoading(btn, false); }
+}
+
+function editStor(id) {
+  const s = DB.stor.find(x => x.id === id);
+  if (!s) return;
+  openModal('storModal');
+  document.getElementById('storModalTitle').textContent = 'Edit Stor ke Bendahara';
+  document.getElementById('storEditId').value = s.id;
+  document.getElementById('storOleh').value = s.oleh || '';
+  document.getElementById('storTanggal').value = s.tanggal || '';
+  document.getElementById('storCatatan').value = s.catatan || '';
+  const box = document.getElementById('storItems');
+  box.innerHTML = '';
+  const its = Array.isArray(s.items) && s.items.length ? s.items : [{ nama: '', jumlah: s.jumlah || 0 }];
+  its.forEach(it => addStorItem(it));
+  updateStorTotal();
 }
 
 function renderStorTable() {
@@ -1035,8 +1066,9 @@ function renderStorTable() {
       <td>${rincian}</td>
       <td>${esc(s.catatan) || '-'}</td>
       <td class="table-actions">
+        <button class="btn btn-icon btn-info" onclick="editStor(${s.id})" title="Edit"><i class="fas fa-edit"></i></button>
         <button class="btn btn-icon btn-success" onclick="kirimStorWa(${s.id})" title="Kirim Struk WA"><i class="fab fa-whatsapp"></i></button>
-        <button class="btn btn-icon btn-info" onclick="printStorById(${s.id})" title="Cetak"><i class="fas fa-print"></i></button>
+        <button class="btn btn-icon btn-secondary" onclick="printStorById(${s.id})" title="Cetak"><i class="fas fa-print"></i></button>
         <button class="btn btn-icon btn-danger" onclick="deleteStor(${s.id})" title="Hapus"><i class="fas fa-trash"></i></button>
       </td>
     </tr>
@@ -1221,12 +1253,17 @@ function refreshDashboard() {
   document.getElementById('summaryList').innerHTML = summaryHtml || '<p style="text-align:center;color:#94a3b8;">Belum ada data</p>';
 }
 
+function getJenisForSiswa(s) {
+  return DB.jenisBayar.filter(jb => {
+    const kelas = jb.kelas || 'all';
+    if (kelas === 'all') return true;
+    if (kelas.includes('-')) { const parts = kelas.split('-').map(Number); const k = parseInt(s.kelas); return k >= parts[0] && k <= parts[1]; }
+    return kelas === s.kelas;
+  });
+}
+
 function getSiswaTotalTagihan(s) {
-  return DB.jenisBayar.reduce((sum, jb) => {
-    if (jb.kelas === 'all') return sum + jb.nominal;
-    if (jb.kelas.includes('-')) { const parts = jb.kelas.split('-').map(Number); return (parseInt(s.kelas) >= parts[0] && parseInt(s.kelas) <= parts[1]) ? sum + jb.nominal : sum; }
-    return jb.kelas === s.kelas ? sum + jb.nominal : sum;
-  }, 0);
+  return getJenisForSiswa(s).reduce((sum, jb) => sum + (jb.nominal || 0), 0);
 }
 
 function getSiswaStatus(s) {
@@ -1315,11 +1352,11 @@ function printRincian() {
 function showLaporanTab(tab) {
   document.querySelectorAll('.laporan-content').forEach(c => c.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  const tabMap = { harian:'laporanHarian', bulanan:'laporanBulanan', kelas:'laporanKelas', ringkasan:'laporanRingkasan', lpihak:'laporanLpihak' };
+  const tabMap = { harian:'laporanHarian', bulanan:'laporanBulanan', kelas:'laporanKelas', ringkasan:'laporanRingkasan', stor:'laporanStor', lpihak:'laporanLpihak' };
   document.getElementById(tabMap[tab]).classList.add('active');
-  const idx = ['harian','bulanan','kelas','ringkasan','lpihak'].indexOf(tab);
+  const idx = ['harian','bulanan','kelas','ringkasan','stor','lpihak'].indexOf(tab);
   document.querySelectorAll('.tab-btn')[idx].classList.add('active');
-  const tabFns = { harian: generateLaporanHarian, bulanan: generateLaporanBulanan, kelas: generateLaporanKelas, ringkasan: generateRingkasan, lpihak: generateLpihak };
+  const tabFns = { harian: generateLaporanHarian, bulanan: generateLaporanBulanan, kelas: generateLaporanKelas, ringkasan: generateRingkasan, stor: generateLaporanStor, lpihak: generateLpihak };
   tabFns[tab]();
 }
 
@@ -1353,11 +1390,7 @@ function generateLaporanKelas() {
     const akt = txSiswa.filter(t => t.kategori === 'Aktivitas').reduce((sum, t) => sum + t.nominal, 0);
     const iuran = txSiswa.filter(t => t.kategori === 'Iuran').reduce((sum, t) => sum + t.nominal, 0);
     const totalBayar = lks + akt + iuran;
-    const totalTagihan = DB.jenisBayar.reduce((sum, jb) => {
-      if (jb.kelas === 'all') return sum + jb.nominal;
-      if (jb.kelas.includes('-')) { const parts = jb.kelas.split('-').map(Number); return (parseInt(s.kelas) >= parts[0] && parseInt(s.kelas) <= parts[1]) ? sum + jb.nominal : sum; }
-      return jb.kelas === s.kelas ? sum + jb.nominal : sum;
-    }, 0);
+    const totalTagihan = getSiswaTotalTagihan(s);
     const sisa = totalTagihan - totalBayar;
     let status, badge;
     if (sisa <= 0) { status = 'Lunas'; badge = 'badge-success'; }
@@ -1376,11 +1409,7 @@ function generateRingkasan() {
   const rows = siswaList.map((s, i) => {
     const txSiswa = DB.transaksi.filter(t => t.siswaId === s.id);
     const totalBayar = txSiswa.reduce((sum, t) => sum + t.nominal, 0);
-    const detailItems = DB.jenisBayar.filter(jb => {
-      if (jb.kelas === 'all') return true;
-      if (jb.kelas.includes('-')) { const [min,max] = jb.kelas.split('-').map(Number); return parseInt(s.kelas) >= min && parseInt(s.kelas) <= max; }
-      return jb.kelas === s.kelas;
-    });
+    const detailItems = getJenisForSiswa(s);
     const totalTagihan = detailItems.reduce((sum, jb) => sum + jb.nominal, 0);
     const detailHtml = detailItems.map(jb => {
       const txs = txSiswa.filter(t => t.jenisId === jb.id);
@@ -1419,13 +1448,46 @@ function generateLpihak() {
   const siswaList = kelas ? DB.siswa.filter(s => s.kelas === kelas) : DB.siswa;
   document.getElementById('laporanPiutangBody').innerHTML = siswaList.map((s, i) => {
     const totalBayar = DB.transaksi.filter(t => t.siswaId === s.id).reduce((sum, t) => sum + t.nominal, 0);
-    const totalTagihan = DB.jenisBayar.reduce((sum, jb) => {
-      if (jb.kelas === 'all') return sum + jb.nominal;
-      if (jb.kelas.includes('-')) { const parts = jb.kelas.split('-').map(Number); return (parseInt(s.kelas) >= parts[0] && parseInt(s.kelas) <= parts[1]) ? sum + jb.nominal : sum; }
-      return jb.kelas === s.kelas ? sum + jb.nominal : sum;
-    }, 0);
+    const totalTagihan = getSiswaTotalTagihan(s);
     return `<tr><td>${i+1}</td><td>${esc(s.nama)}</td><td>${esc(getKelasText(s.kelas))}</td><td>${esc(s.orangTua)||''}</td><td>${esc(s.noHp)||''}</td><td>${formatRupiah(totalTagihan)}</td><td>${formatRupiah(totalBayar)}</td><td style="color:${(totalTagihan-totalBayar)>0?'var(--danger)':'var(--success)'};font-weight:600;">${formatRupiah(totalTagihan-totalBayar)}</td></tr>`;
   }).join('');
+}
+
+function generateLaporanStor() {
+  const dari = (document.getElementById('filterStorDari') || {}).value || '';
+  const sampai = (document.getElementById('filterStorSampai') || {}).value || '';
+  let list = (DB.stor || []).slice().sort((a, b) => (a.tanggal || '').localeCompare(b.tanggal || '') || (a.id - b.id));
+  if (dari) list = list.filter(s => (s.tanggal || '') >= dari);
+  if (sampai) list = list.filter(s => (s.tanggal || '') <= sampai);
+  const rows = list.map((s, i) => {
+    const items = Array.isArray(s.items) ? s.items : [];
+    const rincian = items.length
+      ? items.map(it => {
+          const qty = parseInt(it.qty) || 0;
+          const harga = parseInt(it.harga) || 0;
+          const det = (qty > 0 && harga > 0) ? ` (${qty} × ${formatRupiah(harga)})` : '';
+          return `${esc(it.nama) || '(tanpa nama)'}${det} = ${formatRupiah(it.jumlah)}`;
+        }).join('<br>')
+      : '<span style="color:var(--text-light);">-</span>';
+    return `<tr>
+      <td>${i + 1}</td>
+      <td><span class="badge badge-info">${esc(s.noStor)}</span></td>
+      <td>${formatDateShort(s.tanggal)}</td>
+      <td>${esc(s.oleh) || '-'}</td>
+      <td style="font-size:11px;">${rincian}</td>
+      <td style="font-weight:600;">${formatRupiah(s.jumlah || s.nominal || 0)}</td>
+      <td>${esc(s.catatan) || '-'}</td>
+    </tr>`;
+  });
+  document.getElementById('laporanStorBody').innerHTML = rows.join('') || '<tr><td colspan="7" style="text-align:center;">Tidak ada data setoran</td></tr>';
+  const total = list.reduce((a, s) => a + (s.jumlah || s.nominal || 0), 0);
+  document.getElementById('laporanStorTotal').innerHTML = `<span>Total: <strong>${formatRupiah(total)}</strong></span><span>Jumlah: <strong>${list.length}</strong> penyetoran</span>`;
+}
+
+function resetFilterStor() {
+  const d1 = document.getElementById('filterStorDari'); if (d1) d1.value = '';
+  const d2 = document.getElementById('filterStorSampai'); if (d2) d2.value = '';
+  generateLaporanStor();
 }
 
 function printRingkasanSiswa() {
@@ -1440,11 +1502,7 @@ function printRingkasanSiswa() {
   const rows = siswaList.map(s => {
     const txSiswa = DB.transaksi.filter(t => t.siswaId === s.id);
     const totalBayar = txSiswa.reduce((sum, t) => sum + t.nominal, 0);
-    const detailItems = DB.jenisBayar.filter(jb => {
-      if (jb.kelas === 'all') return true;
-      if (jb.kelas.includes('-')) { const p = jb.kelas.split('-').map(Number); return parseInt(s.kelas) >= p[0] && parseInt(s.kelas) <= p[1]; }
-      return jb.kelas === s.kelas;
-    });
+    const detailItems = getJenisForSiswa(s);
     const totalTagihan = detailItems.reduce((sum, jb) => sum + jb.nominal, 0);
     const sisa = totalTagihan - totalBayar;
     const status = sisa <= 0 ? 'Lunas' : (totalBayar > 0 ? 'Sebagian' : 'Belum Bayar');
@@ -1565,7 +1623,7 @@ function printLaporan(type) {
   if (type === 'ringkasan') { printRingkasanSiswa(); return; }
   const tabs = {
     harian: 'laporanHarian', bulanan: 'laporanBulanan', kelas: 'laporanKelas',
-    ringkasan: 'laporanRingkasan', piutang: 'laporanLpihak'
+    ringkasan: 'laporanRingkasan', piutang: 'laporanLpihak', stor: 'laporanStor'
   };
   const wrap = document.getElementById(tabs[type] || '');
   if (!wrap) { alert('Laporan tidak ditemukan'); return; }
@@ -2158,7 +2216,7 @@ async function handleChangePassword(e) {
   if (!userId) return alert('Pilih user!');
   if (currentUser?.role !== 'admin' && currentUser?.id !== userId) return alert('Tidak punya akses!');
   if (passBaru !== passKonf) return alert('Password baru tidak cocok!');
-  if (passBaru.length < 4) return alert('Password minimal 4 karakter!');
+  if (passBaru.length < 6) return alert('Password minimal 6 karakter!');
   try {
     await api('/change-password', { method: 'POST', body: { userId, passLama, passBaru } });
     document.getElementById('changePasswordForm').reset();

@@ -643,6 +643,36 @@ app.post('/api/stor', async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Error' }); }
 });
 
+app.put('/api/stor/:id', async (req, res) => {
+  try {
+    const s = await loadTable('stor');
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: 'ID tidak valid' });
+    const item = s.find(x => x.id === id);
+    if (!item) return res.status(404).json({ error: 'Data stor tidak ditemukan' });
+    const rawItems = Array.isArray(req.body.items) ? req.body.items : [];
+    const items = rawItems
+      .map(it => {
+        const nama = String(it.nama || '').slice(0, 100);
+        const qty = Math.max(0, parseInt(it.qty) || 0);
+        const harga = Math.max(0, parseInt(it.harga) || 0);
+        let jumlah = Math.max(0, parseInt(it.jumlah) || 0);
+        if (qty > 0 && harga > 0) jumlah = qty * harga;
+        return { nama, qty, harga, jumlah };
+      })
+      .filter(it => it.nama || it.jumlah);
+    item.noStor = String(req.body.noStor || item.noStor || '').slice(0, 30);
+    item.tanggal = String(req.body.tanggal || '').slice(0, 30);
+    item.oleh = String(req.body.oleh || '').slice(0, 100);
+    item.catatan = String(req.body.catatan || '').slice(0, 200);
+    item.items = items;
+    item.jumlah = items.length ? items.reduce((a, it) => a + it.jumlah, 0) : Math.max(0, parseInt(req.body.jumlah) || 0);
+    await saveTable('stor', s);
+    broadcast('stor', { action: 'update', id });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Error' }); }
+});
+
 app.delete('/api/stor/:id', async (req, res) => {
   try {
     const s = await loadTable('stor');
