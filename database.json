@@ -302,14 +302,6 @@
   },
   "stor": [
     {
-      "id": 1,
-      "noStor": "STR-260928-0001",
-      "tanggal": "2026-09-28",
-      "oleh": "Admin kelas 3",
-      "jumlah": 75000,
-      "catatan": "Kaos olah raga 1 orang"
-    },
-    {
       "id": 4,
       "noStor": "STR-261018-0004",
       "tanggal": "2026-10-06",
