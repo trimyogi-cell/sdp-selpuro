@@ -332,6 +332,58 @@
       "oleh": "Admin kelas 3",
       "jumlah": 620000,
       "catatan": "SETOR 5 Orang. A. Siswa 175.000. Jurnal 90.000. Seni rupa 60.000. B. Inggris 60.000. B. Jawa 60.000. PJOK 60.000. Pramuka 115.000"
+    },
+    {
+      "id": 5,
+      "noStor": "STR-261018-0005",
+      "tanggal": "2026-10-18",
+      "oleh": "admin",
+      "jumlah": 620000,
+      "catatan": "",
+      "items": [
+        {
+          "nama": "AKTIVITAS SISWA",
+          "qty": 5,
+          "harga": 35000,
+          "jumlah": 175000
+        },
+        {
+          "nama": "JURNAL 7 K",
+          "qty": 5,
+          "harga": 18000,
+          "jumlah": 90000
+        },
+        {
+          "nama": "BAHASA JAWA",
+          "qty": 5,
+          "harga": 12000,
+          "jumlah": 60000
+        },
+        {
+          "nama": "BAHASA INGGRIS",
+          "qty": 5,
+          "harga": 12000,
+          "jumlah": 60000
+        },
+        {
+          "nama": "SENI RUPA",
+          "qty": 5,
+          "harga": 12000,
+          "jumlah": 60000
+        },
+        {
+          "nama": "PJOK",
+          "qty": 5,
+          "harga": 12000,
+          "jumlah": 60000
+        },
+        {
+          "nama": "PRAMUKA",
+          "qty": 5,
+          "harga": 23000,
+          "jumlah": 115000
+        }
+      ]
     }
   ],
   "users": [
