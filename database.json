@@ -400,6 +400,22 @@
           "jumlah": 75000
         }
       ]
+    },
+    {
+      "id": 8,
+      "noStor": "STR-LIVE-EDIT",
+      "tanggal": "2026-10-18",
+      "oleh": "Tes Awal",
+      "jumlah": 50000,
+      "catatan": "",
+      "items": [
+        {
+          "nama": "Kurban",
+          "qty": 10,
+          "harga": 5000,
+          "jumlah": 50000
+        }
+      ]
     }
   ],
   "users": [
