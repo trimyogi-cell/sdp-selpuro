@@ -376,6 +376,22 @@
           "jumlah": 115000
         }
       ]
+    },
+    {
+      "id": 5,
+      "noStor": "STR-261018-0005",
+      "tanggal": "2026-10-03",
+      "oleh": "admin",
+      "jumlah": 75000,
+      "catatan": "",
+      "items": [
+        {
+          "nama": "SERAGAM OLAH RAGA",
+          "qty": 1,
+          "harga": 75000,
+          "jumlah": 75000
+        }
+      ]
     }
   ],
   "users": [
