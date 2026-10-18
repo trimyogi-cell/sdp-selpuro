@@ -400,28 +400,6 @@
           "jumlah": 75000
         }
       ]
-    },
-    {
-      "id": 8,
-      "noStor": "STR-LIVE-EDIT",
-      "tanggal": "2026-10-18",
-      "oleh": "Tes Edit",
-      "jumlah": 66000,
-      "catatan": "edit live",
-      "items": [
-        {
-          "nama": "Kurban",
-          "qty": 12,
-          "harga": 5000,
-          "jumlah": 60000
-        },
-        {
-          "nama": "Iuran",
-          "qty": 3,
-          "harga": 2000,
-          "jumlah": 6000
-        }
-      ]
     }
   ],
   "users": [
