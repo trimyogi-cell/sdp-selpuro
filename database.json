@@ -1979,6 +1979,24 @@
       "waktu": "07.48.37",
       "dibayar": 75000,
       "kembalian": 0
+    },
+    {
+      "id": 95,
+      "noBayar": "BYR-261021-102905",
+      "tanggal": "2026-10-21",
+      "siswaId": 3,
+      "siswaNama": "ARSYAD KHOIRUL AZZAM",
+      "siswaKelas": "3",
+      "jenisId": 10,
+      "jenisNama": "SERAGAM OLAH RAGA",
+      "kategori": "Lainnya",
+      "nominal": 75000,
+      "metode": "Tunai",
+      "keterangan": "",
+      "status": "Lunas",
+      "waktu": "10.29.05",
+      "dibayar": 75000,
+      "kembalian": 0
     }
   ]
 }
